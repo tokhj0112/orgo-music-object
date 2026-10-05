@@ -20,24 +20,29 @@ if (host && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.55;
+  renderer.toneMappingExposure = 2.05;
   renderer.setClearColor(0x000000, 0);
   renderer.domElement.setAttribute("aria-hidden", "true");
   host.appendChild(renderer.domElement);
 
-  scene.add(new THREE.HemisphereLight(0xf4f7ff, 0x3b3731, 3.8));
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x5a5245, 5.2));
+  scene.add(new THREE.AmbientLight(0xffffff, 1.8));
 
-  const keyLight = new THREE.DirectionalLight(0xfff4e8, 5.4);
+  const keyLight = new THREE.DirectionalLight(0xfff8ee, 7.2);
   keyLight.position.set(3, 5, 6);
   scene.add(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0xd6e3ff, 3.7);
+  const fillLight = new THREE.DirectionalLight(0xe4edff, 5.3);
   fillLight.position.set(-5, 1, 3);
   scene.add(fillLight);
 
-  const rimLight = new THREE.PointLight(0xffd59a, 22, 0, 2);
+  const rimLight = new THREE.PointLight(0xffd59a, 28, 0, 2);
   rimLight.position.set(1.5, 2, -3);
   scene.add(rimLight);
+
+  const frontLight = new THREE.PointLight(0xffffff, 34, 0, 2);
+  frontLight.position.set(-1.4, 1.8, 4.5);
+  scene.add(frontLight);
   scene.add(modelRoot);
 
   function fitRenderer() {
@@ -100,8 +105,9 @@ if (host && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 
       model.position.sub(center);
       modelRoot.add(model);
+      modelRoot.scale.setScalar(1.12);
       modelRoot.rotation.set(-0.12, -0.32, 0);
-      camera.position.set(largestSide * 0.8, largestSide * 0.42, largestSide * 3.35);
+      camera.position.set(largestSide * 0.72, largestSide * 0.36, largestSide * 2.65);
       camera.lookAt(0, 0, 0);
       host.classList.add("is-ready");
     },
