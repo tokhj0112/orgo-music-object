@@ -1,0 +1,404 @@
+(() => {
+  "use strict";
+
+  /* ------------------------------
+     스크롤 등장 효과
+     펀칭 종이에는 적용하지 않습니다.
+  ------------------------------ */
+
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  );
+
+  const reveals = document.querySelectorAll(".reveal");
+
+  if (
+    !reduceMotion.matches &&
+    "IntersectionObserver" in window
+  ) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+
+          entry.target.classList.remove("is-pending");
+          observer.unobserve(entry.target);
+        }
+      },
+      {
+        threshold: 0.12,
+      }
+    );
+
+    for (const element of reveals) {
+      element.classList.add("is-pending");
+      observer.observe(element);
+    }
+  }
+
+  /* ------------------------------
+     메인 — 완성된 오르골에서 분해도까지
+  ------------------------------ */
+
+  const scrollProduct = document.querySelector("[data-scroll-product]");
+
+  if (scrollProduct && !reduceMotion.matches) {
+    let ticking = false;
+
+    const updateScrollProduct = () => {
+      const bounds = scrollProduct.getBoundingClientRect();
+      const travel = Math.max(1, scrollProduct.offsetHeight - window.innerHeight);
+      const raw = Math.min(1, Math.max(0, -bounds.top / travel));
+      const progress = Math.min(1, raw / 0.72);
+      const eased = progress * progress * (3 - 2 * progress);
+
+      scrollProduct.style.setProperty("--explode", eased.toFixed(3));
+      scrollProduct.style.setProperty(
+        "--story-fade",
+        Math.max(0, (progress - 0.42) / 0.58).toFixed(3)
+      );
+      scrollProduct.classList.toggle("is-exploding", progress > 0.02);
+      ticking = false;
+    };
+
+    const requestScrollUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateScrollProduct);
+    };
+
+    updateScrollProduct();
+    window.addEventListener("scroll", requestScrollUpdate, { passive: true });
+    window.addEventListener("resize", requestScrollUpdate);
+  }
+
+  /* ------------------------------
+     Object 페이지
+  ------------------------------ */
+
+  /* ------------------------------
+     Archive 페이지
+  ------------------------------ */
+
+  const archiveList = document.getElementById("archive-list");
+
+  if (archiveList) {
+    const archiveEmpty = document.getElementById("archive-empty");
+    const archiveKey = "orgo-archive";
+
+    function readArchive() {
+      try {
+        const items = JSON.parse(localStorage.getItem(archiveKey) || "[]");
+        return Array.isArray(items) ? items : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime())
+        ? "날짜 없음"
+        : new Intl.DateTimeFormat("ko-KR", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        }).format(date);
+    }
+
+    function writeArchive(items) {
+      localStorage.setItem(archiveKey, JSON.stringify(items));
+    }
+
+    let archiveAudio = null;
+    let archiveMaster = null;
+    const archivePitches = [261.63, 293.66, 329.63, 392, 440, 523.25, 587.33, 659.25];
+
+    function archiveNote(y, height) {
+      const now = archiveAudio.currentTime;
+      const index = Math.max(0, Math.min(archivePitches.length - 1, archivePitches.length - 1 - Math.round((y / height) * (archivePitches.length - 1))));
+
+      [
+        { ratio: 1, gain: 0.16, decay: 1.55 },
+        { ratio: 2.01, gain: 0.06, decay: 1.05 },
+        { ratio: 2.76, gain: 0.025, decay: 0.72 },
+      ].forEach((partial) => {
+        const oscillator = archiveAudio.createOscillator();
+        const envelope = archiveAudio.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.value = archivePitches[index] * partial.ratio;
+        envelope.gain.setValueAtTime(0.0001, now);
+        envelope.gain.exponentialRampToValueAtTime(partial.gain, now + 0.01);
+        envelope.gain.exponentialRampToValueAtTime(0.0001, now + partial.decay);
+        oscillator.connect(envelope).connect(archiveMaster);
+        oscillator.start();
+        oscillator.stop(now + partial.decay + 0.04);
+      });
+    }
+
+    async function playArchive(item, button) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass || !(item.notes || []).length) return;
+
+      if (!archiveAudio) {
+        archiveAudio = new AudioContextClass();
+        archiveMaster = archiveAudio.createGain();
+        archiveMaster.gain.value = 0.65;
+        archiveMaster.connect(archiveAudio.destination);
+      }
+
+      if (archiveAudio.state !== "running") await archiveAudio.resume();
+
+      const sequence = [...item.notes].sort((a, b) => a.x - b.x);
+      button.disabled = true;
+      button.textContent = "연주 중…";
+      sequence.forEach((note, index) => {
+        window.setTimeout(
+          () => archiveNote(note.y, item.height || 420),
+          index * 360
+        );
+      });
+      window.setTimeout(() => {
+        button.disabled = false;
+        button.textContent = "들어보기 ♪";
+      }, sequence.length * 360 + 900);
+    }
+
+    function renderArchive() {
+      const items = readArchive();
+      archiveList.replaceChildren();
+      archiveEmpty.hidden = items.length > 0;
+      archiveList.hidden = items.length === 0;
+
+      items.forEach((item, index) => {
+        const card = document.createElement("article");
+        card.className = "archive-card";
+
+        const preview = document.createElement("div");
+        preview.className = "archive-preview";
+        const height = item.height || 420;
+
+        (item.notes || []).slice(0, 70).forEach((note) => {
+          const dot = document.createElement("i");
+          dot.className = "archive-note";
+          dot.style.left = `${Math.max(0, Math.min(100, (note.x / 1200) * 100))}%`;
+          dot.style.top = `${Math.max(0, Math.min(100, (note.y / height) * 100))}%`;
+          preview.appendChild(dot);
+        });
+
+        const body = document.createElement("div");
+        body.className = "archive-card-body";
+        const meta = document.createElement("div");
+        meta.className = "archive-card-meta";
+        meta.textContent = `${item.kind === "HAND" ? "HAND" : "MOUSE"} / ${formatDate(item.createdAt)}`;
+
+        const title = document.createElement("input");
+        title.className = "archive-title-input";
+        title.type = "text";
+        title.maxLength = 32;
+        title.value = item.title || `선율 ${String(items.length - index).padStart(2, "0")}`;
+        title.setAttribute("aria-label", "선율 이름");
+        title.addEventListener("change", () => {
+          const next = readArchive();
+          const found = next.find((saved) => saved.id === item.id);
+          if (!found) return;
+          found.title = title.value.trim() || "이름 없는 선율";
+          title.value = found.title;
+          writeArchive(next);
+        });
+        const details = document.createElement("p");
+        details.textContent = `${(item.notes || []).length} NOTES`;
+        const actions = document.createElement("div");
+        actions.className = "archive-card-actions";
+        const play = document.createElement("button");
+        play.className = "archive-play";
+        play.type = "button";
+        play.textContent = "들어보기 ♪";
+        play.addEventListener("click", () => playArchive(item, play));
+        const remove = document.createElement("button");
+        remove.className = "archive-delete";
+        remove.type = "button";
+        remove.textContent = "삭제하기";
+        remove.addEventListener("click", () => {
+          const next = readArchive().filter((saved) => saved.id !== item.id);
+          writeArchive(next);
+          renderArchive();
+        });
+
+        actions.append(play, remove);
+        body.append(meta, title, details, actions);
+        card.append(preview, body);
+        archiveList.appendChild(card);
+      });
+    }
+
+    renderArchive();
+  }
+
+  const engraving = document.getElementById("engraving");
+
+  if (!engraving) return;
+
+  const engravingPreview = document.getElementById(
+    "engraving-preview"
+  );
+
+  const engravingCount = document.getElementById(
+    "engraving-count"
+  );
+
+  const summary = document.getElementById(
+    "configuration-summary"
+  );
+
+  const saveButton = document.getElementById(
+    "save-configuration"
+  );
+
+  const status = document.getElementById(
+    "configuration-status"
+  );
+
+  const objectImage = document.getElementById(
+    "object-preview-image"
+  );
+
+  const photoInput = document.getElementById("photo-print");
+  const photoPreview = document.getElementById("print-preview");
+  const photoPreviewImage = document.getElementById(
+    "print-preview-image"
+  );
+  const photoName = document.getElementById("photo-print-name");
+
+  function selectedValue(name) {
+    const selected = document.querySelector(
+      `input[name="${name}"]:checked`
+    );
+
+    return selected ? selected.value : "";
+  }
+
+  function getConfiguration() {
+    return {
+      material: selectedValue("material"),
+      packaging: selectedValue("packaging"),
+      engraving: engraving.value.trim(),
+      photo: photoInput && photoInput.files[0]
+        ? photoInput.files[0].name
+        : "",
+    };
+  }
+
+  function updatePreview() {
+    const configuration = getConfiguration();
+
+    engravingPreview.textContent =
+      configuration.engraving ||
+      "A little music, for you.";
+
+    engravingCount.textContent =
+      `${engraving.value.length} / 32`;
+
+    summary.textContent = [
+      configuration.material,
+      configuration.packaging,
+      configuration.photo ? "사진 프린팅" : null,
+    ].filter(Boolean).join(" / ");
+  }
+
+  function updateObjectImage() {
+    if (!objectImage) return;
+
+    const isSilver = selectedValue("material") === "실버 메탈";
+    const nextSource = isSilver ? "image/orgom" : "image/orgo.png";
+    const nextAlt = isSilver
+      ? "실버 메탈 케이스 안에 금속 장치가 보이는 수동 오르골"
+      : "투명 아크릴 케이스 안에 금속 장치가 보이는 수동 오르골";
+
+    if (objectImage.getAttribute("src") === nextSource) return;
+
+    objectImage.classList.remove("is-entering");
+    objectImage.classList.add("is-switching");
+
+    window.setTimeout(() => {
+      objectImage.src = nextSource;
+      objectImage.alt = nextAlt;
+      objectImage.onload = () => {
+        objectImage.classList.remove("is-switching");
+        objectImage.classList.add("is-entering");
+        window.setTimeout(
+          () => objectImage.classList.remove("is-entering"),
+          440
+        );
+      };
+    }, 180);
+  }
+
+  engraving.addEventListener("input", updatePreview);
+
+  if (photoInput) {
+    photoInput.addEventListener("change", () => {
+      const file = photoInput.files[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        photoPreviewImage.src = reader.result;
+        photoPreview.hidden = false;
+      };
+      reader.readAsDataURL(file);
+      photoName.textContent = file.name;
+      updatePreview();
+    });
+  }
+
+  document
+    .querySelectorAll(
+      'input[name="material"], input[name="packaging"]'
+    )
+    .forEach((input) => {
+      input.addEventListener("change", () => {
+        updatePreview();
+        if (input.name === "material") updateObjectImage();
+      });
+    });
+
+  saveButton.addEventListener("click", () => {
+    const configuration = getConfiguration();
+
+    const contents = [
+      "ORGO — 나의 오르골 구성",
+      "",
+      `소재: ${configuration.material}`,
+      `패키지: ${configuration.packaging}`,
+      `사진 프린팅: ${configuration.photo || "없음"}`,
+      `각인 문구: ${configuration.engraving || "없음"}`,
+      "",
+      "이 파일은 구성 메모입니다.",
+      "주문이나 결제가 완료된 상태가 아닙니다.",
+    ].join("\n");
+
+    const blob = new Blob(
+      ["\uFEFF", contents],
+      { type: "text/plain;charset=utf-8" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "orgo-my-object.txt";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    status.textContent =
+      "구성 메모를 저장했습니다. 실제 주문 및 결제 기능은 준비 중입니다.";
+  });
+
+  updatePreview();
+})();

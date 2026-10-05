@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ORGO — Compose atelier</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+
+<body data-mode="write">
+  <header>
+    <a class="logo" href="index.html">orgo<sup>®</sup></a>
+
+    <nav class="compose-mode" aria-label="컴포즈 방식 선택">
+      <a href="compose.html" aria-current="page">마우스로 만들기</a>
+      <a href="camera.html">손끝으로 만들기</a>
+    </nav>
+
+    <span class="header-label">THE COMPOSING ROOM</span>
+
+  </header>
+
+  <main>
+    <div class="intro">
+      <div>
+        <p class="eyebrow">YOUR WORDS. YOUR MELODY.</p>
+        <h1>한 장의 마음, 하나의 선율.</h1>
+      </div>
+
+      <p>
+        쓰고, 뚫고, 돌려보세요.<br>
+        모든 과정이 이 작은 작업대 위에서.
+      </p>
+    </div>
+
+    <section class="sound-dock" aria-label="오르골 사운드 설정">
+      <div class="sound-controls">
+        <label class="tone-picker">
+          <span>음색</span>
+          <select id="tone" aria-label="오르골 음색 선택">
+            <option value="bright">맑은 별빛 · 선명한 고음</option>
+            <option value="warm" selected>따뜻한 숲 · 균형 잡힌 울림</option>
+            <option value="soft">밤의 자장가 · 부드러운 여운</option>
+          </select>
+        </label>
+
+        <button id="test" type="button">음색 들어보기 ♪</button>
+        <button id="sound" type="button" aria-pressed="false">음소거</button>
+
+        <label class="volume-control">
+          <span>음량</span>
+          <input id="volume" type="range" min="0" max="100" value="65" aria-label="음량">
+        </label>
+      </div>
+    </section>
+
+    <nav class="steps" aria-label="제작 순서">
+      <button id="write" type="button" class="active" aria-pressed="true">
+        <b>01</b>
+        쓰기
+        <small>WRITE</small>
+      </button>
+
+      <span aria-hidden="true">→</span>
+
+      <button id="punch" type="button" aria-pressed="false">
+        <b>02</b>
+        펀칭
+        <small>PUNCH</small>
+      </button>
+
+      <span aria-hidden="true">→</span>
+
+      <button id="listen" type="button" aria-pressed="false">
+        <b>03</b>
+        연주
+        <small>PLAY</small>
+      </button>
+    </nav>
+
+    <div class="workbench">
+      <section class="writing-desk" aria-label="손글씨 작업 공간">
+        <div class="toolbar">
+          <div class="inks" aria-label="글씨 색상">
+            <span>INK</span>
+
+            <button
+              type="button"
+              class="swatch selected"
+              data-color="#222222"
+              style="--ink: #222222"
+              aria-label="검정"
+              aria-pressed="true"
+            ></button>
+
+            <button
+              type="button"
+              class="swatch"
+              data-color="#536b91"
+              style="--ink: #536b91"
+              aria-label="파랑"
+              aria-pressed="false"
+            ></button>
+
+            <button
+              type="button"
+              class="swatch"
+              data-color="#a45345"
+              style="--ink: #a45345"
+              aria-label="붉은 갈색"
+              aria-pressed="false"
+            ></button>
+
+            <button
+              type="button"
+              class="swatch"
+              data-color="#66725c"
+              style="--ink: #66725c"
+              aria-label="올리브"
+              aria-pressed="false"
+            ></button>
+
+            <label class="custom">
+              +
+              <input
+                id="color"
+                type="color"
+                value="#222222"
+                aria-label="직접 색상 선택"
+              >
+            </label>
+          </div>
+
+          <label class="weight">
+            STROKE
+            <input
+              id="width"
+              type="range"
+              min="2"
+              max="9"
+              value="3"
+              aria-label="펜 굵기"
+            >
+          </label>
+
+          <div>
+            <button id="undo" type="button">되돌리기 ↶</button>
+            <button id="clear" type="button">새로 쓰기</button>
+          </div>
+        </div>
+
+        <div class="paper">
+          <div class="paper-meta">
+            <span>YOUR HANDWRITING</span>
+            <span>NO. 001 / ORIGINAL</span>
+          </div>
+
+          <canvas
+            id="sheet"
+            width="1200"
+            height="420"
+            aria-label="마우스나 손가락으로 손글씨를 쓰는 종이"
+          ></canvas>
+
+          <div id="placeholder">
+            여기에, 당신의 마음을.
+          </div>
+
+          <div class="paper-bottom">
+            <span>왼쪽에서 오른쪽으로 흐르는 시간</span>
+            <span aria-hidden="true">→</span>
+          </div>
+        </div>
+
+        <div class="desk-bottom">
+          <p id="hint" role="status">
+            펜의 색을 고르고, 종이 위에 마음을 써보세요.
+          </p>
+
+          <span id="count">0 STROKES</span>
+        </div>
+      </section>
+
+      <aside id="mechanism" class="instrument">
+        <div class="instrument-top">
+          <span>ORGO / MECHANICAL PLAYER</span>
+          <i aria-hidden="true"></i>
+        </div>
+
+        <div class="feed-shell">
+          <canvas
+            id="feed"
+            width="600"
+            height="100"
+            aria-label="완성된 종이가 지나가는 오르골 입구"
+          ></canvas>
+
+          <span class="feed-label">PAPER FEED</span>
+        </div>
+
+        <div class="crank-wrap">
+          <button
+            id="crank"
+            type="button"
+            disabled
+            aria-label="오르골 손잡이. 시계 방향으로 드래그하거나 오른쪽 화살표 키로 돌리기"
+          >
+            <span class="axle"></span>
+            <span class="arm">
+              <span class="knob"></span>
+            </span>
+          </button>
+
+          <span id="crank-label">
+            종이를 완성하면 연주할 수 있어요
+          </span>
+        </div>
+
+        <div class="instrument-foot">
+          <span id="position">0% · 종이의 시작</span>
+
+          <button id="rewind" type="button" disabled>
+            처음으로 ↶
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="actionbar">
+      <div>
+        <span id="stage-label">01 / WRITE</span>
+
+        <strong id="stage-title">
+          먼저, 당신의 글씨를 남겨주세요.
+        </strong>
+
+        <p id="stage-description">
+          가로 위치는 시간, 세로 위치는 음의 높이가 됩니다.
+        </p>
+      </div>
+
+      <div class="actions">
+        <button id="skip" type="button" hidden>
+          펀칭 스킵 · 즉시 완성
+        </button>
+
+        <button
+          id="autoplay"
+          type="button"
+          hidden
+          aria-pressed="false"
+        >
+          자동재생 · 한 페이지 반복 ↻
+        </button>
+
+        <button id="auto" type="button" hidden>
+          자동으로 모두 뚫기
+        </button>
+
+        <button id="save-archive" type="button" hidden>
+          아카이브에 저장하기 +
+        </button>
+
+        <button id="next" type="button" class="primary" disabled>
+          다 썼어요 · 펀칭하기 →
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span>HANDWRITING INTO MELODY</span>
+    <span>COMPOSE ATELIER / STUDY 02</span>
+  </footer>
+</body>
+</html>

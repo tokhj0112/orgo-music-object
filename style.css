@@ -1,0 +1,875 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #111211;
+  color: #efefea;
+  font-family: Arial, "Malgun Gothic", sans-serif;
+  line-height: 1.5;
+}
+
+button,
+input,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid #bfb090;
+  outline-offset: 4px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* 상단 */
+
+header {
+  height: 78px;
+  margin: 0 4%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #333;
+}
+
+.logo {
+  color: inherit;
+  font-size: 37px;
+  font-weight: 700;
+  letter-spacing: -3px;
+  text-decoration: none;
+}
+
+.logo sup {
+  font-size: 11px;
+  vertical-align: top;
+  letter-spacing: 0;
+}
+
+.header-label,
+.eyebrow,
+footer {
+  font: 9px monospace;
+  letter-spacing: 2px;
+  color: #b1b5aa;
+}
+
+.sound-dock {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.compose-mode {
+  display: flex;
+  gap: 7px;
+}
+
+.compose-mode a {
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #9fa49a;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.compose-mode a[aria-current="page"] {
+  border-color: #586052;
+  background: #dce3d014;
+  color: #f1f2ec;
+}
+
+.sound-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.sound-controls label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #b9beb2;
+  font-size: 10px;
+}
+
+.sound-controls select,
+.sound-controls button {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #596155;
+  border-radius: 8px;
+  background: #dbe2cf1c;
+  color: #e6e9df;
+  font: 11px Arial, "Malgun Gothic", sans-serif;
+}
+
+.sound-controls select { min-width: 172px; }
+.sound-controls button:hover { background: #e4ebd339; }
+.sound-controls input { width: 76px; accent-color: #d6dfc7; }
+
+.sound-dock + .steps {
+  margin-top: 16px;
+}
+
+/* 소개 */
+
+main {
+  max-width: 1600px;
+  margin: auto;
+  padding: 40px 4% 0;
+}
+
+.intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+}
+
+h1 {
+  font-size: clamp(24px, 2.4vw, 38px);
+  font-weight: 400;
+  letter-spacing: -1.8px;
+  margin: 0;
+}
+
+.intro > p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #b4b7ae;
+}
+
+/* 단계 */
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 34px 0 18px;
+}
+
+.steps button {
+  min-width: 132px;
+  padding: 12px 14px;
+  border: 1px solid #363b34;
+  border-radius: 9px;
+  font-size: 13px;
+  color: #a5a99f;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.steps b {
+  font: 10px monospace;
+  border: 1px solid #6a7064;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+}
+
+.steps small {
+  font: 9px monospace;
+  letter-spacing: 1px;
+}
+
+.steps > span {
+  color: #777d71;
+}
+
+.steps .active {
+  color: #fff;
+  border-color: #b8c0ad;
+  background: #252a23;
+}
+
+.steps .active b {
+  background: #e7e8dd;
+  color: #111;
+  border-color: #e7e8dd;
+}
+
+/* 작업대 */
+
+.workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 265px;
+  border: 1px solid #383b34;
+  background: #1c1f1b;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.writing-desk {
+  padding: 0 22px;
+  min-width: 0;
+}
+
+/* 글쓰기 도구 */
+
+.toolbar {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font: 9px monospace;
+  color: #c3c6bc;
+  border-bottom: 1px solid #393e37;
+}
+
+.toolbar > div:last-child {
+  display: flex;
+  gap: 14px;
+}
+
+.toolbar button {
+  padding: 7px 9px;
+  border: 1px solid #4b5148;
+  border-radius: 6px;
+  color: #d7d9d1;
+  font-size: 11px;
+}
+
+.inks {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.inks > span {
+  color: #aeb4a6;
+  font-size: 10px;
+}
+
+.swatch {
+  background: var(--ink);
+  border: 1px solid #888;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.swatch.selected {
+  outline: 1px solid #ddd;
+  outline-offset: 4px;
+}
+
+.custom {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border: 1px solid #777;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.custom input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.weight {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.weight input {
+  width: 50px;
+  accent-color: #aaa;
+}
+
+/* 종이 */
+
+.paper {
+  background: #eeece5;
+  color: #222;
+  position: relative;
+  box-shadow: 0 12px 25px #0003;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.paper-meta,
+.paper-bottom {
+  display: flex;
+  justify-content: space-between;
+  font: 9px monospace;
+  letter-spacing: 1px;
+  color: #9a978d;
+  margin: 0 22px;
+  padding: 14px 0;
+}
+
+.paper-meta {
+  border-bottom: 1px solid #d5d2c9;
+}
+
+.paper-bottom {
+  padding: 12px 0;
+}
+
+#sheet {
+  display: block;
+  width: 100%;
+  height: clamp(210px, 32vh, 380px);
+  touch-action: none;
+  cursor: crosshair;
+  background: repeating-linear-gradient(
+    transparent 0 34px,
+    #b8b6ab26 34px 35px
+  );
+}
+
+#placeholder {
+  position: absolute;
+  inset: 46% 0 auto;
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: -1px;
+  color: #b7b1a4;
+  pointer-events: none;
+}
+
+.desk-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  min-height: 56px;
+  font-size: 12px;
+  color: #c2c6ba;
+}
+
+.desk-bottom p {
+  line-height: 1.7;
+  margin: 10px 0;
+}
+
+#count {
+  color: #adb3a6;
+  font: 10px monospace;
+  white-space: nowrap;
+}
+
+/* 오르골 */
+
+.instrument {
+  border-left: 1px solid #42463c;
+  background: linear-gradient(135deg, #30362c, #1b1f19);
+  padding: 20px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.instrument-top {
+  font: 9px monospace;
+  letter-spacing: 1px;
+  color: #d0d7c4;
+  display: flex;
+  justify-content: space-between;
+}
+
+.instrument-top i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #63695c;
+}
+
+.feed-shell {
+  position: relative;
+  border: 5px solid #10130e;
+  box-shadow:
+    0 1px 0 #6a705d,
+    inset 0 3px 8px #000;
+  height: 66px;
+  overflow: hidden;
+  border-radius: 7px;
+}
+
+#feed {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0.3;
+}
+
+.feed-label {
+  position: absolute;
+  inset: 40% 0 auto;
+  text-align: center;
+  font: 8px monospace;
+  letter-spacing: 2px;
+  color: #777;
+}
+
+.crank-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+#crank {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  border: 1px solid #676e5f;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle,
+    #292e26 0 4px,
+    #30362c 5px 6px
+  );
+  touch-action: none;
+  cursor: grab;
+  box-shadow:
+    inset 0 0 20px #0009,
+    0 6px 15px #0005;
+}
+
+#crank:active {
+  cursor: grabbing;
+}
+
+#crank:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.axle {
+  position: absolute;
+  left: calc(50% - 15px);
+  top: calc(50% - 15px);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(130deg, #aaa, #eee, #555);
+  box-shadow: 0 3px 6px #000;
+}
+
+.arm {
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 7px);
+  width: 55px;
+  height: 14px;
+  background: linear-gradient(#bbb, #eee 35%, #666 90%);
+  transform-origin: 0 50%;
+  transform: rotate(var(--angle, 0rad));
+  border-radius: 7px;
+}
+
+.knob {
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 25%,
+    #fff,
+    #aaa 30%,
+    #444 80%
+  );
+  box-shadow: 3px 7px 8px #0008;
+}
+
+#crank-label {
+  font-size: 11px;
+  color: #c2c9b6;
+  text-align: center;
+}
+
+.instrument-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font: 9px monospace;
+  color: #929a88;
+}
+
+#rewind {
+  font-size: 9px;
+}
+
+/* 하단 동작 */
+
+.actionbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 26px 0;
+  border-top: 1px solid #383d35;
+}
+
+.actionbar > div:first-child > span {
+  font: 9px monospace;
+  letter-spacing: 1px;
+  color: #9ca38d;
+  display: block;
+  margin-bottom: 9px;
+}
+
+.actionbar strong {
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.actionbar p {
+  font-size: 12px;
+  color: #b4b8ac;
+  margin: 8px 0 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+}
+
+.actions button {
+  padding: 16px 21px;
+  border: 1px solid #70776a;
+  border-radius: 10px;
+  background: #dce3d01f;
+  font-size: 11px;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.actions button:not(:disabled):hover {
+  background: #e4ebd339;
+  border-color: #a7ad9f;
+}
+
+#save-archive { border-color: #b7c4a7; background: #dce3d01f; color: #eef3e7; }
+#save-archive:not([hidden]) { min-width: 180px; }
+
+.actions .primary {
+  background: #e7e9decc;
+  color: #1b1e17;
+  border-color: #e7e9decf;
+  min-width: 190px;
+}
+
+.actions .primary:disabled {
+  background: #33382d;
+  color: #9ba08f;
+  border-color: #414639;
+  opacity: 1;
+}
+
+#skip {
+  border-color: transparent;
+  color: #aeb3a4;
+  font-size: 10px;
+  padding-inline: 10px;
+}
+
+#autoplay {
+  background: #cdd6bccc;
+  color: #1b2117;
+  border-color: #cdd6bccf;
+}
+
+#autoplay[aria-pressed="true"] {
+  background: #292f23d9;
+  color: #e6eddb;
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 4%;
+  padding: 16px 0;
+  border-top: 1px solid #30332c;
+  font-size: 8px;
+}
+
+/* 단계별 상태 */
+
+body[data-mode="listen"] #feed {
+  opacity: 1;
+}
+
+body[data-mode="listen"] .feed-label {
+  display: none;
+}
+
+body[data-mode="listen"] .instrument-top i {
+  background: #cedab6;
+  box-shadow: 0 0 8px #d0e1a9;
+}
+
+body[data-mode="listen"] #sheet {
+  cursor: default;
+}
+
+body:not([data-mode="write"]) .inks,
+body:not([data-mode="write"]) .weight {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* 태블릿 */
+
+@media (max-width: 950px) {
+  .workbench {
+    grid-template-columns: minmax(0, 1fr) 205px;
+  }
+
+  .instrument {
+    padding: 16px 12px;
+  }
+
+  .writing-desk {
+    padding: 0 14px;
+  }
+
+  .weight {
+    display: none;
+  }
+
+  .toolbar {
+    gap: 10px;
+  }
+
+  .inks {
+    gap: 9px;
+  }
+
+  .steps {
+    margin-top: 20px;
+  }
+
+  .header-label {
+    display: none;
+  }
+}
+
+/* 모바일 */
+
+@media (max-width: 650px) {
+  header {
+    height: 60px;
+  }
+
+  .compose-mode a {
+    padding: 6px 7px;
+    font-size: 10px;
+  }
+
+  main {
+    padding-top: 20px;
+  }
+
+  .intro > p {
+    display: none;
+  }
+
+  .sound-dock {
+    margin-top: 12px;
+    justify-content: flex-start;
+  }
+
+  .sound-controls {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-top: 13px;
+  }
+
+  .sound-controls .volume-control {
+    width: 100%;
+  }
+
+  .sound-controls .volume-control input {
+    flex: 1;
+  }
+
+  h1 {
+    font-size: 25px;
+  }
+
+  .steps {
+    gap: 12px;
+  }
+
+  .steps button {
+    min-width: 0;
+    flex: 1;
+    justify-content: center;
+    padding: 10px 7px;
+    font-size: 11px;
+  }
+
+  .steps b {
+    width: 22px;
+    height: 22px;
+  }
+
+  .steps small {
+    display: none;
+  }
+
+  .workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .instrument {
+    border-left: 0;
+    border-top: 1px solid #444;
+    display: grid;
+    grid-template-columns: 1fr 130px;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .instrument-top {
+    grid-column: 1;
+  }
+
+  .feed-shell {
+    grid-column: 1;
+    height: 45px;
+  }
+
+  .crank-wrap {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    gap: 8px;
+  }
+
+  #crank {
+    width: 92px;
+    height: 92px;
+  }
+
+  .arm {
+    width: 32px;
+  }
+
+  .knob {
+    width: 25px;
+    height: 25px;
+    top: -6px;
+  }
+
+  #crank-label {
+    font-size: 8px;
+  }
+
+  .instrument-foot {
+    grid-column: 1;
+    font-size: 8px;
+  }
+
+  .toolbar {
+    height: 50px;
+  }
+
+  .toolbar > div:last-child {
+    gap: 8px;
+  }
+
+  .paper-meta,
+  .paper-bottom {
+    font-size: 6px;
+    margin: 0 13px;
+  }
+
+  #sheet {
+    height: 190px;
+  }
+
+  #placeholder {
+    font-size: 20px;
+  }
+
+  .actionbar {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 17px 0;
+    gap: 13px;
+  }
+
+  .actionbar p {
+    display: none;
+  }
+
+  .actions {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .actions button {
+    flex: 1;
+    padding: 13px 9px;
+    font-size: 10px;
+  }
+
+  .actions .primary {
+    min-width: 0;
+  }
+
+  #skip {
+    flex-basis: 100%;
+    order: 3;
+    padding: 5px;
+  }
+
+  .actionbar strong {
+    font-size: 12px;
+  }
+
+  .actionbar > div:first-child > span {
+    display: inline;
+    margin-right: 10px;
+  }
+
+  footer {
+    font-size: 6px;
+  }
+}
