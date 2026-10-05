@@ -251,6 +251,22 @@ img {
   min-height: 470px;
 }
 
+.hero-art::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  width: min(84%, 520px);
+  aspect-ratio: 1;
+  border: 1px solid #b9a97926;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, transparent 0 27%, #c7b77d19 27.25% 27.6%, transparent 27.85% 43%, #c7b77d12 43.25% 43.6%, transparent 43.85% 100%);
+  opacity: calc(var(--explode, 0) * .82);
+  pointer-events: none;
+  transform: scale(calc(.7 + var(--explode, 0) * .3));
+  animation: mechanical-resonance 4.8s ease-in-out infinite;
+}
+
 .music-box {
   position: relative;
   z-index: 2;
@@ -267,6 +283,15 @@ img {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.music-box .product-model {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  background: transparent;
+  --poster-color: transparent;
 }
 
 .music-box .product-image--whole {
@@ -298,7 +323,9 @@ img {
 /* 분해도는 하나의 이미지지만, 부품별 영역을 따로 움직여 조립이 풀리는 듯한 흐름을 만듭니다. */
 .explode-crank {
   clip-path: inset(0 27% 67% 27%);
+  transform-origin: 50% 25%;
   transform: translate(-42px, calc((1 - var(--explode, 0)) * 210px)) rotate(calc((1 - var(--explode, 0)) * -12deg));
+  animation: crank-rock 2.8s ease-in-out infinite;
 }
 
 .explode-lid {
@@ -313,40 +340,21 @@ img {
 
 .explode-cylinder {
   clip-path: inset(49% 0 25% 0);
+  transform-origin: 50% 60%;
   transform: translateY(calc((1 - var(--explode, 0)) * -96px)) scale(calc(.6 + var(--explode, 0) * .4));
+  animation: cylinder-turn 3.6s ease-in-out infinite;
 }
 
 .explode-mechanism {
   clip-path: inset(67% 5% 0 5%);
   transform: translateY(calc((1 - var(--explode, 0)) * -175px)) scale(calc(.7 + var(--explode, 0) * .3));
+  animation: comb-resonance 1.7s ease-in-out infinite;
 }
 
 .hero:not(.is-exploding) .music-box:hover,
 .hero:not(.is-exploding) .music-box:focus-visible {
   transform: perspective(1000px) rotate(-2deg) rotateY(-7deg) scale(1.035);
   filter: drop-shadow(0 45px 45px #000c);
-}
-
-.object-hover {
-  position: absolute;
-  left: 50%;
-  bottom: 8%;
-  padding: 12px 17px;
-  border: 1px solid #ffffff40;
-  background: #101010d9;
-  color: #fff;
-  font: 10px monospace;
-  letter-spacing: 1px;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translate(-50%, 8px) rotate(2deg);
-  transition: opacity 250ms ease, transform 250ms ease;
-}
-
-.music-box:hover .object-hover,
-.music-box:focus-visible .object-hover {
-  opacity: 1;
-  transform: translate(-50%, 0) rotate(2deg);
 }
 
 .orbit {
@@ -409,13 +417,6 @@ img {
   gap: clamp(45px, 7vw, 120px);
   padding: clamp(80px, 9vw, 130px) 7%;
   overflow: hidden;
-}
-
-.hero.is-exploding .hero-copy,
-.hero.is-exploding .vertical-caption,
-.hero.is-exploding .hero-bottom-line {
-  opacity: calc(1 - var(--story-fade, 0));
-  transition: opacity 180ms linear;
 }
 
 .story h2 {
@@ -882,6 +883,26 @@ legend {
   to {
     transform: rotate(59deg) scale(0.96);
   }
+}
+
+@keyframes mechanical-resonance {
+  0%, 100% { filter: brightness(.8); }
+  50% { filter: brightness(1.35); }
+}
+
+@keyframes crank-rock {
+  0%, 100% { rotate: -2.5deg; }
+  50% { rotate: 3.5deg; }
+}
+
+@keyframes cylinder-turn {
+  0%, 100% { rotate: -.8deg; }
+  50% { rotate: .8deg; }
+}
+
+@keyframes comb-resonance {
+  0%, 100% { translate: 0 0; filter: brightness(1); }
+  50% { translate: 0 -2px; filter: brightness(1.12); }
 }
 
 /* TABLET */
