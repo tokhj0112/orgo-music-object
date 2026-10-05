@@ -9,8 +9,8 @@
   >
   <title>ORGO — Every line, a little music.</title>
   <link rel="stylesheet" href="site.css">
-  <script type="module" src="https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
   <script src="site.js" defer></script>
+  <script type="module" src="hero-3d.js"></script>
 </head>
 
 <body>
@@ -59,23 +59,15 @@
           href="compose.html"
           aria-label="손글씨로 음악 만들기"
         >
-          <model-viewer
-            class="product-model product-image--whole"
-            src="Orgo.glb"
-            poster="image/orgo.png"
-            alt="투명 아크릴 안에 금속 장치가 보이는 손잡이 오르골의 3D 모델"
-            loading="eager"
-            reveal="auto"
-            auto-rotate
-            auto-rotate-delay="0"
-            rotation-per-second="12deg"
-            camera-orbit="30deg 72deg auto"
-            disable-zoom
-            disable-pan
-            interaction-prompt="none"
-            shadow-intensity="0.8"
-            exposure="1"
-          ></model-viewer>
+          <span
+            class="product-model product-image--whole hero-3d"
+            data-hero-3d
+            data-model="Orgo.glb"
+            role="img"
+            aria-label="마우스 움직임에 반응하는 손잡이 오르골 3D 모델"
+          >
+            <img class="hero-3d-fallback" src="image/orgo.png" alt="">
+          </span>
           <span class="exploded-assembly" aria-hidden="true">
             <img class="explode-part explode-crank" src="image/orgoex" alt="" width="1280" height="1280">
             <img class="explode-part explode-lid" src="image/orgoex" alt="" width="1280" height="1280">
