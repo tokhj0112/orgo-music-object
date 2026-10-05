@@ -105,9 +105,9 @@ if (host && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
 
       model.position.sub(center);
       modelRoot.add(model);
-      modelRoot.scale.setScalar(1.12);
+      modelRoot.scale.setScalar(1.17);
       modelRoot.rotation.set(-0.12, -0.32, 0);
-      camera.position.set(largestSide * 0.72, largestSide * 0.36, largestSide * 2.65);
+      camera.position.set(largestSide * 0.66, largestSide * 0.33, largestSide * 2.3);
       camera.lookAt(0, 0, 0);
       host.classList.add("is-ready");
     },
