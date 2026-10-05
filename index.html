@@ -9,16 +9,7 @@
   >
   <title>ORGO — Every line, a little music.</title>
   <link rel="stylesheet" href="site.css">
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
-      }
-    }
-  </script>
   <script src="site.js" defer></script>
-  <script type="module" src="hero-3d.js"></script>
 </head>
 
 <body>
@@ -67,15 +58,14 @@
           href="compose.html"
           aria-label="손글씨로 음악 만들기"
         >
-          <span
-            class="product-model product-image--whole hero-3d"
-            data-hero-3d
-            data-model="Orgo.glb"
-            role="img"
-            aria-label="마우스 움직임에 반응하는 손잡이 오르골 3D 모델"
+          <img
+            class="product-image product-image--whole"
+            src="image/orgo.png"
+            alt="투명 아크릴 안에 금속 장치가 보이는 손잡이 오르골"
+            width="1280"
+            height="1280"
+            fetchpriority="high"
           >
-            <img class="hero-3d-fallback" src="image/orgo.png" alt="">
-          </span>
           <span class="exploded-assembly" aria-hidden="true">
             <img class="explode-part explode-crank" src="image/orgoex" alt="" width="1280" height="1280">
             <img class="explode-part explode-lid" src="image/orgoex" alt="" width="1280" height="1280">
