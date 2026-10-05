@@ -6,7 +6,7 @@ const host = document.querySelector("[data-hero-3d]");
 if (host && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   const art = host.closest(".hero-art");
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+  const camera = new THREE.PerspectiveCamera(24, 1, 0.01, 100);
   const renderer = new THREE.WebGLRenderer({
     alpha: true,
     antialias: true,
