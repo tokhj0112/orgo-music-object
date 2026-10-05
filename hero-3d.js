@@ -20,22 +20,22 @@ if (host && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.16;
+  renderer.toneMappingExposure = 1.55;
   renderer.setClearColor(0x000000, 0);
   renderer.domElement.setAttribute("aria-hidden", "true");
   host.appendChild(renderer.domElement);
 
-  scene.add(new THREE.HemisphereLight(0xe9eef9, 0x161412, 2.6));
+  scene.add(new THREE.HemisphereLight(0xf4f7ff, 0x3b3731, 3.8));
 
-  const keyLight = new THREE.DirectionalLight(0xfff0dc, 3.6);
+  const keyLight = new THREE.DirectionalLight(0xfff4e8, 5.4);
   keyLight.position.set(3, 5, 6);
   scene.add(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0xc6d7ff, 2.1);
+  const fillLight = new THREE.DirectionalLight(0xd6e3ff, 3.7);
   fillLight.position.set(-5, 1, 3);
   scene.add(fillLight);
 
-  const rimLight = new THREE.PointLight(0xffbd6e, 16, 0, 2);
+  const rimLight = new THREE.PointLight(0xffd59a, 22, 0, 2);
   rimLight.position.set(1.5, 2, -3);
   scene.add(rimLight);
   scene.add(modelRoot);
@@ -71,6 +71,28 @@ if (host && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     host.dataset.model,
     (gltf) => {
       const model = gltf.scene;
+
+      // 얇은 아크릴 면을 양면으로 섞어 그리면 뒤쪽 폴리곤이 비쳐 보입니다.
+      // 투명 재질도 앞면만 렌더링해 면 겹침을 방지합니다.
+      model.traverse((part) => {
+        if (!part.isMesh) return;
+
+        const materials = Array.isArray(part.material)
+          ? part.material
+          : [part.material];
+
+        materials.forEach((material) => {
+          material.side = THREE.FrontSide;
+
+          if (material.transparent || material.opacity < 1) {
+            material.depthWrite = false;
+            material.alphaTest = Math.max(material.alphaTest, 0.015);
+          }
+
+          material.needsUpdate = true;
+        });
+      });
+
       const bounds = new THREE.Box3().setFromObject(model);
       const size = bounds.getSize(new THREE.Vector3());
       const center = bounds.getCenter(new THREE.Vector3());
