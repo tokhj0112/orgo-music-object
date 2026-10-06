@@ -536,8 +536,20 @@
       kind: "HAND",
       createdAt: new Date().toISOString(),
       title: "이름 없는 선율",
+      width: sheet.width,
       height: sheet.height,
       notes: notes.map(({ x, y }) => ({ x, y })),
+      strokes: strokes.map((stroke) => {
+        const interval = Math.max(1, Math.ceil(stroke.length / 240));
+
+        return {
+          ink: "#313a31",
+          width: 7,
+          points: stroke
+            .filter((_, index) => index % interval === 0 || index === stroke.length - 1)
+            .map(({ x, y }) => ({ x, y })),
+        };
+      }),
     });
 
     localStorage.setItem(key, JSON.stringify(saved.slice(0, 30)));

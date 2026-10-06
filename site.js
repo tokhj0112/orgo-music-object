@@ -164,6 +164,55 @@
       }, sequence.length * 360 + 900);
     }
 
+    function renderHandwritingPreview(preview, item, height) {
+      const strokes = Array.isArray(item.strokes) ? item.strokes : [];
+      const validStrokes = strokes.filter(
+        (stroke) => Array.isArray(stroke.points) && stroke.points.length > 0
+      );
+
+      if (!validStrokes.length) return false;
+
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.classList.add("archive-handwriting");
+      svg.setAttribute("viewBox", `0 0 ${item.width || 1200} ${height}`);
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+      svg.setAttribute("aria-hidden", "true");
+
+      validStrokes.forEach((stroke) => {
+        const points = stroke.points.filter(
+          (point) => Number.isFinite(point.x) && Number.isFinite(point.y)
+        );
+        if (!points.length) return;
+
+        if (points.length === 1) {
+          const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          dot.setAttribute("cx", points[0].x);
+          dot.setAttribute("cy", points[0].y);
+          dot.setAttribute("r", Math.max(2.5, (Number(stroke.width) || 3) / 2));
+          dot.setAttribute("fill", stroke.ink || "#252720");
+          svg.appendChild(dot);
+          return;
+        }
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const d = points.reduce(
+          (result, point, index) =>
+            `${result}${index ? " L" : "M"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`,
+          ""
+        );
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", stroke.ink || "#252720");
+        path.setAttribute("stroke-width", Math.max(5, Number(stroke.width) || 3));
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-linejoin", "round");
+        svg.appendChild(path);
+      });
+
+      preview.appendChild(svg);
+      return true;
+    }
+
     function renderArchive() {
       const items = readArchive();
       archiveList.replaceChildren();
@@ -177,14 +226,15 @@
         const preview = document.createElement("div");
         preview.className = "archive-preview";
         const height = item.height || 420;
+        const hasHandwriting = renderHandwritingPreview(preview, item, height);
 
-        (item.notes || []).slice(0, 70).forEach((note) => {
-          const dot = document.createElement("i");
-          dot.className = "archive-note";
-          dot.style.left = `${Math.max(0, Math.min(100, (note.x / 1200) * 100))}%`;
-          dot.style.top = `${Math.max(0, Math.min(100, (note.y / height) * 100))}%`;
-          preview.appendChild(dot);
-        });
+        if (!hasHandwriting) {
+          preview.classList.add("archive-preview--legacy");
+          const legacy = document.createElement("span");
+          legacy.className = "archive-preview-legacy";
+          legacy.textContent = "WRITING PREVIEW";
+          preview.appendChild(legacy);
+        }
 
         const body = document.createElement("div");
         body.className = "archive-card-body";

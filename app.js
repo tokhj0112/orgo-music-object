@@ -9,7 +9,10 @@
   const feedCtx = feed.getContext("2d");
 
   const PAGE_WIDTH = 1200;
-  const PAGE_HEIGHT = 420;
+  // 종이 높이를 조금 넓혀 손글씨가 숨 쉴 공간을 만듭니다.
+  const PAGE_HEIGHT = 460;
+  // 글씨를 가리지 않도록 실제 펀칭 홀은 작고 또렷하게 표시합니다.
+  const HOLE_RADIUS = 4;
 
   // 자동재생 한 페이지 길이: 12초
   const PAGE_DURATION = 12000;
@@ -570,7 +573,7 @@
         if (holes.includes(point)) continue;
 
         ctx.beginPath();
-        ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+        ctx.arc(point.x, point.y, HOLE_RADIUS, 0, Math.PI * 2);
 
         ctx.fillStyle = "#eeece5";
         ctx.fill();
@@ -584,7 +587,7 @@
     // 완성된 펀칭 구멍
     for (const point of holes) {
       ctx.beginPath();
-      ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+      ctx.arc(point.x, point.y, HOLE_RADIUS, 0, Math.PI * 2);
 
       ctx.fillStyle = "#181818";
       ctx.fill();
@@ -1380,8 +1383,21 @@
       kind: "MOUSE",
       createdAt: new Date().toISOString(),
       title: "이름 없는 선율",
+      width: PAGE_WIDTH,
       height: PAGE_HEIGHT,
       notes: holes.map(({ x, y }) => ({ x, y })),
+      strokes: strokes.map((stroke) => {
+        const points = stroke.points || [];
+        const interval = Math.max(1, Math.ceil(points.length / 240));
+
+        return {
+          ink: stroke.ink,
+          width: stroke.width,
+          points: points
+            .filter((_, index) => index % interval === 0 || index === points.length - 1)
+            .map(({ x, y }) => ({ x, y })),
+        };
+      }),
     });
 
     localStorage.setItem(key, JSON.stringify(saved.slice(0, 30)));
