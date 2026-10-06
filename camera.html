@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="i18n.js" defer></script>
   <script src="camera.js" defer></script>
 </head>
 
@@ -15,8 +16,8 @@
   <header>
     <a class="logo" href="index.html">orgo<sup>®</sup></a>
     <nav class="mode-switch" aria-label="컴포즈 방식 선택">
-      <a href="compose.html">마우스로 만들기</a>
-      <a href="camera.html" aria-current="page">손끝으로 만들기</a>
+      <a href="compose.html" data-i18n="composeMouse">마우스로 만들기</a>
+      <a href="camera.html" aria-current="page" data-i18n="composeHand">손끝으로 만들기</a>
     </nav>
     <span class="header-label">HAND COMPOSING ROOM</span>
   </header>
@@ -25,9 +26,9 @@
     <section class="intro">
       <div>
         <p class="eyebrow">CAMERA / FINGERTIP COMPOSE</p>
-        <h1>손끝으로 그린 선율.</h1>
+        <h1 data-i18n="cameraTitle">손끝으로 그린 선율.</h1>
       </div>
-      <p>검지와 엄지를 맞대면 선이 시작됩니다.<br>공중에 그린 움직임이 당신의 악보가 됩니다.</p>
+      <p data-i18n="cameraIntro" data-i18n-html="true">검지와 엄지를 맞대면 선이 시작됩니다.<br>공중에 그린 움직임이 당신의 악보가 됩니다.</p>
     </section>
 
     <section class="camera-workbench" aria-label="카메라로 손끝을 인식해 악보 만들기">
@@ -38,58 +39,58 @@
           <canvas id="hand-overlay" aria-hidden="true"></canvas>
           <div id="camera-placeholder" class="camera-placeholder">
             <span>CAMERA READY</span>
-            <strong>카메라를 켜고 손을 화면에 보여주세요.</strong>
-            <button id="start-camera" type="button">카메라 켜기 ↗</button>
+            <strong data-i18n="cameraPlaceholder">카메라를 켜고 손을 화면에 보여주세요.</strong>
+            <button id="start-camera" type="button" data-i18n="cameraStart">카메라 켜기 ↗</button>
           </div>
         </div>
-        <p id="camera-status" role="status">카메라는 이 브라우저 안에서만 사용되며, 영상은 저장되지 않습니다.</p>
+        <p id="camera-status" role="status" data-i18n="cameraStatus">카메라는 이 브라우저 안에서만 사용되며, 영상은 저장되지 않습니다.</p>
         <div class="hand-settings">
           <label>
-            <span>오르골 음색</span>
+            <span data-i18n="cameraTone">오르골 음색</span>
             <select id="hand-tone" aria-label="카메라 모드 오르골 음색">
-              <option value="bright">맑은 별빛</option>
-              <option value="warm" selected>따뜻한 숲</option>
-              <option value="soft">밤의 자장가</option>
+              <option value="bright" data-i18n="toneBright">맑은 별빛</option>
+              <option value="warm" selected data-i18n="toneWarm">따뜻한 숲</option>
+              <option value="soft" data-i18n="toneSoft">밤의 자장가</option>
             </select>
           </label>
         </div>
       </div>
 
       <div class="sheet-panel">
-        <div class="panel-head"><span>YOUR FINGERTIP SCORE</span><span id="hand-state">손을 기다리는 중</span></div>
+        <div class="panel-head"><span>YOUR FINGERTIP SCORE</span><span id="hand-state" data-i18n="cameraWaiting">손을 기다리는 중</span></div>
         <div class="paper">
           <div class="paper-meta"><span>PINCH TO WRITE</span><span>01 / HAND ORIGINAL</span></div>
           <canvas id="gesture-sheet" width="1200" height="600" aria-label="손끝으로 쓰는 악보"></canvas>
-          <div id="sheet-placeholder">검지와 엄지를 맞대고<br>공중에 한 줄을 그려보세요.</div>
-          <div class="paper-foot"><span>가로는 시간 · 세로는 음의 높이</span><span id="note-count">0 NOTES</span></div>
+          <div id="sheet-placeholder" data-i18n="cameraSheetPlaceholder" data-i18n-html="true">검지와 엄지를 맞대고<br>공중에 한 줄을 그려보세요.</div>
+          <div class="paper-foot"><span data-i18n="cameraAxis">가로는 시간 · 세로는 음의 높이</span><span id="note-count">0 NOTES</span></div>
         </div>
         <div class="sheet-actions">
-          <button id="clear-sheet" type="button">새로 그리기 ↶</button>
-          <button id="finish-score" type="button" disabled>선율 완성하기 →</button>
-          <button id="save-hand-archive" type="button" disabled>아카이브에 저장하기 +</button>
-          <button id="play-score" type="button" disabled>내 선율 연주하기 →</button>
+          <button id="clear-sheet" type="button" data-i18n="cameraClear">새로 그리기 ↶</button>
+          <button id="finish-score" type="button" disabled data-i18n="cameraFinish">선율 완성하기 →</button>
+          <button id="save-hand-archive" type="button" disabled data-i18n="cameraSave">아카이브에 저장하기 +</button>
+          <button id="play-score" type="button" disabled data-i18n="cameraPlay">내 선율 연주하기 →</button>
         </div>
       </div>
     </section>
 
     <section class="gesture-guide" aria-label="손동작 안내">
-      <article><b>01</b><div><strong>카메라 켜기</strong><p>카메라 권한을 허용하세요.</p></div></article>
-      <article><b>02</b><div><strong>핀치해서 쓰기</strong><p>검지와 엄지를 맞대면 선이 그려집니다.</p></div></article>
-      <article><b>03</b><div><strong>손끝으로 연주</strong><p>완성된 선을 순서대로 들려드립니다.</p></div></article>
+      <article><b>01</b><div><strong data-i18n="cameraGuideOne">카메라 켜기</strong><p data-i18n="cameraGuideOneText">카메라 권한을 허용하세요.</p></div></article>
+      <article><b>02</b><div><strong data-i18n="cameraGuideTwo">핀치해서 쓰기</strong><p data-i18n="cameraGuideTwoText">검지와 엄지를 맞대면 선이 그려집니다.</p></div></article>
+      <article><b>03</b><div><strong data-i18n="cameraGuideThree">손끝으로 연주</strong><p data-i18n="cameraGuideThreeText">완성된 선을 순서대로 들려드립니다.</p></div></article>
     </section>
   </main>
 
   <section id="player-screen" class="player-screen" hidden aria-label="완성한 선율 연주하기">
     <div class="player-header">
       <span>ORGO / YOUR HANDWRITING MELODY</span>
-      <button id="close-player" type="button">작업대로 돌아가기 ←</button>
+      <button id="close-player" type="button" data-i18n="cameraBack">작업대로 돌아가기 ←</button>
     </div>
 
     <div class="player-layout">
       <section class="player-copy">
         <p class="eyebrow">01 / PLAY YOUR LINE</p>
-        <h2>손끝으로 남긴 선을<br>손잡이로 들어보세요.</h2>
-        <p>손잡이를 시계 방향으로 돌리면 종이가 지나가고,<br>현재 위치에서 만들어진 음이 하나씩 연주됩니다.</p>
+        <h2 data-i18n="cameraPlayerTitle" data-i18n-html="true">손끝으로 남긴 선을<br>손잡이로 들어보세요.</h2>
+        <p data-i18n="cameraPlayerCopy" data-i18n-html="true">손잡이를 시계 방향으로 돌리면 종이가 지나가고,<br>현재 위치에서 만들어진 음이 하나씩 연주됩니다.</p>
         <div class="player-progress"><strong id="player-percent">0%</strong></div>
       </section>
 
@@ -97,10 +98,10 @@
         <div class="player-feed"><canvas id="player-feed" width="1200" height="260" aria-label="재생 위치가 표시되는 악보"></canvas><i aria-hidden="true"></i></div>
         <div class="crank-player-wrap">
           <button id="player-crank" type="button" aria-label="오르골 손잡이. 시계 방향으로 드래그해 연주하기"><span class="player-axle"></span><span class="player-arm"><span class="player-knob"></span></span></button>
-          <span id="hand-crank-status">카메라를 켠 뒤, 핀치해서 원을 그려보세요 ↻</span>
+          <span id="hand-crank-status" data-i18n="cameraCrank">카메라를 켠 뒤, 핀치해서 원을 그려보세요 ↻</span>
           <span class="hand-crank-led"><i id="hand-crank-led" aria-hidden="true"></i> HAND CRANK</span>
         </div>
-        <button id="rewind-player" class="rewind-player" type="button">처음으로 되감기 ↶</button>
+        <button id="rewind-player" class="rewind-player" type="button" data-i18n="cameraRewind">처음으로 되감기 ↶</button>
       </section>
     </div>
   </section>

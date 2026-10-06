@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Object — ORGO</title>
   <link rel="stylesheet" href="site.css">
+  <script src="i18n.js" defer></script>
   <script src="site.js" defer></script>
 </head>
 
@@ -31,15 +32,15 @@
   <main id="main" class="object-showcase" aria-labelledby="customizer-title">
     <section class="object-intro">
       <p class="eyebrow">ORGO MUSIC OBJECT / 01</p>
-      <h1 id="customizer-title">손으로 돌려,<br>기억을 듣다.</h1>
-      <p>당신의 문장과 선율을 담아<br>오래 곁에 둘 수 있는 작은 오르골.</p>
+      <h1 id="customizer-title" data-i18n="objectTitle" data-i18n-html="true">손으로 돌려,<br>기억을 듣다.</h1>
+      <p data-i18n="objectDescription" data-i18n-html="true">당신의 문장과 선율을 담아<br>오래 곁에 둘 수 있는 작은 오르골.</p>
     </section>
 
-    <section class="object-stage" aria-label="오르골 구성 미리보기">
+    <section class="object-stage" aria-label="오르골 구성 미리보기" data-i18n-attr="objectStage">
       <div class="object-specs">
-        <article><strong>18</strong><span>NOTE MELODY<br>18음 수동 오르골</span></article>
-        <article><strong>01</strong><span>PERSONAL LINE<br>나만의 각인 문구</span></article>
-        <p>투명한 케이스 안에서 보이는 작은 기계의 움직임.<br>천천히 손잡이를 돌리며 당신만의 선율을 들어보세요.</p>
+        <article><strong>18</strong><span data-i18n="objectNotes" data-i18n-html="true">NOTE MELODY<br>18음 수동 오르골</span></article>
+        <article><strong>01</strong><span data-i18n="objectLine" data-i18n-html="true">PERSONAL LINE<br>나만의 각인 문구</span></article>
+        <p data-i18n="objectSpecs" data-i18n-html="true">투명한 케이스 안에서 보이는 작은 기계의 움직임.<br>천천히 손잡이를 돌리며 당신만의 선율을 들어보세요.</p>
       </div>
 
       <div class="object-visual">
@@ -55,7 +56,7 @@
       <form class="object-controls" onsubmit="return false;">
         <p class="eyebrow">MAKE IT YOURS</p>
         <fieldset>
-          <legend>01 / MATERIAL</legend>
+          <legend data-i18n="objectMaterial">01 / MATERIAL</legend>
           <div class="material-options">
             <label><input type="radio" name="material" value="투명 아크릴" checked><span>Clear</span></label>
             <label><input type="radio" name="material" value="실버 메탈"><span>Silver</span></label>
@@ -63,7 +64,7 @@
         </fieldset>
 
         <fieldset>
-          <legend>02 / PACKAGING</legend>
+          <legend data-i18n="objectPackaging">02 / PACKAGING</legend>
           <div class="material-options">
             <label><input type="radio" name="packaging" value="기본 패키지" checked><span>Original</span></label>
             <label><input type="radio" name="packaging" value="선물 패키지"><span>Gift wrap</span></label>
@@ -72,21 +73,21 @@
 
         <fieldset class="engraving-field">
           <legend>03 / PHOTO PRINT</legend>
-          <label class="field-label" for="photo-print">오르골 전면에 넣을 사진</label>
-          <label class="photo-upload" for="photo-print"><span>사진 선택하기</span><small id="photo-print-name">JPG, PNG · 미리보기용</small></label>
+          <label class="field-label" for="photo-print" data-i18n="objectPhotoLabel">오르골 전면에 넣을 사진</label>
+          <label class="photo-upload" for="photo-print"><span data-i18n="objectPhotoButton">사진 선택하기</span><small id="photo-print-name" data-i18n="objectPhotoHelp">JPG, PNG · 미리보기용</small></label>
           <input id="photo-print" class="photo-input" type="file" accept="image/png,image/jpeg,image/webp">
         </fieldset>
 
         <fieldset class="engraving-field">
           <legend>04 / ENGRAVING</legend>
-          <label class="field-label" for="engraving">간직하고 싶은 한 문장</label>
+          <label class="field-label" for="engraving" data-i18n="objectEngravingLabel">간직하고 싶은 한 문장</label>
           <input id="engraving" class="text-input" type="text" maxlength="32" placeholder="A little music, for you." autocomplete="off">
-          <div class="field-help"><span>최대 32자</span><span id="engraving-count">0 / 32</span></div>
+          <div class="field-help"><span data-i18n="objectCharacterLimit">최대 32자</span><span id="engraving-count">0 / 32</span></div>
         </fieldset>
 
-        <div class="configuration-summary"><span>YOUR OBJECT</span><p id="configuration-summary">투명 아크릴 / 기본 패키지</p></div>
-        <button id="save-configuration" class="solid-link" type="button">구성 메모 저장하기 <span>↓</span></button>
-        <p id="configuration-status" class="purchase-note" role="status">선택한 구성을 텍스트 파일로 저장할 수 있습니다.</p>
+        <div class="configuration-summary"><span data-i18n="objectSummary">YOUR OBJECT</span><p id="configuration-summary">투명 아크릴 / 기본 패키지</p></div>
+        <button id="save-configuration" class="solid-link" type="button" data-i18n="objectSave" data-i18n-html="true">구성 메모 저장하기 <span>↓</span></button>
+        <p id="configuration-status" class="purchase-note" role="status" data-i18n="objectStatus">선택한 구성을 텍스트 파일로 저장할 수 있습니다.</p>
       </form>
     </section>
     <p class="object-page-count"><strong>01</strong> / 02</p>
@@ -99,7 +100,7 @@
 
     <p>
       YOUR WORDS, IN A DIFFERENT FORM.<br>
-      손끝에서 시작되는 작은 음악.
+      <span data-i18n="footerSub">손끝에서 시작되는 작은 음악.</span>
     </p>
 
     <a class="text-link" href="index.html">HOME ↑</a>

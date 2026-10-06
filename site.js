@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  const t = (key) => window.orgoI18n?.text(key) || key;
+
   /* ------------------------------
      스크롤 등장 효과
      펀칭 종이에는 적용하지 않습니다.
@@ -98,8 +100,8 @@
     function formatDate(value) {
       const date = new Date(value);
       return Number.isNaN(date.getTime())
-        ? "날짜 없음"
-        : new Intl.DateTimeFormat("ko-KR", {
+        ? t("noDate")
+        : new Intl.DateTimeFormat(document.documentElement.lang === "ko" ? "ko-KR" : "en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
@@ -151,7 +153,7 @@
 
       const sequence = [...item.notes].sort((a, b) => a.x - b.x);
       button.disabled = true;
-      button.textContent = "연주 중…";
+      button.textContent = t("archivePlaying");
       sequence.forEach((note, index) => {
         window.setTimeout(
           () => archiveNote(note.y, item.height || 420),
@@ -160,7 +162,7 @@
       });
       window.setTimeout(() => {
         button.disabled = false;
-        button.textContent = "들어보기 ♪";
+        button.textContent = t("archivePlay");
       }, sequence.length * 360 + 900);
     }
 
@@ -246,13 +248,13 @@
         title.className = "archive-title-input";
         title.type = "text";
         title.maxLength = 32;
-        title.value = item.title || `선율 ${String(items.length - index).padStart(2, "0")}`;
-        title.setAttribute("aria-label", "선율 이름");
+        title.value = item.title || `${t("archiveUntitled")} ${String(items.length - index).padStart(2, "0")}`;
+        title.setAttribute("aria-label", t("archiveName"));
         title.addEventListener("change", () => {
           const next = readArchive();
           const found = next.find((saved) => saved.id === item.id);
           if (!found) return;
-          found.title = title.value.trim() || "이름 없는 선율";
+          found.title = title.value.trim() || t("archiveUntitled");
           title.value = found.title;
           writeArchive(next);
         });
@@ -263,12 +265,12 @@
         const play = document.createElement("button");
         play.className = "archive-play";
         play.type = "button";
-        play.textContent = "들어보기 ♪";
+        play.textContent = t("archivePlay");
         play.addEventListener("click", () => playArchive(item, play));
         const remove = document.createElement("button");
         remove.className = "archive-delete";
         remove.type = "button";
-        remove.textContent = "삭제하기";
+        remove.textContent = t("archiveDelete");
         remove.addEventListener("click", () => {
           const next = readArchive().filter((saved) => saved.id !== item.id);
           writeArchive(next);
@@ -283,6 +285,7 @@
     }
 
     renderArchive();
+    document.addEventListener("orgo-languagechange", renderArchive);
   }
 
   const engraving = document.getElementById("engraving");

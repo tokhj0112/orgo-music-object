@@ -2,6 +2,7 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
+  const isKorean = () => document.documentElement.lang === "ko";
 
   const canvas = $("sheet");
   const ctx = canvas.getContext("2d");
@@ -675,19 +676,15 @@
 
     silencePencil();
 
-    $("autoplay").textContent =
-      "자동재생 · 한 페이지 반복 ↻";
+    $("autoplay").textContent = isKorean() ? "자동재생 · 한 페이지 반복 ↻" : "Autoplay · repeat page ↻";
 
     $("autoplay").setAttribute("aria-pressed", "false");
 
-    $("auto").textContent = "자동으로 모두 뚫기";
+    $("auto").textContent = isKorean() ? "자동으로 모두 뚫기" : "Punch all automatically";
 
-    $("next").textContent =
-      mode === "listen"
-        ? "다시 연주하기 ↶"
-        : mode === "punch"
-          ? "이 종이로 연주하기 →"
-          : "다 썼어요 · 펀칭하기 →";
+    $("next").textContent = isKorean()
+      ? (mode === "listen" ? "다시 연주하기 ↶" : mode === "punch" ? "이 종이로 연주하기 →" : "다 썼어요 · 펀칭하기 →")
+      : (mode === "listen" ? "Play again ↶" : mode === "punch" ? "Play this page →" : "Finished writing · punch it →");
 
     draw(mode === "listen" ? progress : undefined);
   }
@@ -697,13 +694,13 @@
 
     if (nextMode !== "write" && strokes.length === 0) {
       $("hint").textContent =
-        "먼저 종이에 손글씨를 써주세요.";
+      isKorean() ? "먼저 종이에 손글씨를 써주세요." : "Write something on the paper first.";
       return;
     }
 
     if (nextMode === "listen" && holes.length === 0) {
       $("hint").textContent =
-        "직접 점을 누르거나 자동 펀칭으로 구멍을 뚫어주세요.";
+      isKorean() ? "직접 점을 누르거나 자동 펀칭으로 구멍을 뚫어주세요." : "Punch holes yourself or use automatic punching first.";
       return;
     }
 
@@ -728,7 +725,7 @@
     $("save-archive").hidden = mode !== "listen";
 
     if (mode === "listen") {
-      $("save-archive").textContent = "아카이브에 저장하기 +";
+      $("save-archive").textContent = isKorean() ? "아카이브에 저장하기 +" : "Save to archive +";
     }
 
     document.body.dataset.mode = mode;
@@ -736,12 +733,11 @@
     $("crank").disabled = mode !== "listen";
     $("rewind").disabled = mode !== "listen";
 
-    $("crank-label").textContent =
-      mode === "listen"
-        ? "시계 방향으로 돌려보세요 ↻"
-        : "종이를 완성하면 연주할 수 있어요";
+    $("crank-label").textContent = mode === "listen"
+      ? (isKorean() ? "시계 방향으로 돌려보세요 ↻" : "Turn clockwise ↻")
+      : (isKorean() ? "종이를 완성하면 연주할 수 있어요" : "Finish the paper to play it.");
 
-    const copy = {
+    const copy = isKorean() ? {
       write: [
         "01 / WRITE",
         "먼저, 당신의 글씨를 남겨주세요.",
@@ -757,21 +753,30 @@
         "이제, 손끝으로 음악을 움직여보세요.",
         "손잡이로 연주하거나 같은 페이지를 자동 반복하세요.",
       ],
-    }[mode];
+    } : {
+      write: ["01 / WRITE", "Start by leaving your handwriting.", "Horizontal position becomes time; vertical position becomes pitch."],
+      punch: ["02 / PUNCH", "Punch the places where sound will happen.", "Select dots yourself, or punch every hole automatically."],
+      listen: ["03 / PLAY", "Now move the music with your hand.", "Turn the crank, or loop the same page automatically."],
+    };
+    const stageCopy = copy[mode];
 
     [
       "stage-label",
       "stage-title",
       "stage-description",
     ].forEach((id, index) => {
-      $(id).textContent = copy[index];
+      $(id).textContent = stageCopy[index];
     });
 
-    const hints = {
+    const hints = isKorean() ? {
       write: "글씨를 움직여 쓰면 종이 위 마찰음이 납니다.",
       punch: "점을 직접 누르거나 자동 펀칭·스킵을 선택하세요.",
       listen:
         "손잡이를 돌리거나 자동재생을 누르세요. 같은 종이가 반복됩니다.",
+    } : {
+      write: "Move the pen to hear the texture of writing on paper.",
+      punch: "Select dots yourself, or choose automatic punch or skip.",
+      listen: "Turn the crank or press autoplay. The same page will repeat.",
     };
 
     $("hint").textContent = hints[mode];
@@ -1425,6 +1430,12 @@
       rewind();
     }
   };
+
+  document.addEventListener("orgo-languagechange", () => {
+    const activeMode = mode;
+    mode = "";
+    setMode(activeMode);
+  });
 
   // 다른 탭으로 이동하면 자동 동작 정지
   document.addEventListener("visibilitychange", () => {

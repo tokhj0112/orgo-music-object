@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ORGO — Compose atelier</title>
   <link rel="stylesheet" href="style.css">
+  <script src="i18n.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 
@@ -13,8 +14,8 @@
     <a class="logo" href="index.html">orgo<sup>®</sup></a>
 
     <nav class="compose-mode" aria-label="컴포즈 방식 선택">
-      <a href="compose.html" aria-current="page">마우스로 만들기</a>
-      <a href="camera.html">손끝으로 만들기</a>
+      <a href="compose.html" aria-current="page" data-i18n="composeMouse">마우스로 만들기</a>
+      <a href="camera.html" data-i18n="composeHand">손끝으로 만들기</a>
     </nav>
 
     <span class="header-label">THE COMPOSING ROOM</span>
@@ -25,10 +26,10 @@
     <div class="intro">
       <div>
         <p class="eyebrow">YOUR WORDS. YOUR MELODY.</p>
-        <h1>한 장의 마음, 하나의 선율.</h1>
+        <h1 data-i18n="composeTitle">한 장의 마음, 하나의 선율.</h1>
       </div>
 
-      <p>
+      <p data-i18n="composeIntro" data-i18n-html="true">
         쓰고, 뚫고, 돌려보세요.<br>
         모든 과정이 이 작은 작업대 위에서.
       </p>
@@ -37,19 +38,19 @@
     <section class="sound-dock" aria-label="오르골 사운드 설정">
       <div class="sound-controls">
         <label class="tone-picker">
-          <span>음색</span>
+          <span data-i18n="composeTone">음색</span>
           <select id="tone" aria-label="오르골 음색 선택">
-            <option value="bright">맑은 별빛 · 선명한 고음</option>
-            <option value="warm" selected>따뜻한 숲 · 균형 잡힌 울림</option>
-            <option value="soft">밤의 자장가 · 부드러운 여운</option>
+            <option value="bright" data-i18n="toneBright">맑은 별빛 · 선명한 고음</option>
+            <option value="warm" selected data-i18n="toneWarm">따뜻한 숲 · 균형 잡힌 울림</option>
+            <option value="soft" data-i18n="toneSoft">밤의 자장가 · 부드러운 여운</option>
           </select>
         </label>
 
-        <button id="test" type="button">음색 들어보기 ♪</button>
-        <button id="sound" type="button" aria-pressed="false">음소거</button>
+        <button id="test" type="button" data-i18n="composeTest">음색 들어보기 ♪</button>
+        <button id="sound" type="button" aria-pressed="false" data-i18n="composeMute">음소거</button>
 
         <label class="volume-control">
-          <span>음량</span>
+          <span data-i18n="composeVolume">음량</span>
           <input id="volume" type="range" min="0" max="100" value="65" aria-label="음량">
         </label>
       </div>
@@ -58,7 +59,7 @@
     <nav class="steps" aria-label="제작 순서">
       <button id="write" type="button" class="active" aria-pressed="true">
         <b>01</b>
-        쓰기
+        <span data-i18n="composeWrite">쓰기</span>
         <small>WRITE</small>
       </button>
 
@@ -66,7 +67,7 @@
 
       <button id="punch" type="button" aria-pressed="false">
         <b>02</b>
-        펀칭
+        <span data-i18n="composePunch">펀칭</span>
         <small>PUNCH</small>
       </button>
 
@@ -74,7 +75,7 @@
 
       <button id="listen" type="button" aria-pressed="false">
         <b>03</b>
-        연주
+        <span data-i18n="composePlay">연주</span>
         <small>PLAY</small>
       </button>
     </nav>
@@ -145,8 +146,8 @@
           </label>
 
           <div>
-            <button id="undo" type="button">되돌리기 ↶</button>
-            <button id="clear" type="button">새로 쓰기</button>
+            <button id="undo" type="button" data-i18n="composeUndo">되돌리기 ↶</button>
+            <button id="clear" type="button" data-i18n="composeClear">새로 쓰기</button>
           </div>
         </div>
 
@@ -159,22 +160,22 @@
           <canvas
             id="sheet"
             width="1200"
-            height="420"
+            height="460"
             aria-label="마우스나 손가락으로 손글씨를 쓰는 종이"
           ></canvas>
 
-          <div id="placeholder">
+          <div id="placeholder" data-i18n="composePlaceholder">
             여기에, 당신의 마음을.
           </div>
 
           <div class="paper-bottom">
-            <span>왼쪽에서 오른쪽으로 흐르는 시간</span>
+            <span data-i18n="composeAxis">왼쪽에서 오른쪽으로 흐르는 시간</span>
             <span aria-hidden="true">→</span>
           </div>
         </div>
 
         <div class="desk-bottom">
-          <p id="hint" role="status">
+          <p id="hint" role="status" data-i18n="composeHint">
             펜의 색을 고르고, 종이 위에 마음을 써보세요.
           </p>
 
@@ -212,7 +213,7 @@
             </span>
           </button>
 
-          <span id="crank-label">
+          <span id="crank-label" data-i18n="composeCrank">
             종이를 완성하면 연주할 수 있어요
           </span>
         </div>
@@ -220,7 +221,7 @@
         <div class="instrument-foot">
           <span id="position">0% · 종이의 시작</span>
 
-          <button id="rewind" type="button" disabled>
+          <button id="rewind" type="button" disabled data-i18n="composeRewind">
             처음으로 ↶
           </button>
         </div>
@@ -231,11 +232,11 @@
       <div>
         <span id="stage-label">01 / WRITE</span>
 
-        <strong id="stage-title">
+        <strong id="stage-title" data-i18n="composeStageTitle">
           먼저, 당신의 글씨를 남겨주세요.
         </strong>
 
-        <p id="stage-description">
+        <p id="stage-description" data-i18n="composeStageDescription">
           가로 위치는 시간, 세로 위치는 음의 높이가 됩니다.
         </p>
       </div>
@@ -262,7 +263,7 @@
           아카이브에 저장하기 +
         </button>
 
-        <button id="next" type="button" class="primary" disabled>
+        <button id="next" type="button" class="primary" disabled data-i18n="composeNext">
           다 썼어요 · 펀칭하기 →
         </button>
       </div>
