@@ -2,6 +2,7 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
+  const t = (key) => window.orgoI18n?.text(key) || key;
   const video = $("webcam");
   const overlay = $("hand-overlay");
   const overlayCtx = overlay.getContext("2d");
@@ -86,6 +87,7 @@
   let playerAngle = 0;
   let previousCrankAngle = null;
   let previousHandCrankAngle = null;
+  let handCrankMotion = 0;
   const PLAYER_ROTATION = Math.PI * 8;
 
   const harmonyProgression = [
@@ -275,6 +277,27 @@
     };
   }
 
+  function getHandCrankAngle(landmarks) {
+    // 카메라 화면의 중심이 아니라 손바닥을 축으로 삼습니다. 손이 화면의
+    // 어느 위치에 있어도, 손목을 돌리는 동작만으로 안정적으로 인식됩니다.
+    const pinch = {
+      x: (landmarks[4].x + landmarks[8].x) / 2,
+      y: (landmarks[4].y + landmarks[8].y) / 2,
+    };
+    const palm = landmarks[9];
+    const mirroredPinchX = 1 - pinch.x;
+    const mirroredPalmX = 1 - palm.x;
+    const radius = Math.hypot(mirroredPinchX - mirroredPalmX, pinch.y - palm.y);
+
+    if (radius < 0.045) return null;
+    return Math.atan2(pinch.y - palm.y, mirroredPinchX - mirroredPalmX);
+  }
+
+  function resetHandCrankTracking() {
+    previousHandCrankAngle = null;
+    handCrankMotion = 0;
+  }
+
   function drawOverlay(landmarks, pinching) {
     const width = video.videoWidth || 1280;
     const height = video.videoHeight || 720;
@@ -308,9 +331,9 @@
     if (!landmarks) {
       overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
       if (!playerScreen.hidden) {
-        handCrankStatus.textContent = "손을 화면에 보여주세요";
+        handCrankStatus.textContent = t("cameraNeedHand");
         handCrankLed.classList.remove("is-on");
-        previousHandCrankAngle = null;
+        resetHandCrankTracking();
       } else {
         handState.textContent = "손을 화면에 보여주세요";
       }
@@ -331,26 +354,37 @@
 
     if (!playerScreen.hidden) {
       if (!isPinching) {
-        previousHandCrankAngle = null;
+        resetHandCrankTracking();
         handCrankLed.classList.remove("is-on");
-        handCrankStatus.textContent = "검지와 엄지를 맞대고 원을 그려보세요 ↻";
+        handCrankStatus.textContent = t("cameraRotateHint");
         return;
       }
 
-      // 반전된 화면 기준으로 원을 그린 회전량을 그대로 손잡이에 전달합니다.
-      const handAngle = Math.atan2(
-        indexTip.y - 0.5,
-        (1 - indexTip.x) - 0.5
-      );
+      const handAngle = getHandCrankAngle(landmarks);
+      if (handAngle === null) {
+        handCrankStatus.textContent = t("cameraRotateHint");
+        return;
+      }
 
       handCrankLed.classList.add("is-on");
-      handCrankStatus.textContent = "손으로 돌리는 중…";
 
-      if (previousHandCrankAngle !== null) {
+      if (previousHandCrankAngle === null) {
+        handCrankStatus.textContent = t("cameraCrankReady");
+      } else {
         let delta = handAngle - previousHandCrankAngle;
         if (delta > Math.PI) delta -= Math.PI * 2;
         if (delta < -Math.PI) delta += Math.PI * 2;
-        turnPlayer(Math.max(0, delta));
+
+        // Tracking의 미세 떨림은 무시하고, 프레임 사이에 튄 값은 제한합니다.
+        // 같은 동작을 조금 더 크게 전달해 작은 손목 회전도 자연스럽게 반영합니다.
+        if (Math.abs(delta) >= 0.012) {
+          const clockwise = Math.min(0.2, Math.max(0, delta));
+          if (clockwise > 0) {
+            handCrankMotion += clockwise;
+            turnPlayer(clockwise * 1.55);
+            handCrankStatus.textContent = t("cameraTurning");
+          }
+        }
       }
 
       previousHandCrankAngle = handAngle;
@@ -396,8 +430,8 @@
       handTracker.setOptions({
         maxNumHands: 1,
         modelComplexity: 1,
-        minDetectionConfidence: 0.7,
-        minTrackingConfidence: 0.7,
+        minDetectionConfidence: 0.62,
+        minTrackingConfidence: 0.62,
       });
       handTracker.onResults(onResults);
 
@@ -563,11 +597,11 @@
     if (audio && audio.state !== "running") await audio.resume();
     rewindPlayer();
     playerScreen.hidden = false;
-    previousHandCrankAngle = null;
+    resetHandCrankTracking();
     handCrankLed.classList.remove("is-on");
     handCrankStatus.textContent = stream
-      ? "검지와 엄지를 맞대고 카메라 중앙에서 원을 그려보세요 ↻"
-      : "작업 화면에서 카메라를 켜면 손으로 돌릴 수 있어요";
+      ? t("cameraRotateHint")
+      : t("cameraCrank");
     playerScreen.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -579,7 +613,7 @@
   $("rewind-player").addEventListener("click", rewindPlayer);
   $("close-player").addEventListener("click", () => {
     playerScreen.hidden = true;
-    previousHandCrankAngle = null;
+    resetHandCrankTracking();
     document.querySelector("main").scrollIntoView({ behavior: "smooth" });
   });
 
