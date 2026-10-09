@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google" content="notranslate">
+  <title>ORGO — Player</title>
+  <link rel="stylesheet" href="player.css?v=1">
+  <script src="i18n.js?v=archive-player-2" defer></script>
+  <script src="player.js?v=1" defer></script>
+</head>
+
+<body class="archive-player-page">
+  <header class="player-header">
+    <a class="player-logo" href="index.html" aria-label="ORGO home">orgo<sup>®</sup></a>
+    <a class="back-link" href="archive.html" data-i18n="playerBackArchive">Back to archive ←</a>
+  </header>
+
+  <main class="player-main">
+    <section class="player-intro" aria-labelledby="player-title">
+      <p class="player-eyebrow" data-i18n="playerEyebrow">SAVED MELODY / MANUAL PLAYBACK</p>
+      <h1 id="player-title">Your saved melody.</h1>
+      <p id="player-description" class="player-description">
+        Turn the handle clockwise. The saved paper moves through the music box and plays one note at a time.
+      </p>
+
+      <div class="player-settings" aria-label="Music box settings">
+        <label class="player-select">
+          <span data-i18n="playerTone">Tone</span>
+          <select id="player-tone" aria-label="Music box tone">
+            <option value="bright" data-i18n="toneBright">Bright starlight · clear high notes</option>
+            <option value="warm" data-i18n="toneWarm">Warm forest · balanced resonance</option>
+            <option value="soft" data-i18n="toneSoft">Night lullaby · gentle sustain</option>
+          </select>
+        </label>
+        <label class="player-volume">
+          <span data-i18n="playerVolume">Volume</span>
+          <input id="player-volume" type="range" min="0" max="100" value="65" aria-label="Volume">
+        </label>
+      </div>
+    </section>
+
+    <section id="player-machine" class="player-machine" aria-label="Manual ORGO player">
+      <div class="machine-topline"><span>ORGO / MECHANICAL PLAYER</span><i aria-hidden="true"></i></div>
+      <div class="feed-window">
+        <canvas id="player-feed" width="960" height="180" aria-label="Saved paper passing through the music box"></canvas>
+        <span>PAPER FEED</span>
+      </div>
+      <div class="player-crank-area">
+        <button id="player-crank" type="button" aria-label="Turn the music box crank clockwise to play">
+          <span class="crank-shadow"></span>
+          <span class="crank-axle"></span>
+          <span class="crank-arm"><span class="crank-knob"></span></span>
+        </button>
+        <p id="player-status" data-i18n="playerInstruction">Drag the handle clockwise to play.</p>
+      </div>
+      <div class="machine-footer">
+        <span id="player-progress">READY / 0%</span>
+        <button id="player-rewind" type="button" data-i18n="playerRewind">Rewind to start ↶</button>
+      </div>
+    </section>
+
+    <section class="saved-paper" aria-labelledby="saved-paper-title">
+      <div class="saved-paper-head">
+        <span id="saved-paper-title" data-i18n="playerPaper">YOUR SAVED PAPER</span>
+        <span id="paper-meta">ARCHIVE / ORGO</span>
+      </div>
+      <canvas id="player-sheet" width="1200" height="460" aria-label="Saved handwritten music paper"></canvas>
+      <span class="sheet-rule" aria-hidden="true"></span>
+    </section>
+  </main>
+</body>
+</html>

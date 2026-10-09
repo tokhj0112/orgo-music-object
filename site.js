@@ -210,7 +210,7 @@
         actions.className = "archive-card-actions";
         const play = document.createElement("a");
         play.className = "archive-play";
-        play.href = `compose.html?archive=${encodeURIComponent(item.id)}`;
+        play.href = `player.html?archive=${encodeURIComponent(item.id)}`;
         play.textContent = t("archiveOpenPlayer");
         const remove = document.createElement("button");
         remove.className = "archive-delete";
