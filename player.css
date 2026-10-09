@@ -80,7 +80,8 @@ button, select, input { font: inherit; }
 #player-sheet { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .sheet-rule { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: #aa534055; transform: translateX(-50%); pointer-events: none; }
 
-.player-empty { grid-column: 1 / -1; display: grid; min-height: 55svh; place-items: center; text-align: center; }
+.player-intro.player-empty { grid-column: 1 / -1; justify-self: center; width: min(100%, 620px); min-height: 55svh; display: grid; place-content: center; text-align: center; }
+.player-intro.player-empty .player-description { margin-inline: auto; }
 .player-empty h1 { margin: 0; font-size: clamp(34px, 5vw, 66px); font-weight: 400; letter-spacing: -.06em; }
 .player-empty a { margin-top: 25px; color: #e9e9df; font: 11px monospace; letter-spacing: 1px; }
 

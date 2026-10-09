@@ -257,6 +257,8 @@
 
   if (!archiveId || !readItem()) {
     $("player-machine").remove();
+    document.querySelector(".player-settings").remove();
+    document.querySelector(".saved-paper").remove();
     $("player-title").textContent = t("playerUnavailableTitle");
     $("player-description").textContent = t("playerUnavailableCopy");
     document.querySelector(".player-intro").classList.add("player-empty");
