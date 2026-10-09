@@ -276,40 +276,57 @@
     };
   }
 
-  function punchSound() {
+  function punchSound(point = {}, order = holes.length) {
     if (!sound || !audioOK) return;
 
-    noise(0.09, 1800, 0.8);
-
+    // 뚫는 위치마다 종이의 저항과 금속판을 치는 위치가 다르게 느껴지도록,
+    // 같은 점은 늘 같은 성격으로 들리고 점마다만 미세하게 달라지게 합니다.
+    const x = Number.isFinite(point.x) ? point.x : 0;
+    const y = Number.isFinite(point.y) ? point.y : PAGE_HEIGHT / 2;
+    const vertical = 1 - Math.max(0, Math.min(1, y / PAGE_HEIGHT));
+    const fingerprint = Math.sin(x * 0.0187 + y * 0.0431 + order * 0.71);
+    const variation = (fingerprint + 1) / 2;
     const time = audio.currentTime;
-    const oscillator = audio.createOscillator();
-    const envelope = audio.createGain();
 
-    oscillator.frequency.setValueAtTime(180, time);
-
-    oscillator.frequency.exponentialRampToValueAtTime(
-      60,
-      time + 0.09
+    // 종이 섬유가 끊어지는 짧은 사각임: 높을수록 조금 더 맑게.
+    noise(
+      0.052 + variation * 0.045,
+      1350 + vertical * 1050 + variation * 280,
+      0.42 + variation * 0.16
     );
 
-    envelope.gain.setValueAtTime(0.3, time);
+    // 금속 펀치의 몸통 소리와 아주 짧은 링을 겹쳐 각각 다른 타격감을 만듭니다.
+    const body = audio.createOscillator();
+    const bodyEnvelope = audio.createGain();
+    const ring = audio.createOscillator();
+    const ringEnvelope = audio.createGain();
+    const bodyPitch = 92 + vertical * 88 + variation * 24;
 
-    envelope.gain.exponentialRampToValueAtTime(
-      0.0001,
-      time + 0.1
-    );
+    body.type = variation > 0.57 ? "triangle" : "sine";
+    body.frequency.setValueAtTime(bodyPitch * 1.8, time);
+    body.frequency.exponentialRampToValueAtTime(bodyPitch, time + 0.075 + variation * 0.025);
 
-    oscillator
-      .connect(envelope)
-      .connect(master);
+    bodyEnvelope.gain.setValueAtTime(0.0001, time);
+    bodyEnvelope.gain.exponentialRampToValueAtTime(0.25 + vertical * 0.09, time + 0.003);
+    bodyEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.085 + variation * 0.04);
 
-    oscillator.start();
-    oscillator.stop(time + 0.11);
+    ring.type = "sine";
+    ring.frequency.setValueAtTime(1180 + vertical * 740 + variation * 220, time);
+    ring.detune.value = (variation - 0.5) * 34;
+    ringEnvelope.gain.setValueAtTime(0.0001, time);
+    ringEnvelope.gain.exponentialRampToValueAtTime(0.055 + vertical * 0.025, time + 0.004);
+    ringEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.12 + variation * 0.09);
 
-    oscillator.onended = () => {
-      oscillator.disconnect();
-      envelope.disconnect();
-    };
+    body.connect(bodyEnvelope).connect(master);
+    ring.connect(ringEnvelope).connect(master);
+
+    body.start();
+    ring.start();
+    body.stop(time + 0.16);
+    ring.stop(time + 0.25);
+
+    body.onended = () => { body.disconnect(); bodyEnvelope.disconnect(); };
+    ring.onended = () => { ring.disconnect(); ringEnvelope.disconnect(); };
   }
 
   /* ------------------------------
@@ -887,7 +904,7 @@
 
     if (nearest) {
       holes.push(nearest);
-      punchSound();
+      punchSound(nearest, holes.length);
       draw();
     }
   }
@@ -1141,7 +1158,7 @@
 
       if (!holes.includes(hole)) {
         holes.push(hole);
-        punchSound();
+        punchSound(hole, holes.length);
         draw();
       }
 
