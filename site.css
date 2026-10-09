@@ -577,7 +577,7 @@ img {
 .archive-title-input:focus { border-bottom-color: #a9a99f; outline: 0; }
 .archive-card p { margin: 0; color: var(--muted); font-size: 11px; }
 .archive-card-actions { display: flex; gap: 8px; margin-top: 17px; }
-.archive-play, .archive-delete { flex: 1; padding: 10px; border: 1px solid #55554f; border-radius: 7px; background: transparent; color: #bbbcb4; font-size: 11px; }
+.archive-play, .archive-delete { flex: 1; display: inline-flex; align-items: center; justify-content: center; padding: 10px; border: 1px solid #55554f; border-radius: 7px; background: transparent; color: #bbbcb4; font-size: 11px; text-decoration: none; }
 .archive-play { border-color: #839077; color: #dce4d2; }
 .archive-play:hover, .archive-delete:hover { border-color: #d0d0c6; color: #fff; }
 

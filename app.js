@@ -77,6 +77,9 @@
   };
 
   let toneName = "warm";
+  // 아카이브에서 불러온 곡은 새 곡처럼 다시 저장하지 않고,
+  // 이 페이지를 오르골 플레이어로 사용합니다.
+  let archivePlayback = null;
   let reverbMix = null;
   let lastHarmonyTime = -Infinity;
   let activeHarmonyStep = -1;
@@ -692,7 +695,7 @@
   function setMode(nextMode) {
     if (nextMode === mode) return;
 
-    if (nextMode !== "write" && strokes.length === 0) {
+    if (nextMode === "punch" && strokes.length === 0) {
       $("hint").textContent =
       isKorean() ? "먼저 종이에 손글씨를 써주세요." : "Write something on the paper first.";
       return;
@@ -722,7 +725,7 @@
     $("auto").hidden = mode !== "punch";
     $("skip").hidden = mode !== "punch";
     $("autoplay").hidden = mode !== "listen";
-    $("save-archive").hidden = mode !== "listen";
+    $("save-archive").hidden = mode !== "listen" || Boolean(archivePlayback);
 
     if (mode === "listen") {
       $("save-archive").textContent = isKorean() ? "아카이브에 저장하기 +" : "Save to archive +";
@@ -1390,6 +1393,8 @@
       title: "이름 없는 선율",
       width: PAGE_WIDTH,
       height: PAGE_HEIGHT,
+      tone: toneName,
+      volume: Number($("volume").value),
       notes: holes.map(({ x, y }) => ({ x, y })),
       strokes: strokes.map((stroke) => {
         const points = stroke.points || [];
@@ -1435,7 +1440,110 @@
     const activeMode = mode;
     mode = "";
     setMode(activeMode);
+
+    if (archivePlayback) {
+      updateArchivePlaybackCopy();
+    }
   });
+
+  /* ------------------------------
+     아카이브의 곡을 실제 오르골로 불러오기
+  ------------------------------ */
+
+  function archivePoint(point, sourceWidth, sourceHeight) {
+    const x = Number(point?.x);
+    const y = Number(point?.y);
+
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+    return {
+      x: Math.max(0, Math.min(PAGE_WIDTH, (x / sourceWidth) * PAGE_WIDTH)),
+      y: Math.max(0, Math.min(PAGE_HEIGHT, (y / sourceHeight) * PAGE_HEIGHT)),
+    };
+  }
+
+  function updateArchivePlaybackCopy() {
+    if (!archivePlayback) return;
+
+    const fallback = isKorean() ? "이름 없는 선율" : "Untitled melody";
+    const title = archivePlayback.title?.trim() || fallback;
+    const prefix = isKorean() ? "ARCHIVE / 연주 중" : "ARCHIVE / PLAYING";
+
+    $("stage-label").textContent = prefix;
+    $("stage-title").textContent = title;
+    $("stage-description").textContent = isKorean()
+      ? "저장된 종이를 손잡이로 돌려, 만든 음색 그대로 들어보세요."
+      : "Turn the crank to hear this saved paper in its original tone.";
+    $("hint").textContent = isKorean()
+      ? "아카이브에서 불러온 선율입니다. 손잡이를 시계 방향으로 돌려 연주해 보세요."
+      : "This melody came from your archive. Turn the crank clockwise to play it.";
+    document.title = `${title} — ORGO`;
+  }
+
+  function loadArchivePlayback() {
+    const archiveId = new URLSearchParams(window.location.search).get("archive");
+    if (!archiveId) return;
+
+    let saved;
+    try {
+      saved = JSON.parse(localStorage.getItem("orgo-archive") || "[]");
+    } catch {
+      return;
+    }
+
+    archivePlayback = Array.isArray(saved)
+      ? saved.find((item) => item?.id === archiveId)
+      : null;
+
+    if (!archivePlayback) return;
+
+    const sourceWidth = Number(archivePlayback.width) > 0
+      ? Number(archivePlayback.width)
+      : PAGE_WIDTH;
+    const sourceHeight = Number(archivePlayback.height) > 0
+      ? Number(archivePlayback.height)
+      : PAGE_HEIGHT;
+
+    holes = (Array.isArray(archivePlayback.notes) ? archivePlayback.notes : [])
+      .map((point) => archivePoint(point, sourceWidth, sourceHeight))
+      .filter(Boolean)
+      .sort((a, b) => a.x - b.x);
+
+    strokes = (Array.isArray(archivePlayback.strokes) ? archivePlayback.strokes : [])
+      .map((stroke) => {
+        const points = (Array.isArray(stroke?.points) ? stroke.points : [])
+          .map((point) => archivePoint(point, sourceWidth, sourceHeight))
+          .filter(Boolean);
+
+        if (!points.length) return null;
+
+        return {
+          ink: stroke.ink || "#222222",
+          width: Math.max(1, Math.min(12, Number(stroke.width) || 3)),
+          points,
+        };
+      })
+      .filter(Boolean);
+
+    candidates = [...holes];
+
+    if (toneProfiles[archivePlayback.tone]) {
+      toneName = archivePlayback.tone;
+      $("tone").value = toneName;
+    }
+
+    if (Number.isFinite(Number(archivePlayback.volume))) {
+      $("volume").value = Math.max(0, Math.min(100, Number(archivePlayback.volume)));
+    }
+
+    mode = "";
+    setMode("listen");
+    updateArchivePlaybackCopy();
+
+    requestAnimationFrame(() => {
+      $("mechanism").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
 
   // 다른 탭으로 이동하면 자동 동작 정지
   document.addEventListener("visibilitychange", () => {
@@ -1447,4 +1555,5 @@
   });
 
   draw();
+  loadArchivePlayback();
 })();

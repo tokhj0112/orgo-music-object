@@ -613,6 +613,8 @@
       title: "이름 없는 선율",
       width: sheet.width,
       height: sheet.height,
+      tone: toneName,
+      volume: 65,
       notes: notes.map(({ x, y }) => ({ x, y })),
       strokes: strokes.map((stroke) => {
         const interval = Math.max(1, Math.ceil(stroke.length / 240));

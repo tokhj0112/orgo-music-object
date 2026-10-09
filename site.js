@@ -112,60 +112,6 @@
       localStorage.setItem(archiveKey, JSON.stringify(items));
     }
 
-    let archiveAudio = null;
-    let archiveMaster = null;
-    const archivePitches = [261.63, 293.66, 329.63, 392, 440, 523.25, 587.33, 659.25];
-
-    function archiveNote(y, height) {
-      const now = archiveAudio.currentTime;
-      const index = Math.max(0, Math.min(archivePitches.length - 1, archivePitches.length - 1 - Math.round((y / height) * (archivePitches.length - 1))));
-
-      [
-        { ratio: 1, gain: 0.16, decay: 1.55 },
-        { ratio: 2.01, gain: 0.06, decay: 1.05 },
-        { ratio: 2.76, gain: 0.025, decay: 0.72 },
-      ].forEach((partial) => {
-        const oscillator = archiveAudio.createOscillator();
-        const envelope = archiveAudio.createGain();
-        oscillator.type = "sine";
-        oscillator.frequency.value = archivePitches[index] * partial.ratio;
-        envelope.gain.setValueAtTime(0.0001, now);
-        envelope.gain.exponentialRampToValueAtTime(partial.gain, now + 0.01);
-        envelope.gain.exponentialRampToValueAtTime(0.0001, now + partial.decay);
-        oscillator.connect(envelope).connect(archiveMaster);
-        oscillator.start();
-        oscillator.stop(now + partial.decay + 0.04);
-      });
-    }
-
-    async function playArchive(item, button) {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass || !(item.notes || []).length) return;
-
-      if (!archiveAudio) {
-        archiveAudio = new AudioContextClass();
-        archiveMaster = archiveAudio.createGain();
-        archiveMaster.gain.value = 0.65;
-        archiveMaster.connect(archiveAudio.destination);
-      }
-
-      if (archiveAudio.state !== "running") await archiveAudio.resume();
-
-      const sequence = [...item.notes].sort((a, b) => a.x - b.x);
-      button.disabled = true;
-      button.textContent = t("archivePlaying");
-      sequence.forEach((note, index) => {
-        window.setTimeout(
-          () => archiveNote(note.y, item.height || 420),
-          index * 360
-        );
-      });
-      window.setTimeout(() => {
-        button.disabled = false;
-        button.textContent = t("archivePlay");
-      }, sequence.length * 360 + 900);
-    }
-
     function renderHandwritingPreview(preview, item, height) {
       const strokes = Array.isArray(item.strokes) ? item.strokes : [];
       const validStrokes = strokes.filter(
@@ -262,11 +208,10 @@
         details.textContent = `${(item.notes || []).length} NOTES`;
         const actions = document.createElement("div");
         actions.className = "archive-card-actions";
-        const play = document.createElement("button");
+        const play = document.createElement("a");
         play.className = "archive-play";
-        play.type = "button";
-        play.textContent = t("archivePlay");
-        play.addEventListener("click", () => playArchive(item, play));
+        play.href = `compose.html?archive=${encodeURIComponent(item.id)}`;
+        play.textContent = t("archiveOpenPlayer");
         const remove = document.createElement("button");
         remove.className = "archive-delete";
         remove.type = "button";
