@@ -16,6 +16,7 @@
   const noteCount = $("note-count");
   const playButton = $("play-score");
   const finishButton = $("finish-score");
+  const undoButton = $("undo-stroke");
   const saveHandButton = $("save-hand-archive");
   const cameraLed = $("camera-led");
   const toneSelector = $("hand-tone");
@@ -88,9 +89,6 @@
   let releaseFrames = 0;
   let stabilizedPoint = null;
   let lastPointTime = 0;
-  let fistStartedAt = 0;
-  let fistLatched = false;
-  let eraserGuardUntil = 0;
   let lastHarmonyTime = -Infinity;
   let activeHarmonyStep = -1;
   let playerProgress = 0;
@@ -273,6 +271,7 @@
     lastPoint = point;
     placeholder.hidden = true;
     updateSheet();
+    undoButton.disabled = false;
 
     if (!lastNote || Math.hypot(point.x - lastNote.x, point.y - lastNote.y) > 65) {
       const quantized = {
@@ -382,28 +381,13 @@
     fingertipPointer.classList.toggle("is-erasing", mode === "erasing");
   }
 
-  function isIndexReadyForWriting(landmarks) {
-    const scale = getHandScale(landmarks);
-    const indexReach = Math.hypot(
-      landmarks[8].x - landmarks[5].x,
-      landmarks[8].y - landmarks[5].y
-    ) / scale;
-    // 검지가 손바닥 쪽으로 접혀 있으면, 엄지와 가까워도 쓰기 핀치로 취급하지 않습니다.
-    return indexReach > 0.94;
-  }
-
-  function resetWritingGesture() {
+  function resetPinchState() {
     isPinching = false;
     pinchFrames = 0;
     releaseFrames = 0;
   }
 
-  function updatePinchState(landmarks, canWrite = true) {
-    if (!canWrite) {
-      resetWritingGesture();
-      return;
-    }
-
+  function updatePinchState(landmarks) {
     const indexTip = landmarks[8];
     const thumbTip = landmarks[4];
     // 손의 방향과 카메라와의 거리가 달라져도 같은 제스처로 읽히도록,
@@ -428,102 +412,6 @@
       isPinching = false;
       pinchFrames = 0;
     }
-  }
-
-  function isClosedFist(landmarks) {
-    const safePalmWidth = getHandScale(landmarks);
-    const fingerPairs = [[8, 5], [12, 9], [16, 13], [20, 17]];
-    const curled = fingerPairs.filter(([tip, base]) =>
-      Math.hypot(
-        landmarks[tip].x - landmarks[base].x,
-        landmarks[tip].y - landmarks[base].y
-      ) / safePalmWidth < 0.9
-    ).length;
-    const palmCenter = landmarks[9];
-    const averageTipDistance = [8, 12, 16, 20]
-      .reduce((total, tip) => total + Math.hypot(
-        landmarks[tip].x - palmCenter.x,
-        landmarks[tip].y - palmCenter.y
-      ), 0) / 4;
-
-    // 핀치가 아니라 네 손가락이 충분히 접힌 주먹일 때만 인식합니다.
-    return curled >= 3 && averageTipDistance / safePalmWidth < 1.1;
-  }
-
-  function resetFistGesture() {
-    fistStartedAt = 0;
-    fistLatched = false;
-  }
-
-  function eraseAt(point) {
-    const radius = 34;
-    let changed = false;
-    const remainingStrokes = [];
-
-    strokes.forEach((stroke) => {
-      let segment = [];
-
-      stroke.forEach((strokePoint) => {
-        const shouldErase = Math.hypot(
-          strokePoint.x - point.x,
-          strokePoint.y - point.y
-        ) < radius;
-
-        if (shouldErase) {
-          if (segment.length > 1) remainingStrokes.push(segment);
-          if (segment.length) changed = true;
-          segment = [];
-          return;
-        }
-
-        segment.push(strokePoint);
-      });
-
-      if (segment.length > 1) remainingStrokes.push(segment);
-    });
-
-    const remainingNotes = notes.filter((note) =>
-      Math.hypot(note.x - point.x, note.y - point.y) >= radius * 1.2
-    );
-
-    if (remainingNotes.length !== notes.length) changed = true;
-    if (!changed) return false;
-
-    strokes = remainingStrokes;
-    notes = remainingNotes;
-    placeholder.hidden = strokes.length > 0;
-    noteCount.textContent = `${notes.length} NOTES`;
-    finishButton.disabled = notes.length === 0;
-    updateSheet();
-    return true;
-  }
-
-  function handleFistGesture(isFist, point) {
-    if (!isFist || finished) {
-      resetFistGesture();
-      return false;
-    }
-
-    if (!fistStartedAt) fistStartedAt = performance.now();
-    const heldFor = performance.now() - fistStartedAt;
-
-    if (!fistLatched && heldFor >= 260) {
-      fistLatched = true;
-    }
-
-    if (fistLatched) {
-      stopDrawing();
-      // 주먹 모양이 한 프레임 흔들려도, 즉시 핀치 쓰기로 전환되지 않도록 합니다.
-      eraserGuardUntil = performance.now() + 380;
-      const erased = eraseAt(point);
-      handState.textContent = erased
-        ? "지우는 중 · 주먹을 움직여 필요한 부분만 지워보세요"
-        : "주먹을 움직여 선 위를 지나가면 부분적으로 지워집니다";
-    } else if (!fistLatched) {
-      handState.textContent = "주먹을 잠시 유지하면 지우개로 바뀝니다";
-    }
-
-    return true;
   }
 
   function getHandCrankAngle(landmarks) {
@@ -580,11 +468,8 @@
     if (!landmarks) {
       overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
       smoothedPinchRatio = null;
-      pinchFrames = 0;
-      releaseFrames = 0;
-      eraserGuardUntil = 0;
+      resetPinchState();
       resetPointStabilizer();
-      resetFistGesture();
       updateFingertipPointer(null);
       if (!playerScreen.hidden) {
         handCrankStatus.textContent = t("cameraNeedHand");
@@ -593,18 +478,15 @@
       } else {
         handState.textContent = "손을 화면에 보여주세요";
       }
-      resetWritingGesture();
+      resetPinchState();
       stopDrawing();
       return;
     }
 
-    const fist = isClosedFist(landmarks);
-    const writingPose = isIndexReadyForWriting(landmarks);
-    updatePinchState(landmarks, writingPose && !fist);
+    updatePinchState(landmarks);
 
     drawOverlay(landmarks, isPinching);
     const point = stabilizePoint(mapHandToSheet(writingLandmark(landmarks)));
-    const eraserPoint = mapHandToSheet(landmarks[9]);
 
     if (!playerScreen.hidden) {
       updateFingertipPointer(point);
@@ -646,23 +528,10 @@
       return;
     }
 
-    const erasing = handleFistGesture(fist, eraserPoint);
-    const eraserGuarded = performance.now() < eraserGuardUntil;
-    if (erasing || eraserGuarded) {
-      resetWritingGesture();
-      stopDrawing();
-      resetPointStabilizer();
-      updateFingertipPointer(eraserPoint, erasing ? "erasing" : "idle");
-      if (!erasing) handState.textContent = "지우개 동작을 마쳤어요 · 검지를 편 뒤 다시 써보세요";
-      return;
-    }
-
     updateFingertipPointer(point, isPinching ? "writing" : "idle");
 
     if (!isPinching) {
-      handState.textContent = writingPose
-        ? "검지와 엄지를 맞대면 쓰기 시작"
-        : "검지를 편 뒤 엄지와 맞대면 쓰기 시작";
+      handState.textContent = "검지와 엄지를 맞대면 쓰기 시작";
       stopDrawing();
       return;
     }
@@ -806,15 +675,33 @@
     notes = [];
     currentStrokeId = null;
     resetPointStabilizer();
-    resetFistGesture();
+    resetPinchState();
     finished = false;
     activeHarmonyStep = -1;
     placeholder.hidden = false;
     noteCount.textContent = "0 NOTES";
+    undoButton.disabled = true;
     playButton.disabled = true;
     finishButton.disabled = true;
     saveHandButton.disabled = true;
     finishButton.textContent = "선율 완성하기 →";
+    updateSheet();
+  }
+
+  function undoLastStroke() {
+    if (finished || strokes.length === 0) return;
+
+    stopDrawing();
+    const lastStrokeId = strokes.length - 1;
+    strokes.pop();
+    notes = notes.filter((note) => note.strokeId !== lastStrokeId);
+
+    placeholder.hidden = strokes.length > 0;
+    noteCount.textContent = `${notes.length} NOTES`;
+    undoButton.disabled = strokes.length === 0;
+    finishButton.disabled = notes.length === 0;
+    activeHarmonyStep = -1;
+    handState.textContent = "마지막 획을 되돌렸어요";
     updateSheet();
   }
 
@@ -823,6 +710,7 @@
     finished = true;
     isPinching = false;
     stopDrawing();
+    undoButton.disabled = true;
     finishButton.disabled = true;
     finishButton.textContent = "선율 완성됨 ✓";
     playButton.disabled = false;
@@ -942,6 +830,7 @@
 
   $("start-camera").addEventListener("click", startCamera);
   $("clear-sheet").addEventListener("click", clearSheet);
+  undoButton.addEventListener("click", undoLastStroke);
   finishButton.addEventListener("click", finishScore);
   saveHandButton.addEventListener("click", () => {
     if (!finished || notes.length === 0) return;
