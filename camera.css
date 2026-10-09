@@ -58,7 +58,7 @@ h1 { margin: 0; font-size: clamp(27px, 2.7vw, 42px); font-weight: 400; letter-sp
 .sheet-actions #save-hand-archive { border-color: #849078; }
 .sheet-actions button:disabled { cursor: default; opacity: .45; }
 
-.gesture-guide { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 28px 0; }
+.gesture-guide { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; padding: 28px 0; }
 .gesture-guide article { display: flex; gap: 12px; padding-top: 16px; border-top: 1px solid #3b4039; }
 .gesture-guide b { color: #cbd3c0; font: 11px monospace; }
 .gesture-guide strong { font-size: 13px; font-weight: 400; }
@@ -92,6 +92,7 @@ footer { display: flex; justify-content: space-between; margin: 0 4%; padding: 1
   .header-label { display: none; }
   .camera-workbench { grid-template-columns: 1fr; }
   .camera-panel { border-right: 0; border-bottom: 1px solid #3b4238; }
+  .gesture-guide { grid-template-columns: repeat(2, 1fr); }
   .player-layout { grid-template-columns: 1fr; min-height: auto; padding: 65px 0 20px; }
 }
 

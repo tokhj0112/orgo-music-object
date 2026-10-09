@@ -75,6 +75,7 @@
   let lastNote = null;
   let strokes = [];
   let currentStroke = null;
+  let currentStrokeId = null;
   let notes = [];
   let audio = null;
   let master = null;
@@ -83,6 +84,8 @@
   let toneName = "warm";
   let isPinching = false;
   let smoothedPinchRatio = null;
+  let fistStartedAt = 0;
+  let fistLatched = false;
   let lastHarmonyTime = -Infinity;
   let activeHarmonyStep = -1;
   let playerProgress = 0;
@@ -242,6 +245,7 @@
     if (!currentStroke) {
       currentStroke = [];
       strokes.push(currentStroke);
+      currentStrokeId = strokes.length - 1;
     }
 
     if (lastPoint && Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y) < 9) return;
@@ -255,7 +259,7 @@
         x: Math.round(point.x / 45) * 45,
         y: Math.round(point.y / 64) * 64,
       };
-      notes.push(quantized);
+      notes.push({ ...quantized, strokeId: currentStrokeId });
       lastNote = point;
       playNote(quantized.y, 0.72, quantized.x);
       noteCount.textContent = `${notes.length} NOTES`;
@@ -266,6 +270,7 @@
   function stopDrawing() {
     drawing = false;
     currentStroke = null;
+    currentStrokeId = null;
     lastPoint = null;
     lastNote = null;
   }
@@ -316,6 +321,71 @@
     // 작은 프레임 흔들림으로 선이 중간에 끊기지 않게 합니다.
     if (!isPinching && smoothedPinchRatio < 0.34) isPinching = true;
     if (isPinching && smoothedPinchRatio > 0.52) isPinching = false;
+  }
+
+  function isClosedFist(landmarks) {
+    const palmWidth = Math.hypot(
+      landmarks[5].x - landmarks[17].x,
+      landmarks[5].y - landmarks[17].y
+    );
+    const safePalmWidth = Math.max(palmWidth, 0.06);
+    const fingerPairs = [[8, 5], [12, 9], [16, 13], [20, 17]];
+    const curled = fingerPairs.filter(([tip, base]) =>
+      Math.hypot(
+        landmarks[tip].x - landmarks[base].x,
+        landmarks[tip].y - landmarks[base].y
+      ) / safePalmWidth < 0.9
+    ).length;
+    const palmCenter = landmarks[9];
+    const averageTipDistance = [8, 12, 16, 20]
+      .reduce((total, tip) => total + Math.hypot(
+        landmarks[tip].x - palmCenter.x,
+        landmarks[tip].y - palmCenter.y
+      ), 0) / 4;
+
+    // 핀치가 아니라 네 손가락이 충분히 접힌 주먹일 때만 인식합니다.
+    return curled >= 3 && averageTipDistance / safePalmWidth < 1.1;
+  }
+
+  function resetFistGesture() {
+    fistStartedAt = 0;
+    fistLatched = false;
+  }
+
+  function eraseLastStroke() {
+    if (finished || strokes.length === 0) return false;
+
+    stopDrawing();
+    const removedStrokeId = strokes.length - 1;
+    strokes.pop();
+    notes = notes.filter((note) => note.strokeId !== removedStrokeId);
+    placeholder.hidden = strokes.length > 0;
+    noteCount.textContent = `${notes.length} NOTES`;
+    finishButton.disabled = notes.length === 0;
+    updateSheet();
+    return true;
+  }
+
+  function handleFistGesture(isFist) {
+    if (!isFist || finished) {
+      resetFistGesture();
+      return false;
+    }
+
+    if (!fistStartedAt) fistStartedAt = performance.now();
+    const heldFor = performance.now() - fistStartedAt;
+
+    if (!fistLatched && heldFor >= 480) {
+      fistLatched = true;
+      const erased = eraseLastStroke();
+      handState.textContent = erased
+        ? "마지막 선을 지웠어요 · 손을 펴고 다시 그려보세요"
+        : "지울 선이 없어요 · 손을 펴고 그려보세요";
+    } else if (!fistLatched) {
+      handState.textContent = "주먹을 잠시 유지하면 마지막 선을 지워요";
+    }
+
+    return true;
   }
 
   function getHandCrankAngle(landmarks) {
@@ -372,6 +442,7 @@
     if (!landmarks) {
       overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
       smoothedPinchRatio = null;
+      resetFistGesture();
       updateFingertipPointer(null);
       if (!playerScreen.hidden) {
         handCrankStatus.textContent = t("cameraNeedHand");
@@ -386,6 +457,7 @@
     }
 
     const indexTip = landmarks[8];
+    const fist = isClosedFist(landmarks);
     updatePinchState(landmarks);
 
     drawOverlay(landmarks, isPinching);
@@ -429,6 +501,12 @@
       }
 
       previousHandCrankAngle = handAngle;
+      return;
+    }
+
+    if (handleFistGesture(fist)) {
+      isPinching = false;
+      updateFingertipPointer(null);
       return;
     }
 
@@ -573,6 +651,8 @@
   function clearSheet() {
     strokes = [];
     notes = [];
+    currentStrokeId = null;
+    resetFistGesture();
     finished = false;
     activeHarmonyStep = -1;
     placeholder.hidden = false;
