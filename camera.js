@@ -90,6 +90,7 @@
   let lastPointTime = 0;
   let fistStartedAt = 0;
   let fistLatched = false;
+  let eraserGuardUntil = 0;
   let lastHarmonyTime = -Infinity;
   let activeHarmonyStep = -1;
   let playerProgress = 0;
@@ -381,7 +382,28 @@
     fingertipPointer.classList.toggle("is-erasing", mode === "erasing");
   }
 
-  function updatePinchState(landmarks) {
+  function isIndexReadyForWriting(landmarks) {
+    const scale = getHandScale(landmarks);
+    const indexReach = Math.hypot(
+      landmarks[8].x - landmarks[5].x,
+      landmarks[8].y - landmarks[5].y
+    ) / scale;
+    // 검지가 손바닥 쪽으로 접혀 있으면, 엄지와 가까워도 쓰기 핀치로 취급하지 않습니다.
+    return indexReach > 0.94;
+  }
+
+  function resetWritingGesture() {
+    isPinching = false;
+    pinchFrames = 0;
+    releaseFrames = 0;
+  }
+
+  function updatePinchState(landmarks, canWrite = true) {
+    if (!canWrite) {
+      resetWritingGesture();
+      return;
+    }
+
     const indexTip = landmarks[8];
     const thumbTip = landmarks[4];
     // 손의 방향과 카메라와의 거리가 달라져도 같은 제스처로 읽히도록,
@@ -491,6 +513,8 @@
 
     if (fistLatched) {
       stopDrawing();
+      // 주먹 모양이 한 프레임 흔들려도, 즉시 핀치 쓰기로 전환되지 않도록 합니다.
+      eraserGuardUntil = performance.now() + 380;
       const erased = eraseAt(point);
       handState.textContent = erased
         ? "지우는 중 · 주먹을 움직여 필요한 부분만 지워보세요"
@@ -558,6 +582,7 @@
       smoothedPinchRatio = null;
       pinchFrames = 0;
       releaseFrames = 0;
+      eraserGuardUntil = 0;
       resetPointStabilizer();
       resetFistGesture();
       updateFingertipPointer(null);
@@ -568,13 +593,14 @@
       } else {
         handState.textContent = "손을 화면에 보여주세요";
       }
-      isPinching = false;
+      resetWritingGesture();
       stopDrawing();
       return;
     }
 
     const fist = isClosedFist(landmarks);
-    updatePinchState(landmarks);
+    const writingPose = isIndexReadyForWriting(landmarks);
+    updatePinchState(landmarks, writingPose && !fist);
 
     drawOverlay(landmarks, isPinching);
     const point = stabilizePoint(mapHandToSheet(writingLandmark(landmarks)));
@@ -620,17 +646,23 @@
       return;
     }
 
-    if (handleFistGesture(fist, eraserPoint)) {
-      isPinching = false;
+    const erasing = handleFistGesture(fist, eraserPoint);
+    const eraserGuarded = performance.now() < eraserGuardUntil;
+    if (erasing || eraserGuarded) {
+      resetWritingGesture();
+      stopDrawing();
       resetPointStabilizer();
-      updateFingertipPointer(eraserPoint, "erasing");
+      updateFingertipPointer(eraserPoint, erasing ? "erasing" : "idle");
+      if (!erasing) handState.textContent = "지우개 동작을 마쳤어요 · 검지를 편 뒤 다시 써보세요";
       return;
     }
 
     updateFingertipPointer(point, isPinching ? "writing" : "idle");
 
     if (!isPinching) {
-      handState.textContent = "검지와 엄지를 맞대면 쓰기 시작";
+      handState.textContent = writingPose
+        ? "검지와 엄지를 맞대면 쓰기 시작"
+        : "검지를 편 뒤 엄지와 맞대면 쓰기 시작";
       stopDrawing();
       return;
     }
