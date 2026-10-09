@@ -84,6 +84,10 @@
   let toneName = "warm";
   let isPinching = false;
   let smoothedPinchRatio = null;
+  let pinchFrames = 0;
+  let releaseFrames = 0;
+  let stabilizedPoint = null;
+  let lastPointTime = 0;
   let fistStartedAt = 0;
   let fistLatched = false;
   let lastHarmonyTime = -Infinity;
@@ -248,7 +252,22 @@
       currentStrokeId = strokes.length - 1;
     }
 
-    if (lastPoint && Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y) < 9) return;
+    const distance = lastPoint
+      ? Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y)
+      : 0;
+    if (lastPoint && distance < 7) return;
+
+    // 프레임이 드문 구간도 종이 위 선이 끊기거나 각지지 않도록 사이를 보완합니다.
+    if (lastPoint && distance > 18) {
+      const segments = Math.min(8, Math.floor(distance / 16));
+      for (let step = 1; step <= segments; step++) {
+        const amount = step / (segments + 1);
+        currentStroke.push({
+          x: lastPoint.x + (point.x - lastPoint.x) * amount,
+          y: lastPoint.y + (point.y - lastPoint.y) * amount,
+        });
+      }
+    }
     currentStroke.push(point);
     lastPoint = point;
     placeholder.hidden = true;
@@ -275,12 +294,72 @@
     lastNote = null;
   }
 
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function getHandScale(landmarks) {
+    // 손바닥이 기울어져도 폭 하나에만 의존하지 않도록 세로·가로 길이를 함께 씁니다.
+    const palmWidth = Math.hypot(
+      landmarks[5].x - landmarks[17].x,
+      landmarks[5].y - landmarks[17].y
+    );
+    const palmLength = Math.hypot(
+      landmarks[0].x - landmarks[9].x,
+      landmarks[0].y - landmarks[9].y
+    );
+    return Math.max((palmWidth + palmLength) / 2, 0.065);
+  }
+
+  function resetPointStabilizer() {
+    stabilizedPoint = null;
+    lastPointTime = 0;
+  }
+
   function mapHandToSheet(tip) {
-    // 화면에 비친 손끝의 위치를 종이의 동일한 위치로 그대로 옮깁니다.
-    // 카메라 영상만 좌우 반전돼 있으므로 x축만 뒤집습니다.
+    // 손을 화면 가장자리까지 옮기지 않아도 종이의 가장자리까지 쓸 수 있게
+    // 유효 입력 영역을 조금 넓혀 매핑합니다. 영상만 좌우 반전되어 있습니다.
+    const horizontalInset = 0.075;
+    const verticalInset = 0.065;
     return {
-      x: (1 - tip.x) * sheet.width,
-      y: tip.y * sheet.height,
+      x: clamp((1 - tip.x - horizontalInset) / (1 - horizontalInset * 2), 0, 1) * sheet.width,
+      y: clamp((tip.y - verticalInset) / (1 - verticalInset * 2), 0, 1) * sheet.height,
+    };
+  }
+
+  function stabilizePoint(point) {
+    const now = performance.now();
+    if (!stabilizedPoint || now - lastPointTime > 220) {
+      stabilizedPoint = { ...point };
+      lastPointTime = now;
+      return { ...stabilizedPoint };
+    }
+
+    const elapsed = Math.max(1, now - lastPointTime);
+    const distance = Math.hypot(point.x - stabilizedPoint.x, point.y - stabilizedPoint.y);
+    // 손이 가려졌을 때 한 프레임만 튀는 좌표는 선으로 연결하지 않습니다.
+    const maximumStep = Math.max(165, elapsed * 4.8);
+    if (distance > maximumStep && elapsed < 95) {
+      return { ...stabilizedPoint };
+    }
+
+    // 멈춰 있을 때는 흔들림을 단단히 잡고, 손을 움직일 때는 즉시 따라갑니다.
+    const follow = clamp(0.28 + (distance / 85) * 0.5, 0.28, 0.8);
+    stabilizedPoint.x += (point.x - stabilizedPoint.x) * follow;
+    stabilizedPoint.y += (point.y - stabilizedPoint.y) * follow;
+    lastPointTime = now;
+    return { ...stabilizedPoint };
+  }
+
+  function writingLandmark(landmarks) {
+    const indexTip = landmarks[8];
+    const thumbTip = landmarks[4];
+    // 핀치 상태에서는 두 손가락이 닿는 지점 쪽으로 살짝 옮겨, 보이는 포인터와
+    // 실제로 그려지는 위치가 최대한 일치하도록 합니다.
+    const blend = isPinching ? 0.26 : 0;
+    return {
+      x: indexTip.x * (1 - blend) + thumbTip.x * blend,
+      y: indexTip.y * (1 - blend) + thumbTip.y * blend,
     };
   }
 
@@ -305,31 +384,32 @@
   function updatePinchState(landmarks) {
     const indexTip = landmarks[8];
     const thumbTip = landmarks[4];
-    // 손이 카메라에 가까워지거나 멀어져도 같은 동작으로 인식되도록,
-    // 두 손가락의 거리를 손바닥 너비에 비례해 계산합니다.
-    const palmWidth = Math.hypot(
-      landmarks[5].x - landmarks[17].x,
-      landmarks[5].y - landmarks[17].y
-    );
+    // 손의 방향과 카메라와의 거리가 달라져도 같은 제스처로 읽히도록,
+    // 두 손가락 간 거리를 손바닥의 가로·세로 평균 크기에 비례시킵니다.
     const rawRatio = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y) /
-      Math.max(palmWidth, 0.06);
+      getHandScale(landmarks);
 
     smoothedPinchRatio = smoothedPinchRatio === null
       ? rawRatio
-      : smoothedPinchRatio * 0.54 + rawRatio * 0.46;
+      : smoothedPinchRatio * 0.64 + rawRatio * 0.36;
 
-    // 시작과 해제 기준을 다르게 두어, 손가락을 접고 펴는 동작이 자연스럽고
-    // 작은 프레임 흔들림으로 선이 중간에 끊기지 않게 합니다.
-    if (!isPinching && smoothedPinchRatio < 0.34) isPinching = true;
-    if (isPinching && smoothedPinchRatio > 0.52) isPinching = false;
+    // 시작은 조금 넉넉하게, 해제는 더 여유 있게 잡고 2~3프레임만 확인합니다.
+    // 그래서 닿을 때는 잘 시작하고, 쓰는 중에는 작은 떨림으로 끊기지 않습니다.
+    pinchFrames = smoothedPinchRatio < 0.42 ? Math.min(pinchFrames + 1, 4) : Math.max(pinchFrames - 1, 0);
+    releaseFrames = smoothedPinchRatio > 0.62 ? Math.min(releaseFrames + 1, 5) : 0;
+
+    if (!isPinching && pinchFrames >= 2) {
+      isPinching = true;
+      releaseFrames = 0;
+    }
+    if (isPinching && releaseFrames >= 3) {
+      isPinching = false;
+      pinchFrames = 0;
+    }
   }
 
   function isClosedFist(landmarks) {
-    const palmWidth = Math.hypot(
-      landmarks[5].x - landmarks[17].x,
-      landmarks[5].y - landmarks[17].y
-    );
-    const safePalmWidth = Math.max(palmWidth, 0.06);
+    const safePalmWidth = getHandScale(landmarks);
     const fingerPairs = [[8, 5], [12, 9], [16, 13], [20, 17]];
     const curled = fingerPairs.filter(([tip, base]) =>
       Math.hypot(
@@ -476,6 +556,9 @@
     if (!landmarks) {
       overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
       smoothedPinchRatio = null;
+      pinchFrames = 0;
+      releaseFrames = 0;
+      resetPointStabilizer();
       resetFistGesture();
       updateFingertipPointer(null);
       if (!playerScreen.hidden) {
@@ -490,12 +573,11 @@
       return;
     }
 
-    const indexTip = landmarks[8];
     const fist = isClosedFist(landmarks);
     updatePinchState(landmarks);
 
     drawOverlay(landmarks, isPinching);
-    const point = mapHandToSheet(indexTip);
+    const point = stabilizePoint(mapHandToSheet(writingLandmark(landmarks)));
     const eraserPoint = mapHandToSheet(landmarks[9]);
 
     if (!playerScreen.hidden) {
@@ -540,6 +622,7 @@
 
     if (handleFistGesture(fist, eraserPoint)) {
       isPinching = false;
+      resetPointStabilizer();
       updateFingertipPointer(eraserPoint, "erasing");
       return;
     }
@@ -585,8 +668,10 @@
       handTracker.setOptions({
         maxNumHands: 1,
         modelComplexity: 1,
-        minDetectionConfidence: 0.62,
-        minTrackingConfidence: 0.62,
+        // 실내 조명이나 손의 기울기가 있어도 추적이 너무 쉽게 끊기지 않도록
+        // 초기 감지와 연속 추적 기준을 조금 낮춥니다. 이후 좌표 안정화가 미세한 오차를 잡습니다.
+        minDetectionConfidence: 0.54,
+        minTrackingConfidence: 0.5,
       });
       handTracker.onResults(onResults);
 
@@ -688,6 +773,7 @@
     strokes = [];
     notes = [];
     currentStrokeId = null;
+    resetPointStabilizer();
     resetFistGesture();
     finished = false;
     activeHarmonyStep = -1;
