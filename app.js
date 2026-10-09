@@ -1394,7 +1394,64 @@
      아카이브 저장
   ------------------------------ */
 
-  $("save-archive").onclick = () => {
+  function requestArchiveName(onSave) {
+    const copy = isKorean()
+      ? {
+        title: "선율 이름 정하기",
+        description: "아카이브에 남길 이름을 적어주세요.",
+        placeholder: "예: 비 오는 날의 멜로디",
+        cancel: "취소",
+        save: "저장하기",
+        fallback: "이름 없는 선율",
+      }
+      : {
+        title: "Name this melody",
+        description: "Choose a name to keep with this melody in your archive.",
+        placeholder: "e.g. A melody for rainy days",
+        cancel: "Cancel",
+        save: "Save to archive",
+        fallback: "Untitled melody",
+      };
+    const dialog = document.createElement("dialog");
+    const form = document.createElement("form");
+    const heading = document.createElement("h2");
+    const description = document.createElement("p");
+    const input = document.createElement("input");
+    const actions = document.createElement("div");
+    const cancel = document.createElement("button");
+    const save = document.createElement("button");
+
+    dialog.className = "archive-name-dialog";
+    form.method = "dialog";
+    heading.textContent = copy.title;
+    description.textContent = copy.description;
+    input.type = "text";
+    input.maxLength = 32;
+    input.placeholder = copy.placeholder;
+    input.setAttribute("aria-label", copy.title);
+    cancel.type = "button";
+    cancel.textContent = copy.cancel;
+    save.type = "submit";
+    save.className = "primary";
+    save.textContent = copy.save;
+    actions.className = "archive-name-actions";
+    actions.append(cancel, save);
+    form.append(heading, description, input, actions);
+    dialog.append(form);
+    document.body.append(dialog);
+
+    cancel.addEventListener("click", () => dialog.close());
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      onSave(input.value.trim() || copy.fallback);
+      dialog.close();
+    });
+    dialog.addEventListener("close", () => dialog.remove(), { once: true });
+    dialog.showModal();
+    requestAnimationFrame(() => input.focus());
+  }
+
+  function saveArchive(title) {
     if (holes.length === 0) return;
 
     const key = "orgo-archive";
@@ -1407,7 +1464,7 @@
       id,
       kind: "MOUSE",
       createdAt: new Date().toISOString(),
-      title: "이름 없는 선율",
+      title,
       width: PAGE_WIDTH,
       height: PAGE_HEIGHT,
       tone: toneName,
@@ -1430,6 +1487,11 @@
     localStorage.setItem(key, JSON.stringify(saved.slice(0, 30)));
     $("hint").textContent = "아카이브에 저장했어요. ARCHIVE에서 다시 확인할 수 있습니다.";
     $("save-archive").textContent = "저장됨 ✓";
+  }
+
+  $("save-archive").onclick = () => {
+    if (holes.length === 0) return;
+    requestArchiveName(saveArchive);
   };
 
   /* ------------------------------
