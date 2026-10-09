@@ -49,6 +49,9 @@ h1 { margin: 0; font-size: clamp(27px, 2.7vw, 42px); font-weight: 400; letter-sp
 #fingertip-pointer::before, #fingertip-pointer::after { position: absolute; top: 50%; left: 50%; width: 7px; height: 1px; background: #4f5c4a; content: ""; transform: translate(-50%, -50%); }
 #fingertip-pointer::after { width: 1px; height: 7px; }
 #fingertip-pointer.is-writing { width: 18px; height: 18px; border-color: #33412f; background: #dce9cce6; box-shadow: 0 0 0 7px #6077552c, 0 2px 8px #2227; }
+#fingertip-pointer.is-erasing { width: 64px; height: 64px; border: 2px dashed #a85b4f; background: #f7ebe59c; box-shadow: 0 0 0 7px #a85b4f24, 0 3px 12px #2227; }
+#fingertip-pointer.is-erasing::before, #fingertip-pointer.is-erasing::after { width: 22px; background: #8d433a; transform: translate(-50%, -50%) rotate(45deg); }
+#fingertip-pointer.is-erasing::after { width: 22px; height: 1px; transform: translate(-50%, -50%) rotate(-45deg); }
 #fingertip-pointer[hidden] { display: none; }
 #sheet-placeholder { position: absolute; top: 47%; left: 0; right: 0; color: #afa99b; font-size: 20px; line-height: 1.6; text-align: center; pointer-events: none; }
 #sheet-placeholder[hidden] { display: none; }

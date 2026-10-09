@@ -284,7 +284,7 @@
     };
   }
 
-  function updateFingertipPointer(point, isActive = false) {
+  function updateFingertipPointer(point, mode = "idle") {
     if (!point || finished || !playerScreen.hidden) {
       fingertipPointer.hidden = true;
       return;
@@ -298,7 +298,8 @@
     fingertipPointer.hidden = false;
     fingertipPointer.style.left = `${x}px`;
     fingertipPointer.style.top = `${y}px`;
-    fingertipPointer.classList.toggle("is-writing", isActive);
+    fingertipPointer.classList.toggle("is-writing", mode === "writing");
+    fingertipPointer.classList.toggle("is-erasing", mode === "erasing");
   }
 
   function updatePinchState(landmarks) {
@@ -352,13 +353,42 @@
     fistLatched = false;
   }
 
-  function eraseLastStroke() {
-    if (finished || strokes.length === 0) return false;
+  function eraseAt(point) {
+    const radius = 34;
+    let changed = false;
+    const remainingStrokes = [];
 
-    stopDrawing();
-    const removedStrokeId = strokes.length - 1;
-    strokes.pop();
-    notes = notes.filter((note) => note.strokeId !== removedStrokeId);
+    strokes.forEach((stroke) => {
+      let segment = [];
+
+      stroke.forEach((strokePoint) => {
+        const shouldErase = Math.hypot(
+          strokePoint.x - point.x,
+          strokePoint.y - point.y
+        ) < radius;
+
+        if (shouldErase) {
+          if (segment.length > 1) remainingStrokes.push(segment);
+          if (segment.length) changed = true;
+          segment = [];
+          return;
+        }
+
+        segment.push(strokePoint);
+      });
+
+      if (segment.length > 1) remainingStrokes.push(segment);
+    });
+
+    const remainingNotes = notes.filter((note) =>
+      Math.hypot(note.x - point.x, note.y - point.y) >= radius * 1.2
+    );
+
+    if (remainingNotes.length !== notes.length) changed = true;
+    if (!changed) return false;
+
+    strokes = remainingStrokes;
+    notes = remainingNotes;
     placeholder.hidden = strokes.length > 0;
     noteCount.textContent = `${notes.length} NOTES`;
     finishButton.disabled = notes.length === 0;
@@ -366,7 +396,7 @@
     return true;
   }
 
-  function handleFistGesture(isFist) {
+  function handleFistGesture(isFist, point) {
     if (!isFist || finished) {
       resetFistGesture();
       return false;
@@ -375,14 +405,18 @@
     if (!fistStartedAt) fistStartedAt = performance.now();
     const heldFor = performance.now() - fistStartedAt;
 
-    if (!fistLatched && heldFor >= 480) {
+    if (!fistLatched && heldFor >= 260) {
       fistLatched = true;
-      const erased = eraseLastStroke();
+    }
+
+    if (fistLatched) {
+      stopDrawing();
+      const erased = eraseAt(point);
       handState.textContent = erased
-        ? "마지막 선을 지웠어요 · 손을 펴고 다시 그려보세요"
-        : "지울 선이 없어요 · 손을 펴고 그려보세요";
+        ? "지우는 중 · 주먹을 움직여 필요한 부분만 지워보세요"
+        : "주먹을 움직여 선 위를 지나가면 부분적으로 지워집니다";
     } else if (!fistLatched) {
-      handState.textContent = "주먹을 잠시 유지하면 마지막 선을 지워요";
+      handState.textContent = "주먹을 잠시 유지하면 지우개로 바뀝니다";
     }
 
     return true;
@@ -462,10 +496,10 @@
 
     drawOverlay(landmarks, isPinching);
     const point = mapHandToSheet(indexTip);
-
-    updateFingertipPointer(point, isPinching);
+    const eraserPoint = mapHandToSheet(landmarks[9]);
 
     if (!playerScreen.hidden) {
+      updateFingertipPointer(point);
       if (!isPinching) {
         resetHandCrankTracking();
         handCrankLed.classList.remove("is-on");
@@ -504,11 +538,13 @@
       return;
     }
 
-    if (handleFistGesture(fist)) {
+    if (handleFistGesture(fist, eraserPoint)) {
       isPinching = false;
-      updateFingertipPointer(null);
+      updateFingertipPointer(eraserPoint, "erasing");
       return;
     }
+
+    updateFingertipPointer(point, isPinching ? "writing" : "idle");
 
     if (!isPinching) {
       handState.textContent = "검지와 엄지를 맞대면 쓰기 시작";
