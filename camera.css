@@ -45,6 +45,11 @@ h1 { margin: 0; font-size: clamp(27px, 2.7vw, 42px); font-weight: 400; letter-sp
 .paper-meta, .paper-foot { display: flex; justify-content: space-between; padding: 13px 18px; color: #93958d; font: 8px monospace; letter-spacing: 1px; }
 .paper-meta { border-bottom: 1px solid #d2d2ca; }
 #gesture-sheet { display: block; width: 100%; height: clamp(270px, 38vh, 450px); background: repeating-linear-gradient(transparent 0 34px, #b8b6ab2e 34px 35px); }
+#fingertip-pointer { position: absolute; z-index: 3; width: 25px; height: 25px; border: 1.5px solid #728169; border-radius: 50%; background: #f5f6efb8; box-shadow: 0 0 0 5px #72816919, 0 3px 10px #2225; pointer-events: none; transform: translate(-50%, -50%); transition: left .055s linear, top .055s linear, width .12s ease, height .12s ease, border-color .12s ease, background .12s ease; }
+#fingertip-pointer::before, #fingertip-pointer::after { position: absolute; top: 50%; left: 50%; width: 7px; height: 1px; background: #4f5c4a; content: ""; transform: translate(-50%, -50%); }
+#fingertip-pointer::after { width: 1px; height: 7px; }
+#fingertip-pointer.is-writing { width: 18px; height: 18px; border-color: #33412f; background: #dce9cce6; box-shadow: 0 0 0 7px #6077552c, 0 2px 8px #2227; }
+#fingertip-pointer[hidden] { display: none; }
 #sheet-placeholder { position: absolute; top: 47%; left: 0; right: 0; color: #afa99b; font-size: 20px; line-height: 1.6; text-align: center; pointer-events: none; }
 #sheet-placeholder[hidden] { display: none; }
 .paper-foot { border-top: 1px solid #d2d2ca; }

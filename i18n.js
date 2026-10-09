@@ -195,6 +195,7 @@
   function applyLanguage(language = getLanguage()) {
     localStorage.setItem(storageKey, language);
     document.documentElement.lang = language;
+    document.documentElement.setAttribute("translate", "no");
     document.querySelectorAll("[data-i18n]").forEach((element) => {
       const value = copy[language]?.[element.dataset.i18n] || copy.en[element.dataset.i18n];
       if (!value) return;

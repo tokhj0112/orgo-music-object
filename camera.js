@@ -8,6 +8,7 @@
   const overlayCtx = overlay.getContext("2d");
   const sheet = $("gesture-sheet");
   const sheetCtx = sheet.getContext("2d");
+  const fingertipPointer = $("fingertip-pointer");
   const placeholder = $("sheet-placeholder");
   const cameraPlaceholder = $("camera-placeholder");
   const cameraStatus = $("camera-status");
@@ -81,6 +82,7 @@
   let reverbMix = null;
   let toneName = "warm";
   let isPinching = false;
+  let smoothedPinchRatio = null;
   let lastHarmonyTime = -Infinity;
   let activeHarmonyStep = -1;
   let playerProgress = 0;
@@ -277,6 +279,45 @@
     };
   }
 
+  function updateFingertipPointer(point, isActive = false) {
+    if (!point || finished || !playerScreen.hidden) {
+      fingertipPointer.hidden = true;
+      return;
+    }
+
+    const paperBounds = sheet.parentElement.getBoundingClientRect();
+    const sheetBounds = sheet.getBoundingClientRect();
+    const x = sheetBounds.left - paperBounds.left + (point.x / sheet.width) * sheetBounds.width;
+    const y = sheetBounds.top - paperBounds.top + (point.y / sheet.height) * sheetBounds.height;
+
+    fingertipPointer.hidden = false;
+    fingertipPointer.style.left = `${x}px`;
+    fingertipPointer.style.top = `${y}px`;
+    fingertipPointer.classList.toggle("is-writing", isActive);
+  }
+
+  function updatePinchState(landmarks) {
+    const indexTip = landmarks[8];
+    const thumbTip = landmarks[4];
+    // 손이 카메라에 가까워지거나 멀어져도 같은 동작으로 인식되도록,
+    // 두 손가락의 거리를 손바닥 너비에 비례해 계산합니다.
+    const palmWidth = Math.hypot(
+      landmarks[5].x - landmarks[17].x,
+      landmarks[5].y - landmarks[17].y
+    );
+    const rawRatio = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y) /
+      Math.max(palmWidth, 0.06);
+
+    smoothedPinchRatio = smoothedPinchRatio === null
+      ? rawRatio
+      : smoothedPinchRatio * 0.54 + rawRatio * 0.46;
+
+    // 시작과 해제 기준을 다르게 두어, 손가락을 접고 펴는 동작이 자연스럽고
+    // 작은 프레임 흔들림으로 선이 중간에 끊기지 않게 합니다.
+    if (!isPinching && smoothedPinchRatio < 0.34) isPinching = true;
+    if (isPinching && smoothedPinchRatio > 0.52) isPinching = false;
+  }
+
   function getHandCrankAngle(landmarks) {
     // 카메라 화면의 중심이 아니라 손바닥을 축으로 삼습니다. 손이 화면의
     // 어느 위치에 있어도, 손목을 돌리는 동작만으로 안정적으로 인식됩니다.
@@ -330,6 +371,8 @@
     const landmarks = results.multiHandLandmarks && results.multiHandLandmarks[0];
     if (!landmarks) {
       overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+      smoothedPinchRatio = null;
+      updateFingertipPointer(null);
       if (!playerScreen.hidden) {
         handCrankStatus.textContent = t("cameraNeedHand");
         handCrankLed.classList.remove("is-on");
@@ -343,14 +386,12 @@
     }
 
     const indexTip = landmarks[8];
-    const thumbTip = landmarks[4];
-    const pinchDistance = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
-    // 시작과 해제의 기준을 다르게 두어, 미세한 떨림으로 선이 끊기지 않게 합니다.
-    if (!isPinching && pinchDistance < 0.055) isPinching = true;
-    if (isPinching && pinchDistance > 0.09) isPinching = false;
+    updatePinchState(landmarks);
 
     drawOverlay(landmarks, isPinching);
     const point = mapHandToSheet(indexTip);
+
+    updateFingertipPointer(point, isPinching);
 
     if (!playerScreen.hidden) {
       if (!isPinching) {
