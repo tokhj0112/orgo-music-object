@@ -252,6 +252,11 @@
     else header.appendChild(switcher);
   }
 
+  function isMainPage() {
+    const path = window.location.pathname.replace(/\\/g, "/");
+    return path.endsWith("/") || path.endsWith("/index.html");
+  }
+
   function addStyles() {
     const style = document.createElement("style");
     style.textContent = `
@@ -267,8 +272,10 @@
 
   window.orgoI18n = { text, getLanguage, applyLanguage };
   document.addEventListener("DOMContentLoaded", () => {
-    addStyles();
-    addSwitch();
+    if (isMainPage()) {
+      addStyles();
+      addSwitch();
+    }
     applyLanguage();
   });
 })();
