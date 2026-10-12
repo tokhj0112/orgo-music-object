@@ -578,7 +578,7 @@ img {
 .archive-score-hole { position: absolute; z-index: 1; left: var(--hole-x); top: var(--hole-y); display: block; width: clamp(4px, .48vw, 7px); aspect-ratio: 1; border-radius: 50%; background: #2b2b25; box-shadow: 0 0 0 1px #efeadd77; transform: translate(-50%, -50%) scale(.15); animation: archive-score-hole-in .38s cubic-bezier(.2,.8,.2,1) var(--hole-delay, 0ms) forwards; }
 .archive-score-marker { position: absolute; z-index: 2; right: 4px; top: 8px; color: #797362; font: 7px/1 monospace; letter-spacing: .1em; }
 .archive-music-box-frame { position: absolute; z-index: 3; left: 50%; top: 28%; width: min(82vw, 700px); height: 1px; overflow: visible; transform: translateX(-50%); filter: drop-shadow(0 25px 24px #000b); }
-.archive-music-box, .archive-music-box-crank { position: absolute; left: 50%; top: 0; width: clamp(420px, 36vw, 520px); max-width: none; height: auto; }
+.archive-music-box, .archive-music-box-crank { position: absolute; left: 50%; top: 0; width: clamp(420px, 36vw, 520px); max-width: none; height: auto; image-orientation: none; }
 .archive-music-box { transform: translate(-50%, -39%); }
 .archive-music-box-crank { clip-path: polygon(0 23%, 30% 23%, 30% 59%, 0 59%); transform: translate(-50%, -39%) rotate(var(--archive-crank-angle)); transform-origin: 18% 46%; will-change: transform; }
 .archive-scroll-stage.is-turning .archive-music-box-crank { animation: archive-crank-settle .6s cubic-bezier(.2,.8,.2,1); }

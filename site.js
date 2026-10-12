@@ -257,16 +257,17 @@
       paper.appendChild(paperHoles);
       const boxFrame = document.createElement("div");
       boxFrame.className = "archive-music-box-frame";
+      const boxSource = "archive-music-box-mechanism-cutout.png?v=archive-box-2";
       const box = document.createElement("img");
       box.className = "archive-music-box";
-      box.src = "archive-music-box-mechanism-cutout.png";
+      box.src = boxSource;
       box.alt = "ORGO music box mechanism";
       box.addEventListener("error", () => {
-        box.src = "image/archive-music-box-mechanism-cutout.png";
+        box.src = "image/archive-music-box-mechanism-cutout.png?v=archive-box-2";
       }, { once: true });
       const crank = document.createElement("img");
       crank.className = "archive-music-box-crank";
-      crank.src = box.src;
+      crank.src = boxSource;
       crank.alt = "";
       crank.setAttribute("aria-hidden", "true");
       boxFrame.append(box, crank);
