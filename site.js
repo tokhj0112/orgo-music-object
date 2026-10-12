@@ -255,11 +255,22 @@
       paperHoles.className = "archive-paper-holes";
       renderArchivePaperScore(paperHoles, items);
       paper.appendChild(paperHoles);
+      const boxFrame = document.createElement("div");
+      boxFrame.className = "archive-music-box-frame";
       const box = document.createElement("img");
       box.className = "archive-music-box";
       box.src = "archive-music-box-mechanism-cutout.png";
-      box.alt = "";
-      stage.append(stageLabel, stageCount, paper, box);
+      box.alt = "ORGO music box mechanism";
+      box.addEventListener("error", () => {
+        box.src = "image/archive-music-box-mechanism-cutout.png";
+      }, { once: true });
+      const crank = document.createElement("img");
+      crank.className = "archive-music-box-crank";
+      crank.src = box.src;
+      crank.alt = "";
+      crank.setAttribute("aria-hidden", "true");
+      boxFrame.append(box, crank);
+      stage.append(stageLabel, stageCount, paper, boxFrame);
 
       const tracks = document.createElement("div");
       tracks.className = "archive-track-list";
@@ -344,8 +355,9 @@
         const range = Math.max(1, experience.offsetHeight - window.innerHeight);
         const progress = Math.max(0, Math.min(1, -experience.getBoundingClientRect().top / range));
         experience.style.setProperty("--archive-progress", progress.toFixed(3));
-        experience.style.setProperty("--archive-paper-offset", `${(-progress * (150 + items.length * 18)).toFixed(1)}px`);
-        experience.style.setProperty("--archive-paper-reveal", `${Math.min(1, .16 + progress * .84).toFixed(3)}`);
+        experience.style.setProperty("--archive-paper-offset", `${(-progress * (34 + items.length * 8)).toFixed(1)}px`);
+        experience.style.setProperty("--archive-paper-reveal", `${Math.min(1, .05 + progress * .95).toFixed(3)}`);
+        experience.style.setProperty("--archive-crank-angle", `${(progress * 900).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 28).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 24).toFixed(1)}deg`);
         experience.style.setProperty("--archive-box-angle", `${(-2 + progress * 4).toFixed(1)}deg`);
