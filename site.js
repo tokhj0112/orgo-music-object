@@ -193,7 +193,7 @@
       paper.appendChild(paperHoles);
       const box = document.createElement("img");
       box.className = "archive-music-box";
-      box.src = "archive-music-box-cutout.png";
+      box.src = "archive-music-box-top-front-cutout.png";
       box.alt = "";
       stage.append(stageLabel, stageCount, paper, box);
 
