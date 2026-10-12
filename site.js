@@ -187,13 +187,13 @@
       stageCount.className = "archive-stage-count";
       stageCount.textContent = `01 / ${String(items.length).padStart(2, "0")}`;
       const paper = document.createElement("div");
-      paper.className = "archive-paper-flow";
+      paper.className = "archive-paper-feed";
       const paperHoles = document.createElement("div");
       paperHoles.className = "archive-paper-holes";
       paper.appendChild(paperHoles);
       const box = document.createElement("img");
       box.className = "archive-music-box";
-      box.src = "archive-music-box-top-front-cutout.png";
+      box.src = "archive-music-box-mechanism-cutout.png";
       box.alt = "";
       stage.append(stageLabel, stageCount, paper, box);
 
@@ -279,7 +279,7 @@
         const range = Math.max(1, experience.offsetHeight - window.innerHeight);
         const progress = Math.max(0, Math.min(1, -experience.getBoundingClientRect().top / range));
         experience.style.setProperty("--archive-progress", progress.toFixed(3));
-        experience.style.setProperty("--archive-paper-shift", `${((progress - 0.5) * -160).toFixed(1)}px`);
+        experience.style.setProperty("--archive-paper-offset", `${(-progress * 170).toFixed(1)}px`);
         experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 28).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 24).toFixed(1)}deg`);
         experience.style.setProperty("--archive-box-angle", `${(-2 + progress * 4).toFixed(1)}deg`);
