@@ -162,6 +162,48 @@
       return true;
     }
 
+    function renderArchivePaperScore(container, items) {
+      container.replaceChildren();
+
+      items.forEach((item, itemIndex) => {
+        const notes = Array.isArray(item.notes) ? item.notes : [];
+        const segment = document.createElement("div");
+        segment.className = "archive-score-segment";
+        segment.dataset.index = String(itemIndex);
+        segment.style.top = `${(itemIndex / items.length) * 100}%`;
+        segment.style.height = `${100 / items.length}%`;
+
+        const sourceWidth = Number(item.width) || 1200;
+        const sourceHeight = Number(item.height) || 760;
+        const displayNotes = notes.length
+          ? notes.slice(0, 180)
+          : Array.from({ length: 8 }, (_, index) => ({ x: index * 140, y: 340 + (index % 3) * 65 }));
+
+        displayNotes.forEach((note, noteIndex) => {
+          const x = Number(note.x);
+          const y = Number(note.y);
+          const time = Number.isFinite(x)
+            ? Math.max(6, Math.min(94, (x / sourceWidth) * 88 + 6))
+            : 6 + (noteIndex / Math.max(1, displayNotes.length - 1)) * 88;
+          const pitch = Number.isFinite(y)
+            ? Math.max(10, Math.min(90, 90 - (y / sourceHeight) * 80))
+            : 18 + (noteIndex % 5) * 16;
+          const hole = document.createElement("i");
+          hole.className = "archive-score-hole";
+          hole.style.setProperty("--hole-x", `${pitch}%`);
+          hole.style.setProperty("--hole-y", `${time}%`);
+          hole.style.setProperty("--hole-delay", `${(noteIndex % 32) * 24}ms`);
+          segment.appendChild(hole);
+        });
+
+        const marker = document.createElement("span");
+        marker.className = "archive-score-marker";
+        marker.textContent = String(itemIndex + 1).padStart(2, "0");
+        segment.appendChild(marker);
+        container.appendChild(segment);
+      });
+    }
+
     function renderArchive() {
       const items = readArchive();
       if (archiveScrollHandler) window.removeEventListener("scroll", archiveScrollHandler);
@@ -174,7 +216,8 @@
 
       const experience = document.createElement("div");
       experience.className = "archive-scroll-experience";
-      experience.style.setProperty("--archive-min-height", `${Math.max(items.length, 5) * 142}px`);
+      const noteTotal = items.reduce((total, item) => total + (Array.isArray(item.notes) ? item.notes.length : 0), 0);
+      experience.style.setProperty("--archive-min-height", `${Math.max(920, 600 + items.length * 340 + Math.min(noteTotal, 480) * .65)}px`);
 
       const stage = document.createElement("div");
       stage.className = "archive-scroll-stage";
@@ -188,8 +231,10 @@
       stageCount.textContent = `01 / ${String(items.length).padStart(2, "0")}`;
       const paper = document.createElement("div");
       paper.className = "archive-paper-feed";
+      paper.style.setProperty("--archive-paper-length", `${Math.max(165, 78 + items.length * 108 + Math.min(noteTotal, 480) * .13)}vh`);
       const paperHoles = document.createElement("div");
       paperHoles.className = "archive-paper-holes";
+      renderArchivePaperScore(paperHoles, items);
       paper.appendChild(paperHoles);
       const box = document.createElement("img");
       box.className = "archive-music-box";
@@ -275,11 +320,13 @@
       archiveList.appendChild(experience);
 
       const trackNodes = [...tracks.querySelectorAll(".archive-track")];
+      const scoreSegments = [...paperHoles.querySelectorAll(".archive-score-segment")];
       const updateScrollMotion = () => {
         const range = Math.max(1, experience.offsetHeight - window.innerHeight);
         const progress = Math.max(0, Math.min(1, -experience.getBoundingClientRect().top / range));
         experience.style.setProperty("--archive-progress", progress.toFixed(3));
-        experience.style.setProperty("--archive-paper-offset", `${(-progress * 170).toFixed(1)}px`);
+        experience.style.setProperty("--archive-paper-offset", `${(-progress * (150 + items.length * 18)).toFixed(1)}px`);
+        experience.style.setProperty("--archive-paper-reveal", `${Math.min(1, .16 + progress * .84).toFixed(3)}`);
         experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 28).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 24).toFixed(1)}deg`);
         experience.style.setProperty("--archive-box-angle", `${(-2 + progress * 4).toFixed(1)}deg`);
@@ -304,6 +351,7 @@
             trackNodes.forEach((node) => node.classList.toggle("is-active", node === entry.target));
             const activeIndex = Number(entry.target.dataset.index || 0);
             stageCount.textContent = `${String(activeIndex + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
+            scoreSegments.forEach((segment, index) => segment.classList.toggle("is-current", index === activeIndex));
             stage.classList.remove("is-turning");
             requestAnimationFrame(() => stage.classList.add("is-turning"));
           });
