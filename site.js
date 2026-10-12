@@ -212,6 +212,10 @@
         play.className = "archive-play";
         play.href = `player.html?archive=${encodeURIComponent(item.id)}`;
         play.textContent = t("archiveOpenPlayer");
+        const makeObject = document.createElement("a");
+        makeObject.className = "archive-make-object";
+        makeObject.href = `object.html?melody=${encodeURIComponent(item.id)}`;
+        makeObject.textContent = t("archiveMakeObject");
         const remove = document.createElement("button");
         remove.className = "archive-delete";
         remove.type = "button";
@@ -222,7 +226,7 @@
           renderArchive();
         });
 
-        actions.append(play, remove);
+        actions.append(play, makeObject, remove);
         body.append(meta, title, details, actions);
         card.append(preview, body);
         archiveList.appendChild(card);
@@ -267,6 +271,24 @@
     "print-preview-image"
   );
   const photoName = document.getElementById("photo-print-name");
+  const melodySelect = document.getElementById("melody-select");
+  const selectedMelodyCard = document.getElementById("selected-melody-card");
+  const selectedMelodyKind = document.getElementById("selected-melody-kind");
+  const selectedMelodyTitle = document.getElementById("selected-melody-title");
+  const selectedMelodyPreview = document.getElementById("selected-melody-preview");
+  const selectedMelodyNotes = document.getElementById("selected-melody-notes");
+  const selectedMelodyPlay = document.getElementById("selected-melody-play");
+  const melodyEmpty = document.getElementById("object-melody-empty");
+  const melodyBadge = document.getElementById("object-melody-badge");
+  const melodyBadgeTitle = document.getElementById("object-melody-badge-title");
+  const purchaseButton = document.getElementById("purchase-object");
+  const orderDialog = document.getElementById("order-dialog");
+  const orderDetails = document.getElementById("order-dialog-details");
+  const confirmOrder = document.getElementById("confirm-order");
+  const archiveKey = "orgo-archive";
+  const selectedMelodyKey = "orgo-selected-melody";
+  let archiveMelodies = [];
+  let selectedMelody = null;
 
   function selectedValue(name) {
     const selected = document.querySelector(
@@ -276,11 +298,156 @@
     return selected ? selected.value : "";
   }
 
+  function readSavedMelodies() {
+    try {
+      const items = JSON.parse(localStorage.getItem(archiveKey) || "[]");
+      return Array.isArray(items) ? items : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function melodyName(item, index = 0) {
+    return item?.title?.trim() || `${t("archiveUntitled")} ${String(index + 1).padStart(2, "0")}`;
+  }
+
+  function renderMelodyPreview(item) {
+    if (!selectedMelodyPreview) return;
+    selectedMelodyPreview.replaceChildren();
+
+    const strokes = Array.isArray(item?.strokes) ? item.strokes : [];
+    const validStrokes = strokes.filter(
+      (stroke) => Array.isArray(stroke.points) && stroke.points.length > 0
+    );
+
+    if (!validStrokes.length) {
+      const fallback = document.createElement("span");
+      fallback.textContent = "MUSIC BOX STRIP";
+      selectedMelodyPreview.appendChild(fallback);
+      return;
+    }
+
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", `0 0 ${item.width || 1200} ${item.height || 600}`);
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+    validStrokes.forEach((stroke) => {
+      const points = stroke.points.filter(
+        (point) => Number.isFinite(point.x) && Number.isFinite(point.y)
+      );
+      if (!points.length) return;
+
+      if (points.length === 1) {
+        const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        dot.setAttribute("cx", points[0].x);
+        dot.setAttribute("cy", points[0].y);
+        dot.setAttribute("r", Math.max(3, (Number(stroke.width) || 4) / 2));
+        dot.setAttribute("fill", stroke.ink || "#34362f");
+        svg.appendChild(dot);
+        return;
+      }
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const d = points.reduce(
+        (result, point, index) =>
+          `${result}${index ? " L" : "M"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`,
+        ""
+      );
+      path.setAttribute("d", d);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", stroke.ink || "#34362f");
+      path.setAttribute("stroke-width", Math.max(5, Number(stroke.width) || 3));
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-linejoin", "round");
+      svg.appendChild(path);
+    });
+
+    selectedMelodyPreview.appendChild(svg);
+  }
+
+  function updateSelectedMelody(id, updateUrl = false) {
+    selectedMelody = archiveMelodies.find((item) => item.id === id) || null;
+
+    if (selectedMelody) {
+      localStorage.setItem(selectedMelodyKey, selectedMelody.id);
+    } else {
+      localStorage.removeItem(selectedMelodyKey);
+    }
+
+    if (updateUrl) {
+      const url = new URL(window.location.href);
+      if (selectedMelody) url.searchParams.set("melody", selectedMelody.id);
+      else url.searchParams.delete("melody");
+      window.history.replaceState({}, "", url);
+    }
+
+    if (melodySelect) melodySelect.value = selectedMelody?.id || "";
+    if (selectedMelodyCard) selectedMelodyCard.hidden = !selectedMelody;
+    if (melodyEmpty) melodyEmpty.hidden = Boolean(selectedMelody);
+    if (selectedMelodyPlay) selectedMelodyPlay.hidden = !selectedMelody;
+    if (melodyBadge) melodyBadge.hidden = !selectedMelody;
+    if (purchaseButton) purchaseButton.disabled = !selectedMelody;
+
+    if (selectedMelody) {
+      const index = archiveMelodies.findIndex((item) => item.id === selectedMelody.id);
+      const title = melodyName(selectedMelody, Math.max(index, 0));
+      const noteTotal = Array.isArray(selectedMelody.notes) ? selectedMelody.notes.length : 0;
+      if (selectedMelodyKind) selectedMelodyKind.textContent = selectedMelody.kind === "HAND" ? "HAND / CAMERA" : "MOUSE / COMPOSE";
+      if (selectedMelodyTitle) selectedMelodyTitle.textContent = title;
+      if (selectedMelodyNotes) selectedMelodyNotes.textContent = `${noteTotal} NOTES`;
+      if (selectedMelodyPlay) selectedMelodyPlay.href = `player.html?archive=${encodeURIComponent(selectedMelody.id)}`;
+      if (melodyBadgeTitle) melodyBadgeTitle.textContent = title;
+      renderMelodyPreview(selectedMelody);
+    } else if (selectedMelodyPreview) {
+      selectedMelodyPreview.replaceChildren();
+    }
+
+    updatePreview();
+  }
+
+  function populateMelodySelect() {
+    if (!melodySelect) return;
+
+    archiveMelodies = readSavedMelodies();
+    melodySelect.replaceChildren();
+    const prompt = document.createElement("option");
+    prompt.value = "";
+    prompt.textContent = archiveMelodies.length
+      ? t("objectMelodyLabel")
+      : t("objectMelodyEmpty");
+    melodySelect.appendChild(prompt);
+
+    archiveMelodies.forEach((item, index) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = `${melodyName(item, index)} · ${(item.notes || []).length} NOTES`;
+      melodySelect.appendChild(option);
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("melody");
+    const remembered = localStorage.getItem(selectedMelodyKey);
+    const initialId = archiveMelodies.some((item) => item.id === requested)
+      ? requested
+      : archiveMelodies.some((item) => item.id === remembered)
+        ? remembered
+        : "";
+
+    updateSelectedMelody(initialId, false);
+  }
+
   function getConfiguration() {
     return {
       material: selectedValue("material"),
       packaging: selectedValue("packaging"),
       engraving: engraving.value.trim(),
+      melody: selectedMelody
+        ? {
+          id: selectedMelody.id,
+          title: melodyName(selectedMelody, Math.max(0, archiveMelodies.findIndex((item) => item.id === selectedMelody.id))),
+          notes: Array.isArray(selectedMelody.notes) ? selectedMelody.notes.length : 0,
+        }
+        : null,
       photo: photoInput && photoInput.files[0]
         ? photoInput.files[0].name
         : "",
@@ -298,6 +465,7 @@
       `${engraving.value.length} / 32`;
 
     summary.textContent = [
+      configuration.melody ? `MELODY · ${configuration.melody.title}` : null,
       configuration.material,
       configuration.packaging,
       configuration.photo ? "사진 프린팅" : null,
@@ -334,6 +502,12 @@
 
   engraving.addEventListener("input", updatePreview);
 
+  if (melodySelect) {
+    melodySelect.addEventListener("change", (event) => {
+      updateSelectedMelody(event.target.value, true);
+    });
+  }
+
   if (photoInput) {
     photoInput.addEventListener("change", () => {
       const file = photoInput.files[0];
@@ -362,6 +536,56 @@
       });
     });
 
+  function showOrderPreview() {
+    const configuration = getConfiguration();
+    if (!configuration.melody) {
+      status.textContent = t("objectSelectFirst");
+      melodySelect?.focus();
+      return;
+    }
+
+    const rows = [
+      ["MELODY", `${configuration.melody.title} · ${configuration.melody.notes} NOTES`],
+      ["MATERIAL", configuration.material],
+      ["PACKAGING", configuration.packaging],
+      ["PHOTO PRINT", configuration.photo || "—"],
+      ["ENGRAVING", configuration.engraving || "—"],
+      ["TOTAL", "₩68,000"],
+    ];
+
+    orderDetails.replaceChildren(
+      ...rows.map(([label, value]) => {
+        const row = document.createElement("p");
+        const key = document.createElement("span");
+        const text = document.createElement("strong");
+        key.textContent = label;
+        text.textContent = value;
+        row.append(key, text);
+        return row;
+      })
+    );
+    orderDialog.showModal();
+  }
+
+  purchaseButton?.addEventListener("click", showOrderPreview);
+
+  confirmOrder?.addEventListener("click", () => {
+    const configuration = getConfiguration();
+    if (!configuration.melody) {
+      orderDialog.close();
+      status.textContent = t("objectSelectFirst");
+      return;
+    }
+
+    localStorage.setItem("orgo-order-draft", JSON.stringify({
+      ...configuration,
+      createdAt: new Date().toISOString(),
+      price: 68000,
+    }));
+    orderDialog.close();
+    status.textContent = t("objectOrderReady");
+  });
+
   saveButton.addEventListener("click", () => {
     const configuration = getConfiguration();
 
@@ -370,6 +594,7 @@
       "",
       `소재: ${configuration.material}`,
       `패키지: ${configuration.packaging}`,
+      `선율: ${configuration.melody ? `${configuration.melody.title} (${configuration.melody.notes} NOTES)` : "선택 안 함"}`,
       `사진 프린팅: ${configuration.photo || "없음"}`,
       `각인 문구: ${configuration.engraving || "없음"}`,
       "",
@@ -398,5 +623,6 @@
       "구성 메모를 저장했습니다. 실제 주문 및 결제 기능은 준비 중입니다.";
   });
 
+  populateMelodySelect();
   updatePreview();
 })();

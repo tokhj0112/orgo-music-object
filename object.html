@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>Object — ORGO</title>
-  <link rel="stylesheet" href="site.css">
-  <script src="i18n.js?v=main-language-only-1" defer></script>
-  <script src="site.js" defer></script>
+  <link rel="stylesheet" href="site.css?v=melody-order-1">
+  <script src="i18n.js?v=melody-order-1" defer></script>
+  <script src="site.js?v=melody-order-1" defer></script>
 </head>
 
 <body>
@@ -52,12 +52,27 @@
           <span>PHOTO PRINT</span>
         </div>
         <div class="engraving-preview"><span>YOUR ENGRAVING</span><strong id="engraving-preview">A little music, for you.</strong></div>
+        <div id="object-melody-badge" class="object-melody-badge" hidden>
+          <span>SELECTED MELODY</span>
+          <strong id="object-melody-badge-title"></strong>
+        </div>
       </div>
 
       <form class="object-controls" onsubmit="return false;">
         <p class="eyebrow">MAKE IT YOURS</p>
+        <fieldset class="melody-field">
+          <legend>01 / YOUR MELODY</legend>
+          <label class="field-label" for="melody-select" data-i18n="objectMelodyLabel">아카이브에서 담을 선율</label>
+          <select id="melody-select" class="melody-select" aria-label="아카이브 선율 선택"></select>
+          <div id="selected-melody-card" class="selected-melody-card" hidden>
+            <div class="selected-melody-meta"><span id="selected-melody-kind">MELODY</span><strong id="selected-melody-title"></strong></div>
+            <div id="selected-melody-preview" class="selected-melody-preview" aria-hidden="true"></div>
+            <div class="selected-melody-foot"><span id="selected-melody-notes"></span><a id="selected-melody-play" href="player.html" data-i18n="objectMelodyListen">선율 들어보기 ♪</a></div>
+          </div>
+          <p id="object-melody-empty" class="object-melody-empty" data-i18n="objectMelodyEmpty">아카이브에서 만든 선율을 선택하면 이 오르골에 담을 수 있습니다.</p>
+        </fieldset>
         <fieldset>
-          <legend data-i18n="objectMaterial">01 / MATERIAL</legend>
+          <legend data-i18n="objectMaterial">02 / MATERIAL</legend>
           <div class="material-options">
             <label><input type="radio" name="material" value="투명 아크릴" checked><span>Clear</span></label>
             <label><input type="radio" name="material" value="실버 메탈"><span>Silver</span></label>
@@ -65,7 +80,7 @@
         </fieldset>
 
         <fieldset>
-          <legend data-i18n="objectPackaging">02 / PACKAGING</legend>
+          <legend data-i18n="objectPackaging">03 / PACKAGING</legend>
           <div class="material-options">
             <label><input type="radio" name="packaging" value="기본 패키지" checked><span>Original</span></label>
             <label><input type="radio" name="packaging" value="선물 패키지"><span>Gift wrap</span></label>
@@ -73,26 +88,39 @@
         </fieldset>
 
         <fieldset class="engraving-field">
-          <legend>03 / PHOTO PRINT</legend>
+          <legend>04 / PHOTO PRINT</legend>
           <label class="field-label" for="photo-print" data-i18n="objectPhotoLabel">오르골 전면에 넣을 사진</label>
           <label class="photo-upload" for="photo-print"><span data-i18n="objectPhotoButton">사진 선택하기</span><small id="photo-print-name" data-i18n="objectPhotoHelp">JPG, PNG · 미리보기용</small></label>
           <input id="photo-print" class="photo-input" type="file" accept="image/png,image/jpeg,image/webp">
         </fieldset>
 
         <fieldset class="engraving-field">
-          <legend>04 / ENGRAVING</legend>
+          <legend>05 / ENGRAVING</legend>
           <label class="field-label" for="engraving" data-i18n="objectEngravingLabel">간직하고 싶은 한 문장</label>
           <input id="engraving" class="text-input" type="text" maxlength="32" placeholder="A little music, for you." autocomplete="off">
           <div class="field-help"><span data-i18n="objectCharacterLimit">최대 32자</span><span id="engraving-count">0 / 32</span></div>
         </fieldset>
 
         <div class="configuration-summary"><span data-i18n="objectSummary">YOUR OBJECT</span><p id="configuration-summary">투명 아크릴 / 기본 패키지</p></div>
-        <button id="save-configuration" class="solid-link" type="button" data-i18n="objectSave" data-i18n-html="true">구성 메모 저장하기 <span>↓</span></button>
+        <button id="purchase-object" class="solid-link" type="button" data-i18n="objectPurchase">오르골 구매하기 · ₩68,000</button>
+        <button id="save-configuration" class="configuration-save" type="button" data-i18n="objectSave" data-i18n-html="true">구성 메모 저장하기 <span>↓</span></button>
         <p id="configuration-status" class="purchase-note" role="status" data-i18n="objectStatus">선택한 구성을 텍스트 파일로 저장할 수 있습니다.</p>
       </form>
     </section>
     <p class="object-page-count"><strong>01</strong> / 02</p>
   </main>
+
+  <dialog id="order-dialog" class="order-dialog" aria-labelledby="order-dialog-title">
+    <form method="dialog">
+      <button class="dialog-close" value="cancel" aria-label="닫기">×</button>
+      <p class="eyebrow">ORDER PREVIEW</p>
+      <h2 id="order-dialog-title" data-i18n="objectOrderTitle">나만의 오르골 주문</h2>
+      <p id="order-dialog-copy" data-i18n="objectOrderCopy">선택한 선율과 구성을 확인해 주세요.</p>
+      <div id="order-dialog-details" class="order-dialog-details"></div>
+      <button id="confirm-order" class="solid-link" type="button" data-i18n="objectOrderConfirm">주문 초안 저장하기</button>
+      <small id="order-dialog-note" data-i18n="objectOrderNote">데모 사이트에서는 결제 정보가 전송되지 않습니다.</small>
+    </form>
+  </dialog>
 
   <footer class="site-footer">
     <a class="brand footer-brand" href="index.html">
