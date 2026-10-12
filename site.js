@@ -236,7 +236,7 @@
       experience.className = "archive-scroll-experience";
       const noteTotal = items.reduce((total, item) => total + (Array.isArray(item.notes) ? item.notes.length : 0), 0);
       const paperLength = Math.round(20 + items.reduce((total, item) => total + paperScoreWeight(item), 0));
-      experience.style.setProperty("--archive-min-height", `${Math.max(760, 420 + items.length * 250 + Math.min(noteTotal, 480) * .4)}px`);
+      experience.style.setProperty("--archive-min-height", `${Math.max(640, 330 + items.length * 165 + Math.min(noteTotal, 480) * .3)}px`);
 
       const stage = document.createElement("div");
       stage.className = "archive-scroll-stage";
@@ -352,8 +352,9 @@
       const trackNodes = [...tracks.querySelectorAll(".archive-track")];
       const scoreSegments = [...paperHoles.querySelectorAll(".archive-score-segment")];
       const updateScrollMotion = () => {
-        const range = Math.max(1, experience.offsetHeight - window.innerHeight);
-        const progress = Math.max(0, Math.min(1, -experience.getBoundingClientRect().top / range));
+        const rect = experience.getBoundingClientRect();
+        const range = Math.max(1, experience.offsetHeight * .78);
+        const progress = Math.max(0, Math.min(1, (window.innerHeight * .7 - rect.top) / range));
         experience.style.setProperty("--archive-progress", progress.toFixed(3));
         experience.style.setProperty("--archive-paper-offset", `${(-progress * (34 + items.length * 8)).toFixed(1)}px`);
         experience.style.setProperty("--archive-paper-reveal", `${Math.min(1, .05 + progress * .95).toFixed(3)}`);
