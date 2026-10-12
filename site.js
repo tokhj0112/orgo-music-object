@@ -162,16 +162,29 @@
       return true;
     }
 
+    function paperScoreWeight(item) {
+      const notes = Array.isArray(item.notes) ? item.notes : [];
+      const sourceWidth = Number(item.width) || 1200;
+      const positions = notes.map((note) => Number(note.x)).filter(Number.isFinite);
+      const range = positions.length > 1 ? Math.max(...positions) - Math.min(...positions) : 0;
+      const coverage = Math.max(.2, Math.min(1, range / sourceWidth));
+      return 30 + coverage * 34 + Math.min(14, Math.sqrt(notes.length || 1) * 2.5);
+    }
+
     function renderArchivePaperScore(container, items) {
       container.replaceChildren();
+      const weights = items.map(paperScoreWeight);
+      const totalWeight = weights.reduce((total, weight) => total + weight, 0) || 1;
+      let offset = 0;
 
       items.forEach((item, itemIndex) => {
         const notes = Array.isArray(item.notes) ? item.notes : [];
         const segment = document.createElement("div");
         segment.className = "archive-score-segment";
         segment.dataset.index = String(itemIndex);
-        segment.style.top = `${(itemIndex / items.length) * 100}%`;
-        segment.style.height = `${100 / items.length}%`;
+        segment.style.top = `${(offset / totalWeight) * 100}%`;
+        segment.style.height = `${(weights[itemIndex] / totalWeight) * 100}%`;
+        offset += weights[itemIndex];
 
         const sourceWidth = Number(item.width) || 1200;
         const sourceHeight = Number(item.height) || 760;
@@ -179,11 +192,16 @@
           ? notes.slice(0, 180)
           : Array.from({ length: 8 }, (_, index) => ({ x: index * 140, y: 340 + (index % 3) * 65 }));
 
+        const noteTimes = displayNotes.map((note) => Number(note.x)).filter(Number.isFinite);
+        const startTime = noteTimes.length ? Math.min(...noteTimes) : 0;
+        const endTime = noteTimes.length ? Math.max(...noteTimes) : sourceWidth;
+        const timeRange = Math.max(1, endTime - startTime);
+
         displayNotes.forEach((note, noteIndex) => {
           const x = Number(note.x);
           const y = Number(note.y);
           const time = Number.isFinite(x)
-            ? Math.max(6, Math.min(94, (x / sourceWidth) * 88 + 6))
+            ? Math.max(10, Math.min(90, ((x - startTime) / timeRange) * 80 + 10))
             : 6 + (noteIndex / Math.max(1, displayNotes.length - 1)) * 88;
           const pitch = Number.isFinite(y)
             ? Math.max(10, Math.min(90, 90 - (y / sourceHeight) * 80))
@@ -217,7 +235,8 @@
       const experience = document.createElement("div");
       experience.className = "archive-scroll-experience";
       const noteTotal = items.reduce((total, item) => total + (Array.isArray(item.notes) ? item.notes.length : 0), 0);
-      experience.style.setProperty("--archive-min-height", `${Math.max(920, 600 + items.length * 340 + Math.min(noteTotal, 480) * .65)}px`);
+      const paperLength = Math.round(20 + items.reduce((total, item) => total + paperScoreWeight(item), 0));
+      experience.style.setProperty("--archive-min-height", `${Math.max(760, 420 + items.length * 250 + Math.min(noteTotal, 480) * .4)}px`);
 
       const stage = document.createElement("div");
       stage.className = "archive-scroll-stage";
@@ -231,7 +250,7 @@
       stageCount.textContent = `01 / ${String(items.length).padStart(2, "0")}`;
       const paper = document.createElement("div");
       paper.className = "archive-paper-feed";
-      paper.style.setProperty("--archive-paper-length", `${Math.max(165, 78 + items.length * 108 + Math.min(noteTotal, 480) * .13)}vh`);
+      paper.style.setProperty("--archive-paper-length", `${Math.max(84, paperLength)}vh`);
       const paperHoles = document.createElement("div");
       paperHoles.className = "archive-paper-holes";
       renderArchivePaperScore(paperHoles, items);
