@@ -358,7 +358,7 @@
         experience.style.setProperty("--archive-progress", progress.toFixed(3));
         experience.style.setProperty("--archive-paper-offset", `${(-progress * (34 + items.length * 8)).toFixed(1)}px`);
         experience.style.setProperty("--archive-paper-reveal", `${Math.min(1, .05 + progress * .95).toFixed(3)}`);
-        experience.style.setProperty("--archive-crank-angle", `${(progress * 900).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-crank-angle", `${(progress * 720).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 28).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 24).toFixed(1)}deg`);
         experience.style.setProperty("--archive-box-angle", `${(-2 + progress * 4).toFixed(1)}deg`);
