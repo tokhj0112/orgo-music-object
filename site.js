@@ -87,6 +87,7 @@
   if (archiveList) {
     const archiveEmpty = document.getElementById("archive-empty");
     const archiveKey = "orgo-archive";
+    let archiveScrollHandler = null;
 
     function readArchive() {
       try {
@@ -163,32 +164,66 @@
 
     function renderArchive() {
       const items = readArchive();
+      if (archiveScrollHandler) window.removeEventListener("scroll", archiveScrollHandler);
+      archiveScrollHandler = null;
       archiveList.replaceChildren();
       archiveEmpty.hidden = items.length > 0;
       archiveList.hidden = items.length === 0;
 
+      if (!items.length) return;
+
+      const experience = document.createElement("div");
+      experience.className = "archive-scroll-experience";
+      experience.style.setProperty("--archive-min-height", `${Math.max(items.length, 5) * 142}px`);
+
+      const stage = document.createElement("div");
+      stage.className = "archive-scroll-stage";
+      stage.setAttribute("aria-hidden", "true");
+
+      const stageLabel = document.createElement("span");
+      stageLabel.className = "archive-stage-label";
+      stageLabel.textContent = "ORGO / PAPER SCORE";
+      const stageCount = document.createElement("span");
+      stageCount.className = "archive-stage-count";
+      stageCount.textContent = `01 / ${String(items.length).padStart(2, "0")}`;
+      const paper = document.createElement("div");
+      paper.className = "archive-paper-flow";
+      const paperHoles = document.createElement("div");
+      paperHoles.className = "archive-paper-holes";
+      paper.appendChild(paperHoles);
+      const box = document.createElement("img");
+      box.className = "archive-music-box";
+      box.src = "image/archive-music-box-cutout.png";
+      box.alt = "";
+      stage.append(stageLabel, stageCount, paper, box);
+
+      const tracks = document.createElement("div");
+      tracks.className = "archive-track-list";
+      experience.append(stage, tracks);
+
       items.forEach((item, index) => {
         const card = document.createElement("article");
-        card.className = "archive-card";
+        card.className = "archive-track";
+        card.dataset.index = String(index);
 
         const preview = document.createElement("div");
-        preview.className = "archive-preview";
+        preview.className = "archive-score-preview";
         const height = item.height || 420;
         const hasHandwriting = renderHandwritingPreview(preview, item, height);
 
         if (!hasHandwriting) {
-          preview.classList.add("archive-preview--legacy");
+          preview.classList.add("archive-score-preview--legacy");
           const legacy = document.createElement("span");
-          legacy.className = "archive-preview-legacy";
+          legacy.className = "archive-score-preview-legacy";
           legacy.textContent = "WRITING PREVIEW";
           preview.appendChild(legacy);
         }
 
         const body = document.createElement("div");
-        body.className = "archive-card-body";
+        body.className = "archive-track-main";
         const meta = document.createElement("div");
-        meta.className = "archive-card-meta";
-        meta.textContent = `${item.kind === "HAND" ? "HAND" : "MOUSE"} / ${formatDate(item.createdAt)}`;
+        meta.className = "archive-track-meta";
+        meta.textContent = `${String(index + 1).padStart(2, "0")} / ${item.kind === "HAND" ? "HAND" : "MOUSE"} / ${(item.notes || []).length} NOTES`;
 
         const title = document.createElement("input");
         title.className = "archive-title-input";
@@ -205,9 +240,9 @@
           writeArchive(next);
         });
         const details = document.createElement("p");
-        details.textContent = `${(item.notes || []).length} NOTES`;
+        details.textContent = item.kind === "HAND" ? "CAMERA COMPOSITION" : "MOUSE COMPOSITION";
         const actions = document.createElement("div");
-        actions.className = "archive-card-actions";
+        actions.className = "archive-track-actions";
         const play = document.createElement("a");
         play.className = "archive-play";
         play.href = `player.html?archive=${encodeURIComponent(item.id)}`;
@@ -226,11 +261,57 @@
           renderArchive();
         });
 
+        const date = document.createElement("time");
+        date.className = "archive-track-date";
+        date.dateTime = item.createdAt || "";
+        date.textContent = formatDate(item.createdAt);
+
         actions.append(play, makeObject, remove);
         body.append(meta, title, details, actions);
-        card.append(preview, body);
-        archiveList.appendChild(card);
+        card.append(preview, body, date);
+        tracks.appendChild(card);
       });
+
+      archiveList.appendChild(experience);
+
+      const trackNodes = [...tracks.querySelectorAll(".archive-track")];
+      const updateScrollMotion = () => {
+        const range = Math.max(1, experience.offsetHeight - window.innerHeight);
+        const progress = Math.max(0, Math.min(1, -experience.getBoundingClientRect().top / range));
+        experience.style.setProperty("--archive-progress", progress.toFixed(3));
+        experience.style.setProperty("--archive-paper-shift", `${((progress - 0.5) * -160).toFixed(1)}px`);
+        experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 28).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 24).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-box-angle", `${(-2 + progress * 4).toFixed(1)}deg`);
+      };
+      let scrollTicking = false;
+      const onScroll = () => {
+        if (scrollTicking) return;
+        scrollTicking = true;
+        requestAnimationFrame(() => {
+          updateScrollMotion();
+          scrollTicking = false;
+        });
+      };
+      updateScrollMotion();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      archiveScrollHandler = onScroll;
+
+      if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            trackNodes.forEach((node) => node.classList.toggle("is-active", node === entry.target));
+            const activeIndex = Number(entry.target.dataset.index || 0);
+            stageCount.textContent = `${String(activeIndex + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
+            stage.classList.remove("is-turning");
+            requestAnimationFrame(() => stage.classList.add("is-turning"));
+          });
+        }, { rootMargin: "-42% 0px -42% 0px", threshold: 0 });
+        trackNodes.forEach((node) => observer.observe(node));
+      } else {
+        trackNodes[0]?.classList.add("is-active");
+      }
     }
 
     renderArchive();
