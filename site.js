@@ -236,7 +236,13 @@
       experience.className = "archive-scroll-experience";
       const noteTotal = items.reduce((total, item) => total + (Array.isArray(item.notes) ? item.notes.length : 0), 0);
       const paperLength = Math.round(20 + items.reduce((total, item) => total + paperScoreWeight(item), 0));
-      experience.style.setProperty("--archive-min-height", `${Math.max(1040, 680 + items.length * 360 + Math.min(noteTotal, 480) * .3)}px`);
+      // Keep one deliberate screen of scroll for the mechanism, even when the
+      // archive contains only a single melody. The score can then unspool at a
+      // readable pace instead of jumping straight to its finished state.
+      experience.style.setProperty(
+        "--archive-min-height",
+        `${Math.max(1340, 1120 + items.length * 220 + Math.min(noteTotal, 480) * .28)}px`
+      );
 
       const stage = document.createElement("div");
       stage.className = "archive-scroll-stage";
@@ -257,13 +263,13 @@
       paper.appendChild(paperHoles);
       const boxFrame = document.createElement("div");
       boxFrame.className = "archive-music-box-frame";
-      const boxSource = "archive-music-box-mechanism-cutout.png?v=archive-box-2";
+      const boxSource = "archive-music-box-mechanism-cutout.png?v=archive-box-3";
       const box = document.createElement("img");
       box.className = "archive-music-box";
       box.src = boxSource;
       box.alt = "ORGO music box mechanism";
       box.addEventListener("error", () => {
-        box.src = "image/archive-music-box-mechanism-cutout.png?v=archive-box-2";
+        box.src = "image/archive-music-box-mechanism-cutout.png?v=archive-box-3";
       }, { once: true });
       const crank = document.createElement("img");
       crank.className = "archive-music-box-crank";
@@ -358,7 +364,9 @@
         experience.style.setProperty("--archive-progress", progress.toFixed(3));
         experience.style.setProperty("--archive-paper-offset", `${(-progress * (34 + items.length * 8)).toFixed(1)}px`);
         experience.style.setProperty("--archive-paper-reveal", `${Math.min(1, .05 + progress * .95).toFixed(3)}`);
-        experience.style.setProperty("--archive-crank-angle", `${(progress * 720).toFixed(1)}deg`);
+        // One full turn is enough to communicate the mechanical action without
+        // leaving a distracting duplicate trail of the photographed crank.
+        experience.style.setProperty("--archive-crank-angle", `${(progress * 360).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 28).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 24).toFixed(1)}deg`);
         experience.style.setProperty("--archive-box-angle", `${(-2 + progress * 4).toFixed(1)}deg`);
