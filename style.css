@@ -957,3 +957,5 @@ body.tutorial-is-open { overflow:hidden; }
   .compose-tutorial .tutorial-actions { right:12px; bottom:12px; left:12px; justify-content:space-between; }
   .compose-tutorial .tutorial-actions button { min-height:38px; padding-inline:12px; font-size:10px; }
 }
+
+.tutorial-close:focus-visible { outline:0; border-radius:50%; box-shadow:0 0 0 1px #ffffff5c; }
