@@ -1648,3 +1648,48 @@
   draw();
   loadArchivePlayback();
 })();
+
+
+/* Compose quick guide (first visit) */
+(() => {
+  const seenKey = "orgo-compose-tutorial-seen";
+  let dialog = document.getElementById("compose-tutorial");
+  if (!dialog) {
+    document.body.insertAdjacentHTML("beforeend",       '<section id="compose-tutorial" class="compose-tutorial" role="dialog" aria-modal="true" aria-labelledby="tutorial-title" hidden><div class="tutorial-backdrop" aria-hidden="true"></div><div class="tutorial-card"><div class="tutorial-card-top"><span>ORGO / QUICK GUIDE</span><span id="tutorial-count">01 / 03</span></div><div class="tutorial-step-markers" aria-hidden="true"><i></i><i></i><i></i></div><p id="tutorial-kicker" class="tutorial-kicker">STEP 01</p><h2 id="tutorial-title">Start with a short line.</h2><p id="tutorial-copy">Choose an ink, then write on the paper. Left to right becomes time; higher marks become higher notes.</p><div class="tutorial-actions"><button id="tutorial-skip" type="button">Skip tutorial</button><button id="tutorial-next" class="tutorial-primary" type="button">Next <span aria-hidden="true">→</span></button></div></div></section>'
+    );
+    dialog = document.getElementById("compose-tutorial");
+  }
+  const title = document.getElementById("tutorial-title");
+  const copy = document.getElementById("tutorial-copy");
+  const kicker = document.getElementById("tutorial-kicker");
+  const count = document.getElementById("tutorial-count");
+  const next = document.getElementById("tutorial-next");
+  const skip = document.getElementById("tutorial-skip");
+  const markers = [...dialog.querySelectorAll(".tutorial-step-markers i")];
+  let step = 0;
+  const isKorean = () => document.documentElement.lang === "ko";
+  const guide = () => isKorean() ? [
+    ["STEP 01 / WRITE", "짧은 글부터 적어보세요.", "잉크를 고른 뒤 왼쪽 종이에 마우스로 글을 쓰세요. 왼쪽에서 오른쪽은 시간, 위아래 위치는 음의 높이가 됩니다."],
+    ["STEP 02 / PUNCH", "글씨를 소리 나는 점으로 바꿔요.", "‘다 썼어요 · 펀칭하기’를 누른 뒤 원하는 점을 고르거나, 자동 펀칭으로 한 번에 악보를 만들 수 있어요."],
+    ["STEP 03 / PLAY & SAVE", "손잡이를 돌려 들어보세요.", "연주 단계에서 손잡이를 시계 방향으로 드래그하세요. 마음에 들면 이름을 정해 아카이브에 저장할 수 있어요."],
+  ] : [
+    ["STEP 01 / WRITE", "Start with a short line.", "Choose an ink, then write on the paper. Left to right becomes time; higher marks become higher notes."],
+    ["STEP 02 / PUNCH", "Turn the line into notes.", "Select ‘Finished writing · punch it,’ then choose individual holes or use automatic punch to make a score at once."],
+    ["STEP 03 / PLAY & SAVE", "Turn the crank to listen.", "In Play, drag the crank clockwise. If you like it, give the melody a name and save it in Archive."],
+  ];
+  function render() {
+    const current = guide()[step];
+    kicker.textContent = current[0]; title.textContent = current[1]; copy.textContent = current[2];
+    count.textContent = `${String(step + 1).padStart(2, "0")} / 03`;
+    markers.forEach((marker, index) => marker.classList.toggle("is-active", index <= step));
+    next.innerHTML = step === 2 ? `${isKorean() ? "시작하기" : "Start composing"} <span aria-hidden="true">→</span>` : `${isKorean() ? "다음" : "Next"} <span aria-hidden="true">→</span>`;
+    skip.textContent = isKorean() ? "안내 건너뛰기" : "Skip tutorial";
+  }
+  function close() { dialog.hidden = true; localStorage.setItem(seenKey, "1"); }
+  function open() { step = 0; render(); dialog.hidden = false; next.focus({ preventScroll: true }); }
+  next.addEventListener("click", () => step === 2 ? close() : (step += 1, render()));
+  skip.addEventListener("click", close);
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !dialog.hidden) close(); });
+  document.addEventListener("orgo-languagechange", () => { if (!dialog.hidden) render(); });
+  window.setTimeout(() => { if (!localStorage.getItem(seenKey)) open(); }, 450);
+})();
