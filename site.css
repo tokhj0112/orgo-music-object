@@ -586,13 +586,13 @@ img {
   /* Keep the body intact while taking only the fixed crank out of the source photo. */
   -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0), linear-gradient(#000 0 0);
   -webkit-mask-repeat: no-repeat;
-  -webkit-mask-size: 100% 100%, 24% 42%, 40% 10%;
-  -webkit-mask-position: 0 0, 0 15%, 0 55%;
+  -webkit-mask-size: 100% 100%, 24% 42%, 30% 6%;
+  -webkit-mask-position: 0 0, 0 15%, 0 58%;
   -webkit-mask-composite: xor, xor;
   mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0), linear-gradient(#000 0 0);
   mask-repeat: no-repeat;
-  mask-size: 100% 100%, 24% 42%, 40% 10%;
-  mask-position: 0 0, 0 15%, 0 55%;
+  mask-size: 100% 100%, 24% 42%, 30% 6%;
+  mask-position: 0 0, 0 15%, 0 58%;
   mask-composite: exclude, exclude;
 }
 .archive-music-box-gear { display: none; }
