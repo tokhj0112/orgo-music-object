@@ -607,6 +607,8 @@ h1 {
 
 #save-archive { border-color: #b7c4a7; background: #dce3d01f; color: #eef3e7; }
 #save-archive:not([hidden]) { min-width: 180px; }
+#open-archive { border-color: #d6d0b8; background: #e8e2cc14; color: #f2eee2; }
+#open-archive:not([hidden]) { min-width: 160px; }
 
 .actions .primary {
   background: #e7e9decc;

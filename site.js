@@ -236,12 +236,11 @@
       experience.className = "archive-scroll-experience";
       const noteTotal = items.reduce((total, item) => total + (Array.isArray(item.notes) ? item.notes.length : 0), 0);
       const paperLength = Math.round(20 + items.reduce((total, item) => total + paperScoreWeight(item), 0));
-      // Keep one deliberate screen of scroll for the mechanism, even when the
-      // archive contains only a single melody. The score can then unspool at a
-      // readable pace instead of jumping straight to its finished state.
+      // The score is a passing scene: it enters, feeds through the mechanism,
+      // then clears before the saved melody list begins.
       experience.style.setProperty(
         "--archive-min-height",
-        `${Math.max(1340, 1120 + items.length * 220 + Math.min(noteTotal, 480) * .28)}px`
+        `${Math.max(980, 810 + items.length * 178 + Math.min(noteTotal, 480) * .22)}px`
       );
 
       const stage = document.createElement("div");
@@ -271,12 +270,7 @@
       box.addEventListener("error", () => {
         box.src = "image/archive-music-box-mechanism-cutout.png?v=archive-box-3";
       }, { once: true });
-      const crank = document.createElement("img");
-      crank.className = "archive-music-box-crank";
-      crank.src = boxSource;
-      crank.alt = "";
-      crank.setAttribute("aria-hidden", "true");
-      boxFrame.append(box, crank);
+      boxFrame.append(box);
       stage.append(stageLabel, stageCount, paper, boxFrame);
 
       const tracks = document.createElement("div");
@@ -359,17 +353,22 @@
       const trackNodes = [...tracks.querySelectorAll(".archive-track")];
       const scoreSegments = [...paperHoles.querySelectorAll(".archive-score-segment")];
       const updateScrollMotion = () => {
-        const range = Math.max(1, experience.offsetHeight - window.innerHeight);
-        const progress = Math.max(0, Math.min(1, -experience.getBoundingClientRect().top / range));
+        const stageBounds = stage.getBoundingClientRect();
+        const range = Math.max(1, stage.offsetHeight + window.innerHeight * .15);
+        const progress = Math.max(0, Math.min(1, (window.innerHeight * .78 - stageBounds.top) / range));
+        const enter = Math.max(0, Math.min(1, progress / .25));
+        const exit = Math.max(0, Math.min(1, (progress - .74) / .26));
+        const sceneOpacity = Math.max(0, Math.min(1, enter * 1.12)) * (1 - exit);
+        const paperReveal = Math.max(.025, Math.min(1, enter * (1 - exit * .92)));
         experience.style.setProperty("--archive-progress", progress.toFixed(3));
-        experience.style.setProperty("--archive-paper-offset", `${(-progress * (34 + items.length * 8)).toFixed(1)}px`);
-        experience.style.setProperty("--archive-paper-reveal", `${Math.min(1, .05 + progress * .95).toFixed(3)}`);
-        // One full turn is enough to communicate the mechanical action without
-        // leaving a distracting duplicate trail of the photographed crank.
-        experience.style.setProperty("--archive-crank-angle", `${(progress * 360).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 28).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 24).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-box-angle", `${(-2 + progress * 4).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-paper-offset", `${(-progress * (86 + items.length * 10)).toFixed(1)}px`);
+        experience.style.setProperty("--archive-paper-reveal", paperReveal.toFixed(3));
+        experience.style.setProperty("--archive-scene-opacity", sceneOpacity.toFixed(3));
+        experience.style.setProperty("--archive-box-x", `${((1 - enter) * 130 + exit * 72).toFixed(1)}px`);
+        experience.style.setProperty("--archive-box-y", `${((1 - enter) * 68 - exit * 110).toFixed(1)}px`);
+        experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 12).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 10).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-box-angle", `${(-1.2 + progress * 2.4).toFixed(1)}deg`);
       };
       let scrollTicking = false;
       const onScroll = () => {

@@ -80,6 +80,7 @@
   // 아카이브에서 불러온 곡은 새 곡처럼 다시 저장하지 않고,
   // 이 페이지를 오르골 플레이어로 사용합니다.
   let archivePlayback = null;
+  let lastArchivedId = null;
   let reverbMix = null;
   let lastHarmonyTime = -Infinity;
   let activeHarmonyStep = -1;
@@ -743,9 +744,11 @@
     $("skip").hidden = mode !== "punch";
     $("autoplay").hidden = mode !== "listen";
     $("save-archive").hidden = mode !== "listen" || Boolean(archivePlayback);
+    $("open-archive").hidden = mode !== "listen" || !lastArchivedId;
 
     if (mode === "listen") {
       $("save-archive").textContent = isKorean() ? "아카이브에 저장하기 +" : "Save to archive +";
+      $("open-archive").textContent = isKorean() ? "아카이브에서 보기 ↗" : "View in archive ↗";
     }
 
     document.body.dataset.mode = mode;
@@ -1485,13 +1488,22 @@
     });
 
     localStorage.setItem(key, JSON.stringify(saved.slice(0, 30)));
-    $("hint").textContent = "아카이브에 저장했어요. ARCHIVE에서 다시 확인할 수 있습니다.";
-    $("save-archive").textContent = "저장됨 ✓";
+    lastArchivedId = id;
+    $("hint").textContent = isKorean()
+      ? "아카이브에 저장했어요. 바로 아카이브에서 다시 확인할 수 있습니다."
+      : "Saved to your archive. You can open it right away.";
+    $("save-archive").textContent = isKorean() ? "저장됨 ✓" : "Saved ✓";
+    $("open-archive").hidden = false;
   }
 
   $("save-archive").onclick = () => {
     if (holes.length === 0) return;
     requestArchiveName(saveArchive);
+  };
+
+  $("open-archive").onclick = () => {
+    const query = lastArchivedId ? `?new=${encodeURIComponent(lastArchivedId)}` : "";
+    window.location.href = `archive.html${query}`;
   };
 
   /* ------------------------------
