@@ -1378,3 +1378,20 @@ legend {
   .object-controls .solid-link { padding: 12px 15px; }
   .object-page-count { bottom: 18px; }
 }
+
+
+/* Keep the complete object configurator visible on shorter desktop screens. */
+@media (min-width: 651px) and (max-height: 800px) {
+  .object-showcase { height: calc(100svh - 96px); min-height: 0; padding-block: 22px; }
+  .object-intro h1 { margin: 22px 0 16px; font-size: clamp(38px, 3.45vw, 54px); }
+  .object-specs { padding-bottom: 4px; }
+  .object-specs article { margin: 7px 0; }
+  .object-specs p { margin-top: 13px; font-size: 10px; }
+  .object-visual img { width: min(100%, 520px); max-height: min(58vh, 440px); }
+  .object-controls { gap: 7px 10px; }
+  .object-controls legend, .field-label { margin-bottom: 5px; }
+  .melody-select, .photo-upload, .text-input { padding-block: 7px; }
+  .object-melody-empty, .object-controls .purchase-note { display: none; }
+  .configuration-summary { padding-top: 7px; }
+  .object-controls .solid-link { padding-block: 10px; }
+}
