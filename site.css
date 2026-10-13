@@ -1342,3 +1342,7 @@ legend {
     transform: none;
   }
 }
+
+
+/* Restore the complete mechanism below the animated crank layer. */
+.archive-music-box { -webkit-mask-image: none; mask-image: none; }
