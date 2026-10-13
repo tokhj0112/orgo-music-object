@@ -270,7 +270,17 @@
       box.addEventListener("error", () => {
         box.src = "image/archive-music-box-mechanism-cutout.png?v=archive-box-3";
       }, { once: true });
-      boxFrame.append(box);
+      const gear = document.createElement("img");
+      gear.className = "archive-music-box-gear";
+      gear.src = boxSource;
+      gear.alt = "";
+      gear.setAttribute("aria-hidden", "true");
+      const crank = document.createElement("img");
+      crank.className = "archive-music-box-crank";
+      crank.src = boxSource;
+      crank.alt = "";
+      crank.setAttribute("aria-hidden", "true");
+      boxFrame.append(box, gear, crank);
       stage.append(stageLabel, stageCount, paper, boxFrame);
 
       const tracks = document.createElement("div");
@@ -364,8 +374,11 @@
         experience.style.setProperty("--archive-paper-offset", `${(-progress * (86 + items.length * 10)).toFixed(1)}px`);
         experience.style.setProperty("--archive-paper-reveal", paperReveal.toFixed(3));
         experience.style.setProperty("--archive-scene-opacity", sceneOpacity.toFixed(3));
-        experience.style.setProperty("--archive-box-x", `${((1 - enter) * 130 + exit * 72).toFixed(1)}px`);
-        experience.style.setProperty("--archive-box-y", `${((1 - enter) * 68 - exit * 110).toFixed(1)}px`);
+        // The scene leaves with the document itself, so the mechanism travels
+        // upward on scroll instead of sliding sideways out of view.
+        experience.style.setProperty("--archive-box-x", `${((1 - enter) * 130).toFixed(1)}px`);
+        experience.style.setProperty("--archive-box-y", `${((1 - enter) * 68).toFixed(1)}px`);
+        experience.style.setProperty("--archive-crank-angle", `${(progress * 360).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 12).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 10).toFixed(1)}deg`);
         experience.style.setProperty("--archive-box-angle", `${(-1.2 + progress * 2.4).toFixed(1)}deg`);
