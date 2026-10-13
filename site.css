@@ -1346,3 +1346,35 @@ legend {
 
 /* Restore the complete mechanism below the animated crank layer. */
 .archive-music-box { -webkit-mask-image: none; mask-image: none; }
+
+
+/* Compact one-screen object configurator */
+@media (min-width: 651px) {
+  .object-showcase { height: calc(100svh - 96px); min-height: 720px; grid-template-rows: minmax(0, 1fr); padding: clamp(28px, 4vh, 48px) 4% 34px; }
+  .object-intro { grid-column: 1; grid-row: 1; align-self: start; }
+  .object-intro h1 { margin: clamp(30px, 4.5vh, 48px) 0 24px; font-size: clamp(40px, 3.7vw, 62px); line-height: 1.08; }
+  .object-specs { grid-column: 1; grid-row: 1; align-self: end; padding-bottom: 18px; }
+  .object-specs article { margin: 13px 0; }
+  .object-specs p { margin-top: 26px; }
+  .object-visual { grid-column: 2; grid-row: 1; min-height: 0; height: 100%; }
+  .object-visual img { width: min(100%, 590px); max-height: min(68vh, 610px); }
+  .object-controls { grid-column: 3; grid-row: 1; align-self: center; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 10px; width: min(100%, 330px); }
+  .object-controls > .eyebrow, .object-controls > .melody-field, .object-controls > .engraving-field, .object-controls > .configuration-summary, .object-controls > .solid-link, .object-controls > .configuration-save, .object-controls > .purchase-note { grid-column: 1 / -1; }
+  .object-controls fieldset { margin: 0; }
+  .object-controls legend { margin-bottom: 8px; }
+  .object-controls .melody-field { margin-top: 2px; }
+  .melody-select { padding: 9px 11px; font-size: 10px; }
+  .selected-melody-card { margin-top: 8px; padding: 9px; }
+  .selected-melody-preview { height: 42px; margin: 8px 0; }
+  .object-melody-empty { margin-top: 7px; font-size: 9px; line-height: 1.5; }
+  .material-options { gap: 6px; }
+  .material-options span { padding: 8px 10px; font-size: 10px; }
+  .engraving-field { padding-top: 12px; }
+  .photo-upload { padding: 9px 11px; }
+  .configuration-summary { margin-bottom: 0; padding-top: 10px; }
+  .configuration-summary p { margin: 0; }
+  .configuration-save { margin-top: -4px; padding: 7px 0; font-size: 9px; }
+  .object-controls .purchase-note { margin: -2px 0 0; font-size: 9px; line-height: 1.45; }
+  .object-controls .solid-link { padding: 12px 15px; }
+  .object-page-count { bottom: 18px; }
+}
