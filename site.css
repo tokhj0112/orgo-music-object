@@ -579,10 +579,11 @@ img {
 .archive-score-marker { position: absolute; z-index: 2; right: 4px; top: 8px; color: #797362; font: 7px/1 monospace; letter-spacing: .1em; }
 .archive-music-box-frame { position: absolute; z-index: 3; right: clamp(24px, 7vw, 130px); top: 61%; width: min(48vw, 680px); height: 1px; overflow: visible; opacity: var(--archive-scene-opacity); transform: translate(var(--archive-box-x), var(--archive-box-y)) rotate(var(--archive-box-angle, 0deg)); transform-origin: 50% 50%; filter: drop-shadow(0 25px 24px #000b); transition: opacity .18s linear; }
 .archive-music-box, .archive-music-box-gear, .archive-music-box-crank { position: absolute; left: 50%; top: 0; width: clamp(430px, 37vw, 550px); max-width: none; height: auto; image-orientation: none; transform: translate(-50%, -39%); }
-/* Reassemble the photograph in three layers so only the actual crank moves. */
-.archive-music-box { z-index: 1; clip-path: inset(0 0 0 36%); }
-.archive-music-box-gear { z-index: 2; clip-path: polygon(0 58%, 45% 58%, 45% 100%, 0 100%); }
-.archive-music-box-crank { z-index: 3; clip-path: polygon(0 15%, 45% 15%, 45% 64%, 0 64%); opacity: var(--archive-scene-opacity); transform: translate(-50%, -39%) rotate(var(--archive-crank-angle, 0deg)); transform-origin: 39% 62%; will-change: transform; }
+/* Keep the photographed mechanism complete; only the upper crank is layered
+   for movement, with a restrained half-turn so it stays inside the scene. */
+.archive-music-box { z-index: 1; }
+.archive-music-box-gear { display: none; }
+.archive-music-box-crank { z-index: 3; clip-path: polygon(0 15%, 45% 15%, 45% 64%, 0 64%); opacity: calc(var(--archive-scene-opacity) * .78); transform: translate(-50%, -39%) rotate(var(--archive-crank-angle, 0deg)); transform-origin: 39% 62%; will-change: transform; }
 .archive-track-list { position: relative; z-index: 4; margin-top: -130px; padding: 0 0 48px; }
 .archive-track { display: grid; grid-template-columns: minmax(250px, 1fr) minmax(300px, 38vw) minmax(150px, .55fr); align-items: center; min-height: 142px; border-bottom: 1px solid #4c4c47; color: #8d8d85; transition: color .35s ease, border-color .35s ease, background .35s ease; }
 .archive-track:first-child { border-top: 1px solid #4c4c47; }

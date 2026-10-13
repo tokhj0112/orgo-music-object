@@ -378,7 +378,7 @@
         // upward on scroll instead of sliding sideways out of view.
         experience.style.setProperty("--archive-box-x", `${((1 - enter) * 130).toFixed(1)}px`);
         experience.style.setProperty("--archive-box-y", `${((1 - enter) * 68).toFixed(1)}px`);
-        experience.style.setProperty("--archive-crank-angle", `${(progress * 360).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-crank-angle", `${(progress * 180).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 12).toFixed(1)}deg`);
         experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 10).toFixed(1)}deg`);
         experience.style.setProperty("--archive-box-angle", `${(-1.2 + progress * 2.4).toFixed(1)}deg`);
