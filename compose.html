@@ -21,6 +21,10 @@
 
     <span class="header-label">THE COMPOSING ROOM</span>
 
+    <button id="open-tutorial" class="guide-trigger" type="button">
+      GUIDE ?
+    </button>
+
   </header>
 
   <main>
@@ -279,5 +283,50 @@
     <span>HANDWRITING INTO MELODY</span>
     <span>COMPOSE ATELIER / STUDY 02</span>
   </footer>
+  <section id="compose-tutorial" class="compose-tutorial" role="dialog" aria-modal="true" aria-labelledby="tutorial-title" hidden>
+    <div class="tutorial-backdrop" aria-hidden="true"></div>
+
+    <button id="tutorial-close" class="tutorial-close" type="button" aria-label="튜토리얼 닫기">
+      <span></span><span></span>
+    </button>
+
+    <div class="tutorial-heading">
+      <span>ORGO / QUICK GUIDE</span>
+      <h2 id="tutorial-title">화면을 따라 천천히 시작해 보세요.</h2>
+      <p>화살표가 가리키는 순서대로 사용하면 됩니다.</p>
+    </div>
+
+    <svg class="tutorial-lines" aria-hidden="true"></svg>
+    <div class="tutorial-focus-rings" aria-hidden="true"></div>
+
+    <div class="tutorial-callout" data-target=".sound-dock" data-placement="above">
+      <span>01 / SOUND</span>
+      <strong>먼저 음색을 골라보세요</strong>
+      <p>원하는 오르골 소리와 음량을 미리 확인할 수 있어요.</p>
+    </div>
+
+    <div class="tutorial-callout" data-target=".steps" data-placement="below">
+      <span>02 / FLOW</span>
+      <strong>쓰기 · 펀칭 · 연주</strong>
+      <p>세 단계가 왼쪽에서 오른쪽으로 이어집니다.</p>
+    </div>
+
+    <div class="tutorial-callout" data-target=".paper" data-placement="inside-left">
+      <span>03 / WRITE</span>
+      <strong>이 종이 위에 글씨를 써보세요</strong>
+      <p>가로는 시간, 세로는 음의 높이가 됩니다.</p>
+    </div>
+
+    <div class="tutorial-callout" data-target="#crank" data-placement="inside-right">
+      <span>04 / PLAY</span>
+      <strong>완성되면 손잡이를 돌려보세요</strong>
+      <p>직접 돌리는 속도에 맞춰 선율이 재생됩니다.</p>
+    </div>
+
+    <div class="tutorial-actions">
+      <button id="tutorial-skip" type="button">안내 건너뛰기</button>
+      <button id="tutorial-next" class="tutorial-primary" type="button">바로 시작하기 <span aria-hidden="true">→</span></button>
+    </div>
+  </section>
 </body>
 </html>
