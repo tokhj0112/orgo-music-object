@@ -914,3 +914,46 @@ body:not([data-mode="write"]) .weight {
 .tutorial-actions .tutorial-primary { border-color:#e8eadd; color:#1a1c18; background:#e8eadd; }
 .tutorial-actions .tutorial-primary:hover { background:#fff; }
 @media (max-width:650px) { .compose-tutorial { align-items:end; padding:14px; } .tutorial-card { padding:20px; border-radius:14px; } .tutorial-card h2 { font-size:29px; } .tutorial-actions { margin-top:23px; } }
+
+
+/* Annotated compose screen guide */
+.guide-trigger { min-height:31px; padding:0 11px; border:1px solid #4b5048; border-radius:999px; color:#c6cabe; font:9px/1 monospace; letter-spacing:1.2px; }
+.guide-trigger:hover { border-color:#c9cdbf; color:#fff; }
+.compose-tutorial { display:block; padding:0; overflow:hidden; color:#fff; }
+.compose-tutorial .tutorial-backdrop { z-index:0; background:rgba(8,9,8,.79); backdrop-filter:none; }
+.tutorial-close { position:fixed; z-index:5; top:23px; left:28px; width:46px; height:46px; }
+.tutorial-close span { position:absolute; top:22px; left:4px; width:38px; height:2px; background:#fff; transform:rotate(45deg); }
+.tutorial-close span:last-child { transform:rotate(-45deg); }
+.tutorial-heading { position:fixed; z-index:4; top:25px; left:50%; width:min(460px,calc(100vw - 180px)); text-align:center; transform:translateX(-50%); }
+.tutorial-heading>span,.tutorial-callout>span { color:#d1d4c9; font:9px/1 monospace; letter-spacing:1.8px; }
+.tutorial-heading h2 { margin:7px 0 2px; font-size:21px; font-weight:400; letter-spacing:-.04em; }
+.tutorial-heading p { margin:0; color:#b9bdb3; font-size:10px; }
+.tutorial-lines { position:fixed; z-index:2; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.tutorial-lines path { fill:none; stroke:#f4f4ee; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; marker-end:url(#tutorial-arrow); }
+.tutorial-focus-ring { position:fixed; z-index:1; border:1px solid #f4f4eeb8; border-radius:11px; box-shadow:0 0 0 4px #ffffff0a,0 0 26px #e8efd526; pointer-events:none; }
+.tutorial-callout { position:fixed; z-index:3; width:min(220px,calc(100vw - 28px)); padding:9px 11px; border-radius:9px; background:#111411d1; box-shadow:0 8px 28px #0004; pointer-events:none; }
+.tutorial-callout strong { display:block; margin-top:7px; font-size:17px; font-weight:400; line-height:1.25; letter-spacing:-.035em; }
+.tutorial-callout p { margin:6px 0 0; color:#d0d2ca; font-size:10px; line-height:1.5; }
+.compose-tutorial .tutorial-actions { position:fixed; z-index:5; right:26px; bottom:23px; margin:0; }
+.compose-tutorial .tutorial-actions button { min-height:40px; border-color:#dfe2d7a3; background:#111411c7; backdrop-filter:blur(8px); }
+.compose-tutorial .tutorial-actions .tutorial-primary { color:#171815; background:#f2f3ec; }
+body.tutorial-is-open { overflow:hidden; }
+@media (max-width:850px) {
+  .header-label { display:none; }
+  .tutorial-heading { top:19px; width:calc(100vw - 150px); }
+  .tutorial-heading h2 { font-size:17px; }
+  .tutorial-heading p { display:none; }
+  .tutorial-callout { width:180px; padding:8px 9px; }
+  .tutorial-callout strong { font-size:14px; }
+  .tutorial-callout p { font-size:9px; }
+}
+@media (max-width:650px) {
+  .guide-trigger { position:absolute; top:20px; right:5%; }
+  .tutorial-close { top:12px; left:13px; transform:scale(.78); transform-origin:top left; }
+  .tutorial-heading { top:17px; left:72px; width:calc(100vw - 150px); text-align:left; transform:none; }
+  .tutorial-heading h2 { margin-top:5px; font-size:14px; }
+  .tutorial-callout { width:180px; }
+  .tutorial-callout p { display:none; }
+  .compose-tutorial .tutorial-actions { right:12px; bottom:12px; left:12px; justify-content:space-between; }
+  .compose-tutorial .tutorial-actions button { min-height:38px; padding-inline:12px; font-size:10px; }
+}
