@@ -581,7 +581,7 @@ img {
 .archive-music-box, .archive-music-box-gear, .archive-music-box-crank { position: absolute; left: 50%; top: 0; width: clamp(430px, 37vw, 550px); max-width: none; height: auto; image-orientation: none; transform: translate(-50%, -39%); }
 /* Keep the photographed mechanism complete; only the upper crank is layered
    for movement, with a restrained half-turn so it stays inside the scene. */
-.archive-music-box { z-index: 1; }
+.archive-music-box { z-index: 1; -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0); -webkit-mask-repeat: no-repeat; -webkit-mask-size: 100% 100%, 45% 50%; -webkit-mask-position: 0 0, 0 15%; -webkit-mask-composite: xor; mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0); mask-repeat: no-repeat; mask-size: 100% 100%, 45% 50%; mask-position: 0 0, 0 15%; mask-composite: exclude; }
 .archive-music-box-gear { display: none; }
 .archive-music-box-crank { z-index: 3; clip-path: polygon(0 15%, 45% 15%, 45% 64%, 0 64%); opacity: calc(var(--archive-scene-opacity) * .78); transform: translate(-50%, -39%) rotate(var(--archive-crank-angle, 0deg)); transform-origin: 39% 62%; will-change: transform; }
 .archive-track-list { position: relative; z-index: 4; margin-top: -130px; padding: 0 0 48px; }
