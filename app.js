@@ -1650,46 +1650,188 @@
 })();
 
 
-/* Compose quick guide (first visit) */
+/* --------------------------------
+   Compose quick guide (first visit)
+--------------------------------- */
 (() => {
   const seenKey = "orgo-compose-tutorial-seen";
-  let dialog = document.getElementById("compose-tutorial");
-  if (!dialog) {
-    document.body.insertAdjacentHTML("beforeend",       '<section id="compose-tutorial" class="compose-tutorial" role="dialog" aria-modal="true" aria-labelledby="tutorial-title" hidden><div class="tutorial-backdrop" aria-hidden="true"></div><div class="tutorial-card"><div class="tutorial-card-top"><span>ORGO / QUICK GUIDE</span><span id="tutorial-count">01 / 03</span></div><div class="tutorial-step-markers" aria-hidden="true"><i></i><i></i><i></i></div><p id="tutorial-kicker" class="tutorial-kicker">STEP 01</p><h2 id="tutorial-title">Start with a short line.</h2><p id="tutorial-copy">Choose an ink, then write on the paper. Left to right becomes time; higher marks become higher notes.</p><div class="tutorial-actions"><button id="tutorial-skip" type="button">Skip tutorial</button><button id="tutorial-next" class="tutorial-primary" type="button">Next <span aria-hidden="true">→</span></button></div></div></section>'
-    );
-    dialog = document.getElementById("compose-tutorial");
-  }
+  const dialog = document.getElementById("compose-tutorial");
   const title = document.getElementById("tutorial-title");
-  const copy = document.getElementById("tutorial-copy");
-  const kicker = document.getElementById("tutorial-kicker");
-  const count = document.getElementById("tutorial-count");
+  const headingCopy = dialog?.querySelector(".tutorial-heading p");
   const next = document.getElementById("tutorial-next");
   const skip = document.getElementById("tutorial-skip");
-  const markers = [...dialog.querySelectorAll(".tutorial-step-markers i")];
-  let step = 0;
+  const closeButton = document.getElementById("tutorial-close");
+  const openButton = document.getElementById("open-tutorial");
+  const svg = dialog?.querySelector(".tutorial-lines");
+  const ringLayer = dialog?.querySelector(".tutorial-focus-rings");
+  const callouts = [...(dialog?.querySelectorAll(".tutorial-callout") || [])];
+  let frame = 0;
+
+  if (!dialog || !title || !next || !skip || !closeButton || !svg || !ringLayer) return;
+
   const isKorean = () => document.documentElement.lang === "ko";
-  const guide = () => isKorean() ? [
-    ["STEP 01 / WRITE", "짧은 글부터 적어보세요.", "잉크를 고른 뒤 왼쪽 종이에 마우스로 글을 쓰세요. 왼쪽에서 오른쪽은 시간, 위아래 위치는 음의 높이가 됩니다."],
-    ["STEP 02 / PUNCH", "글씨를 소리 나는 점으로 바꿔요.", "‘다 썼어요 · 펀칭하기’를 누른 뒤 원하는 점을 고르거나, 자동 펀칭으로 한 번에 악보를 만들 수 있어요."],
-    ["STEP 03 / PLAY & SAVE", "손잡이를 돌려 들어보세요.", "연주 단계에서 손잡이를 시계 방향으로 드래그하세요. 마음에 들면 이름을 정해 아카이브에 저장할 수 있어요."],
-  ] : [
-    ["STEP 01 / WRITE", "Start with a short line.", "Choose an ink, then write on the paper. Left to right becomes time; higher marks become higher notes."],
-    ["STEP 02 / PUNCH", "Turn the line into notes.", "Select ‘Finished writing · punch it,’ then choose individual holes or use automatic punch to make a score at once."],
-    ["STEP 03 / PLAY & SAVE", "Turn the crank to listen.", "In Play, drag the crank clockwise. If you like it, give the melody a name and save it in Archive."],
-  ];
-  function render() {
-    const current = guide()[step];
-    kicker.textContent = current[0]; title.textContent = current[1]; copy.textContent = current[2];
-    count.textContent = `${String(step + 1).padStart(2, "0")} / 03`;
-    markers.forEach((marker, index) => marker.classList.toggle("is-active", index <= step));
-    next.innerHTML = step === 2 ? `${isKorean() ? "시작하기" : "Start composing"} <span aria-hidden="true">→</span>` : `${isKorean() ? "다음" : "Next"} <span aria-hidden="true">→</span>`;
-    skip.textContent = isKorean() ? "안내 건너뛰기" : "Skip tutorial";
+  const translations = {
+    ko: {
+      title: "화면을 따라 천천히 시작해 보세요.",
+      heading: "화살표가 가리키는 순서대로 사용하면 됩니다.",
+      skip: "안내 건너뛰기",
+      start: "바로 시작하기",
+      close: "튜토리얼 닫기",
+      guide: "GUIDE ?",
+      callouts: [
+        ["먼저 음색을 골라보세요", "원하는 오르골 소리와 음량을 미리 확인할 수 있어요."],
+        ["쓰기 · 펀칭 · 연주", "세 단계가 왼쪽에서 오른쪽으로 이어집니다."],
+        ["이 종이 위에 글씨를 써보세요", "가로는 시간, 세로는 음의 높이가 됩니다."],
+        ["완성되면 손잡이를 돌려보세요", "직접 돌리는 속도에 맞춰 선율이 재생됩니다."],
+      ],
+    },
+    en: {
+      title: "Follow the screen to begin.",
+      heading: "Use the controls in the order shown by the arrows.",
+      skip: "Skip guide",
+      start: "Start composing",
+      close: "Close tutorial",
+      guide: "GUIDE ?",
+      callouts: [
+        ["Choose a sound first", "Preview the music-box tone and set its volume."],
+        ["Write · Punch · Play", "The three stages move from left to right."],
+        ["Write directly on this paper", "Horizontal position is time; vertical position is pitch."],
+        ["Turn the crank when finished", "The melody follows the speed of your hand."],
+      ],
+    },
+  };
+
+  function renderText() {
+    const copy = translations[isKorean() ? "ko" : "en"];
+    title.textContent = copy.title;
+    headingCopy.textContent = copy.heading;
+    skip.textContent = copy.skip;
+    next.innerHTML = `${copy.start} <span aria-hidden="true">→</span>`;
+    closeButton.setAttribute("aria-label", copy.close);
+    if (openButton) openButton.textContent = copy.guide;
+    callouts.forEach((callout, index) => {
+      const [heading, body] = copy.callouts[index];
+      callout.querySelector("strong").textContent = heading;
+      callout.querySelector("p").textContent = body;
+    });
   }
-  function close() { dialog.hidden = true; localStorage.setItem(seenKey, "1"); }
-  function open() { step = 0; render(); dialog.hidden = false; next.focus({ preventScroll: true }); }
-  next.addEventListener("click", () => step === 2 ? close() : (step += 1, render()));
-  skip.addEventListener("click", close);
-  document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !dialog.hidden) close(); });
-  document.addEventListener("orgo-languagechange", () => { if (!dialog.hidden) render(); });
-  window.setTimeout(() => { if (!localStorage.getItem(seenKey)) open(); }, 450);
+
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+  function placeGuide() {
+    if (dialog.hidden) return;
+    const narrow = window.innerWidth < 720;
+    const margin = narrow ? 14 : 24;
+    ringLayer.replaceChildren();
+    svg.replaceChildren();
+    svg.setAttribute("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    marker.id = "tutorial-arrow";
+    marker.setAttribute("viewBox", "0 0 10 10");
+    marker.setAttribute("refX", "9");
+    marker.setAttribute("refY", "5");
+    marker.setAttribute("markerWidth", "6");
+    marker.setAttribute("markerHeight", "6");
+    marker.setAttribute("orient", "auto-start-reverse");
+    arrow.setAttribute("d", "M 1 1 L 9 5 L 1 9");
+    arrow.setAttribute("fill", "none");
+    arrow.setAttribute("stroke", "#f4f4ee");
+    arrow.setAttribute("stroke-width", "1.5");
+    marker.append(arrow);
+    defs.append(marker);
+    svg.append(defs);
+
+    callouts.forEach((callout, index) => {
+      const target = document.querySelector(callout.dataset.target);
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const ring = document.createElement("span");
+      ring.className = "tutorial-focus-ring";
+      ring.style.left = `${clamp(rect.left - 5, 6, window.innerWidth - 12)}px`;
+      ring.style.top = `${clamp(rect.top - 5, 6, window.innerHeight - 12)}px`;
+      ring.style.width = `${Math.min(rect.width + 10, window.innerWidth - 12)}px`;
+      ring.style.height = `${Math.min(rect.height + 10, window.innerHeight - 12)}px`;
+      ringLayer.append(ring);
+
+      let left;
+      let top;
+      const placement = callout.dataset.placement;
+      if (narrow) {
+        left = index % 2 ? window.innerWidth - 194 : 14;
+        top = 96 + index * 112;
+      } else if (placement === "above") {
+        left = rect.left + rect.width * .18;
+        top = rect.top - 88;
+      } else if (placement === "below") {
+        left = rect.left + rect.width * .24;
+        top = rect.bottom + 18;
+      } else if (placement === "inside-left") {
+        left = rect.left + 28;
+        top = rect.top + rect.height * .38;
+      } else {
+        left = rect.right - 224;
+        top = rect.top + rect.height * .52;
+      }
+
+      left = clamp(left, margin, window.innerWidth - callout.offsetWidth - margin);
+      top = clamp(top, 92, window.innerHeight - callout.offsetHeight - 84);
+      callout.style.left = `${left}px`;
+      callout.style.top = `${top}px`;
+
+      const label = callout.getBoundingClientRect();
+      const startX = label.left + label.width / 2;
+      const startY = label.top + label.height / 2;
+      const targetX = clamp(rect.left + rect.width / 2, 10, window.innerWidth - 10);
+      const targetY = clamp(rect.top + rect.height / 2, 10, window.innerHeight - 10);
+      const bendY = startY + (targetY - startY) * .58;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", `M ${startX} ${startY} Q ${startX} ${bendY}, ${targetX} ${targetY}`);
+      svg.append(path);
+    });
+  }
+
+  function scheduleGuide() {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(placeGuide);
+  }
+
+  function close({ remember = true } = {}) {
+    dialog.hidden = true;
+    document.body.classList.remove("tutorial-is-open");
+    if (remember) localStorage.setItem(seenKey, "1");
+    document.getElementById("sheet")?.focus({ preventScroll: true });
+  }
+
+  function open() {
+    renderText();
+    dialog.hidden = false;
+    document.body.classList.add("tutorial-is-open");
+    window.scrollTo({ top: 0, behavior: "instant" });
+    requestAnimationFrame(() => {
+      placeGuide();
+      closeButton.focus({ preventScroll: true });
+    });
+  }
+
+  next.addEventListener("click", () => close());
+  skip.addEventListener("click", () => close());
+  closeButton.addEventListener("click", () => close());
+  openButton?.addEventListener("click", open);
+  window.addEventListener("resize", scheduleGuide, { passive: true });
+  window.addEventListener("scroll", scheduleGuide, { passive: true });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !dialog.hidden) close();
+  });
+
+  document.addEventListener("orgo-languagechange", () => {
+    renderText();
+    if (!dialog.hidden) scheduleGuide();
+  });
+
+  window.setTimeout(() => {
+    if (new URLSearchParams(window.location.search).has("tutorial") || !localStorage.getItem(seenKey)) open();
+  }, 450);
 })();
