@@ -1057,3 +1057,6 @@ body.tutorial-is-open .actionbar {
     min-height: 39px;
   }
 }
+
+
+.actionbar { transform: translateX(-50%); }
