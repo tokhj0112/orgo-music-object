@@ -240,7 +240,7 @@
       // then clears before the saved melody list begins.
       experience.style.setProperty(
         "--archive-min-height",
-        `${Math.max(980, 810 + items.length * 178 + Math.min(noteTotal, 480) * .22)}px`
+        `${Math.max(1160, 930 + items.length * 205 + Math.min(noteTotal, 480) * .26)}px`
       );
 
       const stage = document.createElement("div");
@@ -364,24 +364,25 @@
       const scoreSegments = [...paperHoles.querySelectorAll(".archive-score-segment")];
       const updateScrollMotion = () => {
         const stageBounds = stage.getBoundingClientRect();
-        const range = Math.max(1, stage.offsetHeight + window.innerHeight * .15);
-        const progress = Math.max(0, Math.min(1, (window.innerHeight * .78 - stageBounds.top) / range));
-        const enter = Math.max(0, Math.min(1, progress / .25));
-        const exit = Math.max(0, Math.min(1, (progress - .74) / .26));
+        const range = Math.max(1, stage.offsetHeight + window.innerHeight * .42);
+        const rawProgress = Math.max(0, Math.min(1, (window.innerHeight * .72 - stageBounds.top) / range));
+        const progress = rawProgress * rawProgress * (3 - 2 * rawProgress);
+        const enter = Math.max(0, Math.min(1, progress / .3));
+        const exit = Math.max(0, Math.min(1, (progress - .78) / .22));
         const sceneOpacity = Math.max(0, Math.min(1, enter * 1.12)) * (1 - exit);
         const paperReveal = Math.max(.025, Math.min(1, enter * (1 - exit * .92)));
         experience.style.setProperty("--archive-progress", progress.toFixed(3));
-        experience.style.setProperty("--archive-paper-offset", `${(-progress * (86 + items.length * 10)).toFixed(1)}px`);
+        experience.style.setProperty("--archive-paper-offset", `${(-progress * (78 + items.length * 9)).toFixed(1)}px`);
         experience.style.setProperty("--archive-paper-reveal", paperReveal.toFixed(3));
         experience.style.setProperty("--archive-scene-opacity", sceneOpacity.toFixed(3));
         // The scene leaves with the document itself, so the mechanism travels
         // upward on scroll instead of sliding sideways out of view.
         experience.style.setProperty("--archive-box-x", `${((1 - enter) * 130).toFixed(1)}px`);
         experience.style.setProperty("--archive-box-y", `${((1 - enter) * 68).toFixed(1)}px`);
-        experience.style.setProperty("--archive-crank-angle", `${(progress * 180).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 12).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 10).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-box-angle", `${(-1.2 + progress * 2.4).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-crank-angle", `${(progress * 135).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 9).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 8).toFixed(1)}deg`);
+        experience.style.setProperty("--archive-box-angle", `${(-.9 + progress * 1.8).toFixed(1)}deg`);
       };
       let scrollTicking = false;
       const onScroll = () => {
