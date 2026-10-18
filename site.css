@@ -1395,3 +1395,31 @@ legend {
   .configuration-summary { padding-top: 7px; }
   .object-controls .solid-link { padding-block: 10px; }
 }
+
+
+/* Focused object configurator: product first, optional settings on demand. */
+.object-showcase{grid-template-columns:minmax(0,1fr) minmax(330px,390px);gap:clamp(24px,3vw,54px);padding:clamp(26px,3.5vh,42px) 4% 30px;background:radial-gradient(ellipse at 40% 48%,#292a27 0%,#151614 42%,#101010 76%)}
+.object-showcase::after,.object-page-count{display:none}
+.object-intro{position:absolute;top:clamp(30px,4vh,48px);left:4%;width:min(280px,22vw)}
+.object-intro h1{margin:25px 0 18px;font-size:clamp(36px,3.25vw,56px);line-height:1.04}
+.object-intro>p:last-child{max-width:245px;font-size:11px}
+.object-visual{grid-column:1;padding:32px 20px 52px clamp(170px,14vw,270px)}
+.object-visual img{width:min(100%,650px);max-height:min(72vh,670px)}
+.visual-label,.engraving-preview>span{display:none}
+.engraving-preview{right:42%;bottom:5%;transform:translateX(50%);text-align:center}
+.engraving-preview strong{max-width:280px;color:#bfc1b8;font-size:12px}
+.object-specs{position:absolute;z-index:2;left:4%;bottom:34px;display:flex;gap:24px;padding:0}
+.object-specs article{gap:8px;margin:0}.object-specs strong{font-size:19px}.object-specs p{display:none}
+.object-controls{grid-column:2;display:block;align-self:center;width:100%;max-height:calc(100svh - 145px);padding:21px;overflow:auto;border:1px solid #5b5f574d;border-radius:18px;background:#171916e8;box-shadow:0 22px 64px #0007,0 1px 0 #ffffff0b inset;scrollbar-width:thin;scrollbar-color:#66695f transparent}
+.object-controls>.eyebrow{margin:0 0 17px;color:#d0d4c7}
+.object-controls fieldset{margin:0 0 16px}.object-controls legend{margin-bottom:7px}.object-controls .melody-field{margin:0 0 15px}.object-controls .field-label{margin-bottom:7px}
+.material-options{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.material-options span{padding:9px 10px}
+.object-personalize{margin:15px 0 0;border-top:1px solid #ffffff1b;border-bottom:1px solid #ffffff1b}
+.object-personalize summary{position:relative;display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;min-height:49px;padding:10px 30px 10px 0;cursor:pointer;list-style:none}
+.object-personalize summary::-webkit-details-marker{display:none}.object-personalize summary::after{content:"+";position:absolute;right:2px;color:#d9dcd1;font-size:18px;font-weight:300}.object-personalize[open] summary::after{content:"−"}
+.object-personalize summary span{color:#d6d8cf;font:9px monospace;letter-spacing:1.4px}.object-personalize summary small{color:#858a80;font-size:9px}
+.object-personalize-content{padding:6px 0 15px}.object-personalize-content .engraving-field{padding-top:13px}
+.configuration-summary{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:15px 0 13px;padding-top:0;border-top:0}.configuration-summary>span{margin:0}.configuration-summary p{max-width:68%;color:#e4e6dc;font-size:11px;text-align:right}
+.object-controls .solid-link{min-height:44px;border-radius:10px}.object-controls .configuration-save{margin:2px 0 0}.object-controls .purchase-note{margin-top:7px;text-align:center}
+@media(max-width:900px){.object-showcase{display:block;height:auto;min-height:0;padding:38px 5% 70px;overflow:visible}.object-intro{position:relative;top:auto;left:auto;width:100%}.object-intro h1{margin:25px 0 16px;font-size:clamp(40px,8vw,62px)}.object-visual{min-height:460px;margin:0;padding:25px 0 45px}.object-visual img{width:min(88vw,560px);max-height:520px}.object-specs{display:none}.object-controls{width:min(100%,600px);max-height:none;margin:0 auto}.engraving-preview{right:50%}}
+@media(max-width:650px){.object-showcase{padding-top:30px}.object-intro h1{font-size:42px}.object-visual{min-height:360px;padding-bottom:30px}.object-controls{padding:16px;border-radius:14px}.object-personalize summary{grid-template-columns:1fr;gap:2px}}
