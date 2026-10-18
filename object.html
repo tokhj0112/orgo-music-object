@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>Object — ORGO</title>
-  <link rel="stylesheet" href="site.css?v=object-compact-2">
-  <script src="i18n.js?v=object-compact-2" defer></script>
-  <script src="site.js?v=object-compact-2" defer></script>
+  <link rel="stylesheet" href="site.css?v=object-focus-3">
+  <script src="i18n.js?v=object-focus-3" defer></script>
+  <script src="site.js?v=object-focus-3" defer></script>
 </head>
 
 <body>
@@ -71,7 +71,7 @@
           </div>
           <p id="object-melody-empty" class="object-melody-empty" data-i18n="objectMelodyEmpty">아카이브에서 만든 선율을 선택하면 이 오르골에 담을 수 있습니다.</p>
         </fieldset>
-        <fieldset>
+        <fieldset class="material-field">
           <legend data-i18n="objectMaterial">02 / MATERIAL</legend>
           <div class="material-options">
             <label><input type="radio" name="material" value="투명 아크릴" checked><span>Clear</span></label>
@@ -79,32 +79,42 @@
           </div>
         </fieldset>
 
-        <fieldset>
-          <legend data-i18n="objectPackaging">03 / PACKAGING</legend>
-          <div class="material-options">
-            <label><input type="radio" name="packaging" value="기본 패키지" checked><span>Original</span></label>
-            <label><input type="radio" name="packaging" value="선물 패키지"><span>Gift wrap</span></label>
+        <details class="object-personalize">
+          <summary>
+            <span data-i18n="objectPersonalize">03 / PERSONALIZE</span>
+            <small data-i18n="objectPersonalizeHint">패키지, 사진, 각인 설정</small>
+          </summary>
+
+          <div class="object-personalize-content">
+            <fieldset class="packaging-field">
+              <legend data-i18n="objectPackaging">03 / PACKAGING</legend>
+              <div class="material-options">
+                <label><input type="radio" name="packaging" value="기본 패키지" checked><span>Original</span></label>
+                <label><input type="radio" name="packaging" value="선물 패키지"><span>Gift wrap</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="engraving-field">
+              <legend>PHOTO PRINT</legend>
+              <label class="field-label" for="photo-print" data-i18n="objectPhotoLabel">오르골 전면에 넣을 사진</label>
+              <label class="photo-upload" for="photo-print"><span data-i18n="objectPhotoButton">사진 선택하기</span><small id="photo-print-name" data-i18n="objectPhotoHelp">JPG, PNG · 미리보기용</small></label>
+              <input id="photo-print" class="photo-input" type="file" accept="image/png,image/jpeg,image/webp">
+            </fieldset>
+
+            <fieldset class="engraving-field">
+              <legend>ENGRAVING</legend>
+              <label class="field-label" for="engraving" data-i18n="objectEngravingLabel">간직하고 싶은 한 문장</label>
+              <input id="engraving" class="text-input" type="text" maxlength="32" placeholder="A little music, for you." autocomplete="off">
+              <div class="field-help"><span data-i18n="objectCharacterLimit">최대 32자</span><span id="engraving-count">0 / 32</span></div>
+            </fieldset>
+
+            <button id="save-configuration" class="configuration-save" type="button" data-i18n="objectSave" data-i18n-html="true">구성 메모 저장하기 <span>↓</span></button>
+            <p id="configuration-status" class="purchase-note" role="status" data-i18n="objectStatus">선택한 구성을 텍스트 파일로 저장할 수 있습니다.</p>
           </div>
-        </fieldset>
-
-        <fieldset class="engraving-field">
-          <legend>04 / PHOTO PRINT</legend>
-          <label class="field-label" for="photo-print" data-i18n="objectPhotoLabel">오르골 전면에 넣을 사진</label>
-          <label class="photo-upload" for="photo-print"><span data-i18n="objectPhotoButton">사진 선택하기</span><small id="photo-print-name" data-i18n="objectPhotoHelp">JPG, PNG · 미리보기용</small></label>
-          <input id="photo-print" class="photo-input" type="file" accept="image/png,image/jpeg,image/webp">
-        </fieldset>
-
-        <fieldset class="engraving-field">
-          <legend>05 / ENGRAVING</legend>
-          <label class="field-label" for="engraving" data-i18n="objectEngravingLabel">간직하고 싶은 한 문장</label>
-          <input id="engraving" class="text-input" type="text" maxlength="32" placeholder="A little music, for you." autocomplete="off">
-          <div class="field-help"><span data-i18n="objectCharacterLimit">최대 32자</span><span id="engraving-count">0 / 32</span></div>
-        </fieldset>
+        </details>
 
         <div class="configuration-summary"><span data-i18n="objectSummary">YOUR OBJECT</span><p id="configuration-summary">투명 아크릴 / 기본 패키지</p></div>
         <button id="purchase-object" class="solid-link" type="button" data-i18n="objectPurchase">오르골 구매하기 · ₩68,000</button>
-        <button id="save-configuration" class="configuration-save" type="button" data-i18n="objectSave" data-i18n-html="true">구성 메모 저장하기 <span>↓</span></button>
-        <p id="configuration-status" class="purchase-note" role="status" data-i18n="objectStatus">선택한 구성을 텍스트 파일로 저장할 수 있습니다.</p>
       </form>
     </section>
     <p class="object-page-count"><strong>01</strong> / 02</p>
