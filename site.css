@@ -525,16 +525,6 @@ img {
   object-fit: contain;
 }
 
-.signal-bridge-halo {
-  position: absolute;
-  inset: 9%;
-  border: 1px solid #83b8dc38;
-  border-radius: 50%;
-  box-shadow: 0 0 90px #4d9bc82c, inset 0 0 62px #86c4e81a;
-  transform: scale(calc(.72 + var(--bridge-progress) * .38));
-  opacity: calc(.15 + var(--bridge-progress) * .7);
-}
-
 .signal-bridge-recorder {
   position: absolute;
   z-index: 4;
@@ -721,11 +711,29 @@ img {
 }
 
 .signal-bridge-teeth {
-  stroke: #79acd0;
-  stroke-width: 2;
-  opacity: calc(.72 - var(--bridge-wave) * .62);
-  transform: translateX(calc(var(--bridge-wave) * -20px));
+  stroke: #b8d7e9;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  opacity: calc(.5 - var(--bridge-wave) * .42);
+  transform: translateX(calc(var(--bridge-wave) * -14px));
+  filter: drop-shadow(0 0 5px #79bfe04a);
 }
+
+.signal-bridge-teeth line {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: bridge-spectrum-breathe 4.8s cubic-bezier(.45, 0, .25, 1) infinite;
+}
+
+.signal-bridge-teeth line:nth-child(2),
+.signal-bridge-teeth line:nth-child(8) { animation-delay: -.45s; opacity: .82; }
+.signal-bridge-teeth line:nth-child(3),
+.signal-bridge-teeth line:nth-child(7) { animation-delay: -.9s; opacity: .9; }
+.signal-bridge-teeth line:nth-child(4),
+.signal-bridge-teeth line:nth-child(6) { animation-delay: -1.35s; opacity: .96; }
+.signal-bridge-teeth line:nth-child(5) { animation-delay: -1.8s; }
+.signal-bridge-teeth line:first-child,
+.signal-bridge-teeth line:last-child { opacity: .62; }
 
 .signal-bridge-thread,
 .signal-bridge-glow {
@@ -783,6 +791,12 @@ img {
 @keyframes signal-pulse {
   0%, 100% { box-shadow: 0 0 0 5px #78b9df14, 0 0 22px #7cc7f06b; }
   50% { box-shadow: 0 0 0 14px #78b9df08, 0 0 42px #7cc7f0b5; }
+}
+
+@keyframes bridge-spectrum-breathe {
+  0%, 100% { transform: scaleY(.84); }
+  42% { transform: scaleY(1.06); }
+  68% { transform: scaleY(.94); }
 }
 
 @keyframes recorder-led {
