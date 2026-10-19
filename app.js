@@ -1649,12 +1649,10 @@
   loadArchivePlayback();
 })();
 
-
 /* --------------------------------
-   Compose quick guide (first visit)
+   Compose quick guide (every visit)
 --------------------------------- */
 (() => {
-  const seenKey = "orgo-compose-tutorial-seen";
   const dialog = document.getElementById("compose-tutorial");
   const title = document.getElementById("tutorial-title");
   const headingCopy = dialog?.querySelector(".tutorial-heading p");
@@ -1720,6 +1718,7 @@
 
   function placeGuide() {
     if (dialog.hidden) return;
+
     const narrow = window.innerWidth < 720;
     const margin = narrow ? 14 : 24;
     ringLayer.replaceChildren();
@@ -1797,10 +1796,9 @@
     frame = requestAnimationFrame(placeGuide);
   }
 
-  function close({ remember = true } = {}) {
+  function close() {
     dialog.hidden = true;
     document.body.classList.remove("tutorial-is-open");
-    if (remember) localStorage.setItem(seenKey, "1");
     document.getElementById("sheet")?.focus({ preventScroll: true });
   }
 
@@ -1831,7 +1829,5 @@
     if (!dialog.hidden) scheduleGuide();
   });
 
-  window.setTimeout(() => {
-    if (new URLSearchParams(window.location.search).has("tutorial") || !localStorage.getItem(seenKey)) open();
-  }, 450);
+  open();
 })();
