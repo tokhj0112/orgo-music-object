@@ -736,6 +736,7 @@ img {
 .signal-bridge-teeth line:last-child { opacity: .62; }
 
 .signal-bridge-thread,
+.signal-bridge-staff-line,
 .signal-bridge-glow {
   fill: none;
   vector-effect: non-scaling-stroke;
@@ -745,16 +746,26 @@ img {
   stroke-dashoffset: calc(1 - var(--bridge-wave));
 }
 
+.signal-bridge-score {
+  opacity: calc(.34 + var(--bridge-wave) * .16);
+}
+
 .signal-bridge-thread {
-  stroke: #d5d7d8;
-  stroke-width: 1.35;
+  stroke: #c7c9ca;
+  stroke-width: .9;
+}
+
+.signal-bridge-staff-line {
+  stroke: #b4b7b8;
+  stroke-width: .55;
+  opacity: .52;
 }
 
 .signal-bridge-glow {
-  stroke: #a8adaf;
-  stroke-width: 7;
-  opacity: calc(var(--bridge-wave) * .16);
-  filter: blur(6px);
+  stroke: #c1c4c5;
+  stroke-width: 4;
+  opacity: calc(var(--bridge-wave) * .055);
+  filter: blur(8px);
 }
 
 .signal-bridge-pulse {
