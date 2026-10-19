@@ -283,10 +283,10 @@
       sub.stop(now + 1.55);
     }
 
-    function setBassPath(control, bend = 0, bendX = 500) {
+    function setBassPath(control, bend = 0, bendX = 460) {
       const y = Number(control.dataset.y);
       const path = control.querySelector(".bass-string");
-      path.setAttribute("d", `M60 ${y} Q${bendX.toFixed(1)} ${(y + bend).toFixed(1)} 940 ${y}`);
+      path.setAttribute("d", `M70 ${y} Q${bendX.toFixed(1)} ${(y + bend).toFixed(1)} 850 ${y}`);
     }
 
     function stopBassAnimation(control) {
@@ -328,7 +328,7 @@
     function bassPoint(event) {
       const bounds = bassStage.querySelector(".bass-strings").getBoundingClientRect();
       return {
-        x: Math.max(60, Math.min(940, ((event.clientX - bounds.left) / bounds.width) * 1000)),
+        x: Math.max(70, Math.min(850, ((event.clientX - bounds.left) / bounds.width) * 1000)),
         y: ((event.clientY - bounds.top) / bounds.height) * 420,
       };
     }
@@ -442,7 +442,7 @@
         event.stopPropagation();
         stopBassAnimation(control);
         control.classList.add("is-grabbed");
-        setBassPath(control, 28, 500);
+        setBassPath(control, 28, 460);
       });
 
       control.addEventListener("keyup", (event) => {
@@ -451,7 +451,7 @@
         event.stopPropagation();
         control.classList.remove("is-grabbed");
         pluckBass(frequency, .68);
-        vibrateBassString(control, 28, 500);
+        vibrateBassString(control, 28, 460);
         labStatus.textContent = `${control.getAttribute("aria-label").toUpperCase()} / ${frequency.toFixed(1)} HZ`;
       });
     });

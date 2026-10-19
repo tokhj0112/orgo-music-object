@@ -754,22 +754,20 @@ img {
 .bass-string {
   fill: none;
   stroke: #d9d5c7;
-  stroke-width: 1.25;
+  stroke-width: 2.3;
   vector-effect: non-scaling-stroke;
   filter: drop-shadow(0 1px 1px #000) drop-shadow(0 0 3px #e9d9ad4d);
   transition: stroke 160ms ease, filter 160ms ease;
 }
 
-.bass-string-control:nth-child(2) .bass-string { stroke-width: 1.55; }
-.bass-string-control:nth-child(3) .bass-string { stroke-width: 1.9; }
-.bass-string-control:nth-child(4) .bass-string { stroke-width: 2.3; }
+.bass-string-control:nth-child(2) .bass-string { stroke-width: 1.9; }
+.bass-string-control:nth-child(3) .bass-string { stroke-width: 1.55; }
+.bass-string-control:nth-child(4) .bass-string { stroke-width: 1.25; }
 
 .bass-string-hit {
-  fill: none;
-  stroke: transparent;
-  stroke-width: 28;
-  vector-effect: non-scaling-stroke;
-  pointer-events: stroke;
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
 }
 
 .bass-string-control:hover .bass-string,
