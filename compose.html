@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>ORGO — Compose atelier</title>
-  <link rel="stylesheet" href="style.css?v=compose-action-dock-6">
+  <link rel="stylesheet" href="style.css?v=punch-shapes-1">
   <script src="i18n.js?v=main-language-only-1" defer></script>
-  <script src="app.js?v=compose-tutorial-5" defer></script>
+  <script src="app.js?v=punch-shapes-1" defer></script>
 </head>
 
 <body data-mode="write">
@@ -149,6 +149,25 @@
               aria-label="펜 굵기"
             >
           </label>
+
+          <div id="punch-tools" class="punch-tools" hidden aria-label="펀칭 모양과 크기 선택">
+            <div class="punch-option" role="group" aria-label="펀칭 모양">
+              <span>SHAPE</span>
+              <button type="button" class="punch-choice selected" data-punch-shape="mix" aria-pressed="true">MIX</button>
+              <button type="button" class="punch-choice punch-symbol" data-punch-shape="circle" aria-label="동그라미" aria-pressed="false">●</button>
+              <button type="button" class="punch-choice punch-symbol" data-punch-shape="star" aria-label="별" aria-pressed="false">★</button>
+              <button type="button" class="punch-choice punch-symbol" data-punch-shape="heart" aria-label="하트" aria-pressed="false">♥</button>
+              <button type="button" class="punch-choice punch-symbol" data-punch-shape="diamond" aria-label="다이아" aria-pressed="false">◆</button>
+            </div>
+
+            <div class="punch-option" role="group" aria-label="펀칭 크기">
+              <span>SIZE</span>
+              <button type="button" class="punch-size selected" data-punch-size="mix" aria-pressed="true">MIX</button>
+              <button type="button" class="punch-size" data-punch-size="small" aria-label="작게" aria-pressed="false">S</button>
+              <button type="button" class="punch-size" data-punch-size="medium" aria-label="보통" aria-pressed="false">M</button>
+              <button type="button" class="punch-size" data-punch-size="large" aria-label="크게" aria-pressed="false">L</button>
+            </div>
+          </div>
 
           <div>
             <button id="undo" type="button" data-i18n="composeUndo">되돌리기 ↶</button>

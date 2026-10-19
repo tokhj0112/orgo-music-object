@@ -14,6 +14,12 @@
   const PAGE_HEIGHT = 460;
   // 글씨를 가리지 않도록 실제 펀칭 홀은 작고 또렷하게 표시합니다.
   const HOLE_RADIUS = 4;
+  const PUNCH_SHAPES = ["circle", "star", "heart", "diamond"];
+  const PUNCH_SIZES = {
+    small: 0.78,
+    medium: 1,
+    large: 1.28,
+  };
 
   // 자동재생 한 페이지 길이: 12초
   const PAGE_DURATION = 12000;
@@ -101,6 +107,8 @@
   let current = null;
   let ink = "#222222";
   let mode = "write";
+  let punchShape = "mix";
+  let punchSize = "mix";
 
   let sound = true;
   let audio = null;
@@ -277,6 +285,103 @@
     };
   }
 
+  function holeStyle(point = {}, order = 0) {
+    const x = Number.isFinite(point.x) ? point.x : 0;
+    const y = Number.isFinite(point.y) ? point.y : 0;
+    const signature = Math.abs(Math.floor(x * 11 + y * 7 + order * 17));
+    const shape = punchShape === "mix"
+      ? PUNCH_SHAPES[signature % PUNCH_SHAPES.length]
+      : punchShape;
+    const sizeNames = Object.keys(PUNCH_SIZES);
+    const sizeName = punchSize === "mix"
+      ? sizeNames[Math.floor(signature / PUNCH_SHAPES.length) % sizeNames.length]
+      : punchSize;
+
+    return {
+      shape: PUNCH_SHAPES.includes(shape) ? shape : "circle",
+      size: PUNCH_SIZES[sizeName] || 1,
+    };
+  }
+
+  function prepareHole(point, order = holes.length) {
+    Object.assign(point, holeStyle(point, order));
+    return point;
+  }
+
+  function normalizedHole(point = {}) {
+    const shape = PUNCH_SHAPES.includes(point.shape) ? point.shape : "circle";
+    const size = Math.max(0.72, Math.min(1.35, Number(point.size) || 1));
+    return { shape, size };
+  }
+
+  function punchPath(target, point, radius, shape = "circle") {
+    const x = point.x;
+    const y = point.y;
+    target.beginPath();
+
+    if (shape === "star") {
+      for (let index = 0; index < 10; index++) {
+        const angle = -Math.PI / 2 + (index * Math.PI) / 5;
+        const length = index % 2 === 0 ? radius : radius * 0.43;
+        const px = x + Math.cos(angle) * length;
+        const py = y + Math.sin(angle) * length;
+        if (index === 0) target.moveTo(px, py);
+        else target.lineTo(px, py);
+      }
+      target.closePath();
+      return;
+    }
+
+    if (shape === "heart") {
+      target.moveTo(x, y + radius * 0.92);
+      target.bezierCurveTo(
+        x - radius * 1.2,
+        y + radius * 0.14,
+        x - radius * 1.05,
+        y - radius * 0.78,
+        x - radius * 0.45,
+        y - radius * 0.68
+      );
+      target.bezierCurveTo(
+        x - radius * 0.12,
+        y - radius * 0.63,
+        x,
+        y - radius * 0.34,
+        x,
+        y - radius * 0.18
+      );
+      target.bezierCurveTo(
+        x,
+        y - radius * 0.34,
+        x + radius * 0.12,
+        y - radius * 0.63,
+        x + radius * 0.45,
+        y - radius * 0.68
+      );
+      target.bezierCurveTo(
+        x + radius * 1.05,
+        y - radius * 0.78,
+        x + radius * 1.2,
+        y + radius * 0.14,
+        x,
+        y + radius * 0.92
+      );
+      target.closePath();
+      return;
+    }
+
+    if (shape === "diamond") {
+      target.moveTo(x, y - radius);
+      target.lineTo(x + radius * 0.82, y);
+      target.lineTo(x, y + radius);
+      target.lineTo(x - radius * 0.82, y);
+      target.closePath();
+      return;
+    }
+
+    target.arc(x, y, radius, 0, Math.PI * 2);
+  }
+
   function punchSound(point = {}, order = holes.length) {
     if (!sound || !audioOK) return;
 
@@ -328,6 +433,11 @@
 
     body.onended = () => { body.disconnect(); bodyEnvelope.disconnect(); };
     ring.onended = () => { ring.disconnect(); ringEnvelope.disconnect(); };
+
+    // 펀칭 순간에도 선택한 모양의 재질감을 짧게 미리 들려줍니다.
+    if (point.shape && point.shape !== "circle") {
+      playHoleNote(point, 0.24, false);
+    }
   }
 
   /* ------------------------------
@@ -507,6 +617,108 @@
     }
   }
 
+  function pitchForY(y) {
+    const pitchIndex = Math.max(
+      0,
+      Math.min(
+        pitches.length - 1,
+        8 - Math.round((y / PAGE_HEIGHT) * 8)
+      )
+    );
+    return pitches[pitchIndex];
+  }
+
+  function playHoleNote(point, strength = 0.82, withHarmony = true) {
+    if (!sound || !audioOK) return;
+
+    const { shape, size } = normalizedHole(point);
+
+    if (shape === "circle") {
+      note(point.y, strength * (0.9 + size * 0.1), withHarmony ? point.x : undefined);
+      return;
+    }
+
+    const time = audio.currentTime;
+    const frequency = pitchForY(point.y);
+    const sizeGain = 0.86 + size * 0.14;
+    let voices;
+    let filterType = "lowpass";
+    let filterFrequency = 7600;
+
+    if (shape === "star") {
+      // 유리 조각을 살짝 건드린 듯한 밝고 긴 차임.
+      voices = [
+        { ratio: 1, gain: 0.13, decay: 2.25 },
+        { ratio: 2.76, gain: 0.072, decay: 1.45 },
+        { ratio: 5.32, gain: 0.035, decay: 0.86 },
+      ];
+      filterFrequency = 9400;
+    } else if (shape === "heart") {
+      // 짧게 위로 튀어 오르는 두 번의 피치로 ‘뿅뿅’ 질감을 만듭니다.
+      voices = [
+        { ratio: 1, from: 0.62, gain: 0.15, decay: 0.72, delay: 0 },
+        { ratio: 1.19, from: 0.74, gain: 0.105, decay: 0.58, delay: 0.11 },
+      ];
+      filterFrequency = 4200;
+    } else {
+      // 다이아는 단단한 금속성 배음이 짧게 반짝입니다.
+      voices = [
+        { ratio: 1, gain: 0.11, decay: 1.08, type: "triangle" },
+        { ratio: 1.414, gain: 0.065, decay: 0.82 },
+        { ratio: 2.91, gain: 0.035, decay: 0.56 },
+      ];
+      filterType = "bandpass";
+      filterFrequency = 5400;
+    }
+
+    voices.forEach((voice) => {
+      const start = time + (voice.delay || 0);
+      const oscillator = audio.createOscillator();
+      const envelope = audio.createGain();
+      const tone = audio.createBiquadFilter();
+      const targetFrequency = frequency * voice.ratio;
+
+      oscillator.type = voice.type || "sine";
+      oscillator.frequency.setValueAtTime(
+        frequency * (voice.from || voice.ratio),
+        start
+      );
+      if (voice.from) {
+        oscillator.frequency.exponentialRampToValueAtTime(
+          targetFrequency,
+          start + 0.11
+        );
+      }
+
+      tone.type = filterType;
+      tone.frequency.value = filterFrequency;
+      tone.Q.value = shape === "diamond" ? 0.7 : 0.28;
+
+      envelope.gain.setValueAtTime(0.0001, start);
+      envelope.gain.exponentialRampToValueAtTime(
+        voice.gain * strength * sizeGain,
+        start + 0.006
+      );
+      envelope.gain.exponentialRampToValueAtTime(
+        0.0001,
+        start + voice.decay
+      );
+
+      oscillator.connect(envelope).connect(tone).connect(master);
+      oscillator.start(start);
+      oscillator.stop(start + voice.decay + 0.04);
+      oscillator.onended = () => {
+        oscillator.disconnect();
+        envelope.disconnect();
+        tone.disconnect();
+      };
+    });
+
+    if (withHarmony && point.x !== undefined) {
+      playHarmony(point.x, strength * 0.82);
+    }
+  }
+
   function playHarmony(x, strength) {
     const time = audio.currentTime;
     const step = Math.min(
@@ -591,11 +803,18 @@
 
     // 아직 뚫지 않은 점
     if (mode !== "write") {
-      for (const point of candidates) {
+      for (let index = 0; index < candidates.length; index++) {
+        const point = candidates[index];
         if (holes.includes(point)) continue;
 
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, HOLE_RADIUS, 0, Math.PI * 2);
+        const preview = holeStyle(point, index);
+
+        punchPath(
+          ctx,
+          point,
+          HOLE_RADIUS * preview.size,
+          preview.shape
+        );
 
         ctx.fillStyle = "#eeece5";
         ctx.fill();
@@ -608,8 +827,13 @@
 
     // 완성된 펀칭 구멍
     for (const point of holes) {
-      ctx.beginPath();
-      ctx.arc(point.x, point.y, HOLE_RADIUS, 0, Math.PI * 2);
+      const style = normalizedHole(point);
+      punchPath(
+        ctx,
+        point,
+        HOLE_RADIUS * style.size,
+        style.shape
+      );
 
       ctx.fillStyle = "#181818";
       ctx.fill();
@@ -670,8 +894,13 @@
 
         const y = 10 + (hole.y / PAGE_HEIGHT) * 80;
 
-        feedCtx.beginPath();
-        feedCtx.arc(x, y, 3, 0, Math.PI * 2);
+        const style = normalizedHole(hole);
+        punchPath(
+          feedCtx,
+          { x, y },
+          2.6 * style.size,
+          style.shape
+        );
         feedCtx.fillStyle = "#222";
         feedCtx.fill();
       }
@@ -742,6 +971,7 @@
 
     $("auto").hidden = mode !== "punch";
     $("skip").hidden = mode !== "punch";
+    $("punch-tools").hidden = mode !== "punch";
     $("autoplay").hidden = mode !== "listen";
     $("save-archive").hidden = mode !== "listen" || Boolean(archivePlayback);
     $("open-archive").hidden = mode !== "listen" || !lastArchivedId;
@@ -906,6 +1136,7 @@
     }
 
     if (nearest) {
+      prepareHole(nearest, holes.length);
       holes.push(nearest);
       punchSound(nearest, holes.length);
       draw();
@@ -1000,6 +1231,35 @@
           String(selected)
         );
       });
+    };
+  });
+
+  function selectPunchOption(selector, button) {
+    document.querySelectorAll(selector).forEach((choice) => {
+      const selected = choice === button;
+      choice.classList.toggle("selected", selected);
+      choice.setAttribute("aria-pressed", String(selected));
+    });
+    draw();
+  }
+
+  document.querySelectorAll("[data-punch-shape]").forEach((button) => {
+    button.onclick = () => {
+      punchShape = button.dataset.punchShape;
+      selectPunchOption("[data-punch-shape]", button);
+      $("hint").textContent = punchShape === "mix"
+        ? (isKorean() ? "원·별·하트·다이아를 섞어 펀칭합니다." : "Circle, star, heart, and diamond punches will be mixed.")
+        : (isKorean() ? "선택한 모양으로 펀칭합니다." : "Punching with the selected shape.");
+    };
+  });
+
+  document.querySelectorAll("[data-punch-size]").forEach((button) => {
+    button.onclick = () => {
+      punchSize = button.dataset.punchSize;
+      selectPunchOption("[data-punch-size]", button);
+      $("hint").textContent = punchSize === "mix"
+        ? (isKorean() ? "작은 구멍부터 큰 구멍까지 자연스럽게 섞습니다." : "Punch sizes will vary naturally.")
+        : (isKorean() ? "선택한 크기로 펀칭합니다." : "Punching with the selected size.");
     };
   });
 
@@ -1160,6 +1420,7 @@
       const hole = remaining[index++];
 
       if (!holes.includes(hole)) {
+        prepareHole(hole, holes.length);
         holes.push(hole);
         punchSound(hole, holes.length);
         draw();
@@ -1175,7 +1436,7 @@
     if (mode !== "punch") return;
 
     stop();
-    holes = [...candidates];
+    holes = candidates.map((point, index) => prepareHole(point, index));
 
     setMode("listen");
 
@@ -1220,7 +1481,7 @@
             1.15,
             Math.max(0.58, delta * 10)
           );
-          note(hole.y, strength, hole.x);
+          playHoleNote(hole, strength);
         }
       }
     }
@@ -1472,7 +1733,12 @@
       height: PAGE_HEIGHT,
       tone: toneName,
       volume: Number($("volume").value),
-      notes: holes.map(({ x, y }) => ({ x, y })),
+      notes: holes.map(({ x, y, shape, size }) => ({
+        x,
+        y,
+        shape: PUNCH_SHAPES.includes(shape) ? shape : "circle",
+        size: Math.max(0.72, Math.min(1.35, Number(size) || 1)),
+      })),
       strokes: strokes.map((stroke) => {
         const points = stroke.points || [];
         const interval = Math.max(1, Math.ceil(points.length / 240));
@@ -1550,6 +1816,8 @@
     return {
       x: Math.max(0, Math.min(PAGE_WIDTH, (x / sourceWidth) * PAGE_WIDTH)),
       y: Math.max(0, Math.min(PAGE_HEIGHT, (y / sourceHeight) * PAGE_HEIGHT)),
+      shape: PUNCH_SHAPES.includes(point.shape) ? point.shape : "circle",
+      size: Math.max(0.72, Math.min(1.35, Number(point.size) || 1)),
     };
   }
 
