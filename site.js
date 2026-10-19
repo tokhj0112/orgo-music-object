@@ -90,6 +90,9 @@
     const labStatus = soundLab.querySelector("[data-lab-status]");
     const bassStage = soundLab.querySelector("[data-bass-stage]");
     const bassStringControls = [...soundLab.querySelectorAll("[data-bass-string]")];
+    const drumStage = soundLab.querySelector("[data-drum-stage]");
+    const drumPads = [...soundLab.querySelectorAll("[data-drum-part]")];
+    const drumCursor = soundLab.querySelector(".drum-stick-cursor");
 
     let audioContext = null;
     let masterGain = null;
@@ -102,10 +105,13 @@
     let loopStep = 0;
     let pointerPlaying = false;
     let bassPulseTimer = null;
+    let drumNoiseBuffer = null;
+    let drumCursorTimer = null;
     const bassStringAnimations = new Map();
 
     const scale = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29];
     const sequence = [0, 3, 5, 7, 10, 7, 5, 3];
+    const drumSequence = ["kick", "hihat", "snare", "hihat", "kick", "tom1", "snare", "crash"];
 
     function ensureAudio() {
       if (!audioContext) {
@@ -283,6 +289,175 @@
       sub.stop(now + 1.55);
     }
 
+    function getDrumNoise() {
+      const context = ensureAudio();
+      if (!context) return null;
+      if (drumNoiseBuffer && drumNoiseBuffer.sampleRate === context.sampleRate) return drumNoiseBuffer;
+      drumNoiseBuffer = context.createBuffer(1, context.sampleRate * 2, context.sampleRate);
+      const data = drumNoiseBuffer.getChannelData(0);
+      let previous = 0;
+      for (let index = 0; index < data.length; index += 1) {
+        const white = Math.random() * 2 - 1;
+        previous = previous * .17 + white * .83;
+        data[index] = previous;
+      }
+      return drumNoiseBuffer;
+    }
+
+    function playKick(velocity) {
+      const context = ensureAudio();
+      if (!context) return;
+      const now = context.currentTime;
+      const level = Math.max(.35, Math.min(1, velocity));
+      const body = context.createOscillator();
+      const bodyGain = context.createGain();
+      body.type = "sine";
+      body.frequency.setValueAtTime(158, now);
+      body.frequency.exponentialRampToValueAtTime(46, now + .22);
+      bodyGain.gain.setValueAtTime(.0001, now);
+      bodyGain.gain.exponentialRampToValueAtTime(.82 * level, now + .004);
+      bodyGain.gain.exponentialRampToValueAtTime(.0001, now + .52);
+      body.connect(bodyGain);
+      bodyGain.connect(masterGain);
+      body.start(now);
+      body.stop(now + .56);
+
+      const click = context.createBufferSource();
+      const clickFilter = context.createBiquadFilter();
+      const clickGain = context.createGain();
+      click.buffer = getDrumNoise();
+      clickFilter.type = "highpass";
+      clickFilter.frequency.value = 3200;
+      clickGain.gain.setValueAtTime(.08 * level, now);
+      clickGain.gain.exponentialRampToValueAtTime(.0001, now + .035);
+      click.connect(clickFilter);
+      clickFilter.connect(clickGain);
+      clickGain.connect(masterGain);
+      click.start(now);
+      click.stop(now + .045);
+    }
+
+    function playSnare(velocity) {
+      const context = ensureAudio();
+      if (!context) return;
+      const now = context.currentTime;
+      const level = Math.max(.35, Math.min(1, velocity));
+      const noise = context.createBufferSource();
+      const noiseFilter = context.createBiquadFilter();
+      const noiseGain = context.createGain();
+      noise.buffer = getDrumNoise();
+      noiseFilter.type = "bandpass";
+      noiseFilter.frequency.value = 1850;
+      noiseFilter.Q.value = .65;
+      noiseGain.gain.setValueAtTime(.48 * level, now);
+      noiseGain.gain.exponentialRampToValueAtTime(.0001, now + .28);
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(masterGain);
+      noiseGain.connect(delayNode);
+      noise.start(now);
+      noise.stop(now + .3);
+
+      const tone = context.createOscillator();
+      const toneGain = context.createGain();
+      tone.type = "triangle";
+      tone.frequency.setValueAtTime(196, now);
+      tone.frequency.exponentialRampToValueAtTime(132, now + .16);
+      toneGain.gain.setValueAtTime(.2 * level, now);
+      toneGain.gain.exponentialRampToValueAtTime(.0001, now + .19);
+      tone.connect(toneGain);
+      toneGain.connect(masterGain);
+      tone.start(now);
+      tone.stop(now + .22);
+    }
+
+    function playTom(frequency, velocity) {
+      const context = ensureAudio();
+      if (!context) return;
+      const now = context.currentTime;
+      const level = Math.max(.35, Math.min(1, velocity));
+      const body = context.createOscillator();
+      const overtone = context.createOscillator();
+      const overtoneGain = context.createGain();
+      const filter = context.createBiquadFilter();
+      const gain = context.createGain();
+      body.type = "sine";
+      body.frequency.setValueAtTime(frequency * 1.3, now);
+      body.frequency.exponentialRampToValueAtTime(frequency, now + .16);
+      overtone.type = "triangle";
+      overtone.frequency.setValueAtTime(frequency * 2.17, now);
+      overtoneGain.gain.value = .12;
+      filter.type = "lowpass";
+      filter.frequency.value = 1500;
+      filter.Q.value = 2.2;
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(.5 * level, now + .006);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + .62);
+      body.connect(filter);
+      overtone.connect(overtoneGain);
+      overtoneGain.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      gain.connect(delayNode);
+      body.start(now);
+      overtone.start(now);
+      body.stop(now + .68);
+      overtone.stop(now + .68);
+    }
+
+    function playMetal(part, velocity) {
+      const context = ensureAudio();
+      if (!context) return;
+      const now = context.currentTime;
+      const level = Math.max(.3, Math.min(1, velocity));
+      const isHat = part === "hihat";
+      const isRide = part === "ride";
+      const duration = isHat ? .13 : isRide ? 1.25 : 1.85;
+      const noise = context.createBufferSource();
+      const highpass = context.createBiquadFilter();
+      const bandpass = context.createBiquadFilter();
+      const gain = context.createGain();
+      noise.buffer = getDrumNoise();
+      highpass.type = "highpass";
+      highpass.frequency.value = isHat ? 6800 : 3400;
+      bandpass.type = "bandpass";
+      bandpass.frequency.value = isHat ? 9800 : isRide ? 6100 : 5200;
+      bandpass.Q.value = isHat ? .75 : .52;
+      gain.gain.setValueAtTime((isHat ? .24 : .2) * level, now);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+      noise.connect(highpass);
+      highpass.connect(bandpass);
+      bandpass.connect(gain);
+      gain.connect(masterGain);
+      if (!isHat) gain.connect(delayNode);
+      noise.start(now);
+      noise.stop(now + duration + .04);
+
+      const ratios = isHat ? [1, 1.34, 1.61, 2.05] : [1, 1.26, 1.48, 1.79, 2.13, 2.47];
+      const base = isHat ? 510 : isRide ? 390 : 330;
+      ratios.forEach((ratio, index) => {
+        const oscillator = context.createOscillator();
+        const partialGain = context.createGain();
+        oscillator.type = index % 2 ? "square" : "triangle";
+        oscillator.frequency.value = base * ratio;
+        partialGain.gain.setValueAtTime((isHat ? .018 : .014) * level, now);
+        partialGain.gain.exponentialRampToValueAtTime(.0001, now + duration * .7);
+        oscillator.connect(partialGain);
+        partialGain.connect(highpass);
+        oscillator.start(now);
+        oscillator.stop(now + duration);
+      });
+    }
+
+    function playDrum(part, velocity = .82) {
+      if (part === "kick") playKick(velocity);
+      else if (part === "snare") playSnare(velocity);
+      else if (part === "tom1") playTom(166, velocity);
+      else if (part === "tom2") playTom(128, velocity);
+      else if (part === "floor") playTom(86, velocity);
+      else playMetal(part, velocity);
+    }
+
     function setBassPath(control, bend = 0, bendX = 460) {
       const y = Number(control.dataset.y);
       const path = control.querySelector(".bass-string");
@@ -370,20 +545,50 @@
       };
     }
 
+    function readyText() {
+      if (waveform === "drum") return t("labDrumReady");
+      if (waveform === "sawtooth") return t("labBassReady");
+      return t("labReady");
+    }
+
+    function strikeDrumPad(drumPad, velocity = .84) {
+      if (!drumPad) return;
+      const part = drumPad.dataset.drumPart;
+      playDrum(part, velocity);
+      drumPad.classList.remove("is-hit");
+      void drumPad.getBoundingClientRect();
+      drumPad.classList.add("is-hit");
+      window.setTimeout(() => drumPad.classList.remove("is-hit"), 430);
+
+      if (drumCursor) {
+        drumCursor.classList.remove("is-striking");
+        void drumCursor.offsetWidth;
+        drumCursor.classList.add("is-striking");
+        window.clearTimeout(drumCursorTimer);
+        drumCursorTimer = window.setTimeout(() => drumCursor.classList.remove("is-striking"), 210);
+      }
+
+      labStatus.textContent = `${drumPad.dataset.drumLabel} / HIT`;
+    }
+
     function stopLoop() {
       if (loopTimer) window.clearInterval(loopTimer);
       loopTimer = null;
       stepButtons.forEach((step) => step.classList.remove("is-current"));
       playButton.classList.remove("is-playing");
       playButton.textContent = t("labStart");
-      labStatus.textContent = waveform === "sawtooth" ? t("labBassReady") : t("labReady");
+      labStatus.textContent = readyText();
     }
 
     function tickLoop() {
       stepButtons.forEach((step, index) => step.classList.toggle("is-current", index === loopStep));
       if (stepButtons[loopStep].classList.contains("is-on")) {
         const frequency = 110 * Math.pow(2, sequence[loopStep] / 12);
-        if (waveform === "sawtooth") pluckBass(frequency / 2, .48);
+        if (waveform === "drum") {
+          const drumPart = drumSequence[loopStep];
+          const drumPad = drumPads.find((item) => item.dataset.drumPart === drumPart);
+          strikeDrumPad(drumPad, .65);
+        } else if (waveform === "sawtooth") pluckBass(frequency / 2, .48);
         else pluck(frequency);
       }
       loopStep = (loopStep + 1) % stepButtons.length;
@@ -405,6 +610,7 @@
       button.addEventListener("click", () => {
         waveform = button.dataset.wave || "sine";
         const bassMode = waveform === "sawtooth";
+        const drumMode = waveform === "drum";
         voiceButtons.forEach((item) => {
           const active = item === button;
           item.classList.toggle("is-active", active);
@@ -412,14 +618,27 @@
         });
         if (pointerPlaying) stopPadVoice();
         soundLab.classList.toggle("is-bass-mode", bassMode);
+        soundLab.classList.toggle("is-drum-mode", drumMode);
         pad.setAttribute(
           "aria-label",
-          bassMode ? "Pull and release a bass string" : "Drag to play pitch and texture"
+          bassMode
+            ? "Pull and release a bass string"
+            : drumMode
+              ? "Strike the acoustic drum kit"
+              : "Drag to play pitch and texture"
         );
 
         if (bassMode) {
           labStatus.textContent = t("labBassReady");
           pluckBass(55, .42);
+        } else if (drumMode) {
+          bassStringControls.forEach((control) => {
+            stopBassAnimation(control);
+            setBassPath(control);
+          });
+          labStatus.textContent = t("labDrumReady");
+          const kick = drumPads.find((item) => item.dataset.drumPart === "kick");
+          strikeDrumPad(kick, .52);
         } else {
           bassStringControls.forEach((control) => {
             stopBassAnimation(control);
@@ -493,8 +712,34 @@
       });
     });
 
+    if (drumStage) {
+      drumStage.addEventListener("pointerenter", () => drumStage.classList.add("is-pointer-inside"));
+      drumStage.addEventListener("pointerleave", () => drumStage.classList.remove("is-pointer-inside"));
+      drumStage.addEventListener("pointermove", (event) => {
+        const bounds = drumStage.getBoundingClientRect();
+        drumStage.style.setProperty("--drum-x", `${event.clientX - bounds.left}px`);
+        drumStage.style.setProperty("--drum-y", `${event.clientY - bounds.top}px`);
+      });
+
+      drumPads.forEach((drumPad) => {
+        drumPad.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const velocity = event.pressure ? .5 + event.pressure * .5 : .82;
+          strikeDrumPad(drumPad, velocity);
+        });
+
+        drumPad.addEventListener("keydown", (event) => {
+          if (!["Enter", " "].includes(event.key) || event.repeat) return;
+          event.preventDefault();
+          event.stopPropagation();
+          strikeDrumPad(drumPad, .82);
+        });
+      });
+    }
+
     pad.addEventListener("pointerdown", (event) => {
-      if (soundLab.classList.contains("is-bass-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode")) return;
       event.preventDefault();
       pad.setPointerCapture(event.pointerId);
       const position = pointerPosition(event);
@@ -502,7 +747,7 @@
     });
 
     pad.addEventListener("pointermove", (event) => {
-      if (soundLab.classList.contains("is-bass-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode")) return;
       const position = pointerPosition(event);
       if (pointerPlaying) updatePadVoice(position.x, position.y);
       else {
@@ -516,7 +761,7 @@
     });
 
     pad.addEventListener("keydown", (event) => {
-      if (soundLab.classList.contains("is-bass-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode")) return;
       if (!["Enter", " "].includes(event.key) || pointerPlaying) return;
       event.preventDefault();
       startPadVoice(.5, .5);
@@ -534,8 +779,12 @@
         button.classList.toggle("is-on", active);
         button.setAttribute("aria-pressed", String(active));
         if (active) {
-          const frequency = 110 * Math.pow(2, sequence[stepButtons.indexOf(button)] / 12);
-          if (waveform === "sawtooth") pluckBass(frequency / 2, .5);
+          const index = stepButtons.indexOf(button);
+          const frequency = 110 * Math.pow(2, sequence[index] / 12);
+          if (waveform === "drum") {
+            const drumPart = drumSequence[index];
+            strikeDrumPad(drumPads.find((item) => item.dataset.drumPart === drumPart), .68);
+          } else if (waveform === "sawtooth") pluckBass(frequency / 2, .5);
           else pluck(frequency);
         }
       });
@@ -556,9 +805,7 @@
       if (!pointerPlaying) {
         labStatus.textContent = loopTimer
           ? t("labPlaying")
-          : waveform === "sawtooth"
-            ? t("labBassReady")
-            : t("labReady");
+          : readyText();
       }
     });
 

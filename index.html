@@ -9,9 +9,9 @@
     content="당신의 손글씨를 하나의 선율로. ORGO에서 나만의 오르골을 만들어보세요."
   >
   <title>ORGO — Every line, a little music.</title>
-  <link rel="stylesheet" href="site.css?v=sound-lab-4">
-  <script src="i18n.js?v=sound-lab-4" defer></script>
-  <script src="site.js?v=sound-lab-4" defer></script>
+  <link rel="stylesheet" href="site.css?v=sound-lab-5">
+  <script src="i18n.js?v=sound-lab-5" defer></script>
+  <script src="site.js?v=sound-lab-5" defer></script>
 </head>
 
 <body>
@@ -117,6 +117,9 @@
           <button class="lab-voice" type="button" data-wave="sawtooth" aria-pressed="false">
             <span>04</span><strong>BASS</strong><small data-i18n="labBass">낮고 거친 진동</small>
           </button>
+          <button class="lab-voice" type="button" data-wave="drum" aria-pressed="false">
+            <span>05</span><strong>DRUM</strong><small data-i18n="labDrum">타격감 있는 어쿠스틱</small>
+          </button>
         </div>
 
         <div class="lab-pad" data-synth-pad role="application" tabindex="0" aria-label="Drag to play pitch and texture">
@@ -158,6 +161,42 @@
             </svg>
             <span class="bass-note bass-note-e">E</span>
             <span class="bass-note bass-note-g">G</span>
+          </div>
+
+          <div class="drum-experience" data-drum-stage aria-label="Interactive acoustic drum kit">
+            <p class="drum-instruction">
+              <strong data-i18n="labDrumInstruction">PLAY THE KIT</strong>
+              <small data-i18n="labDrumHint">스틱 커서를 움직여 각 파트를 직접 두드려보세요.</small>
+            </p>
+            <svg class="drum-kit" viewBox="0 0 1536 1024" role="group" aria-label="Playable drum parts">
+              <image href="image/drum-black.png?v=drum-1" x="0" y="0" width="1536" height="1024" preserveAspectRatio="xMidYMid meet"></image>
+
+              <g class="drum-hit" data-drum-part="crash" data-drum-label="CRASH" tabindex="0" role="button" aria-label="Crash cymbal">
+                <ellipse cx="410" cy="125" rx="205" ry="112"></ellipse><circle class="drum-ripple" cx="410" cy="125" r="44"></circle>
+              </g>
+              <g class="drum-hit" data-drum-part="ride" data-drum-label="RIDE" tabindex="0" role="button" aria-label="Ride cymbal">
+                <ellipse cx="1270" cy="135" rx="220" ry="118"></ellipse><circle class="drum-ripple" cx="1270" cy="135" r="44"></circle>
+              </g>
+              <g class="drum-hit" data-drum-part="hihat" data-drum-label="HI-HAT" tabindex="0" role="button" aria-label="Hi-hat">
+                <ellipse cx="170" cy="345" rx="145" ry="76"></ellipse><circle class="drum-ripple" cx="170" cy="345" r="36"></circle>
+              </g>
+              <g class="drum-hit" data-drum-part="tom1" data-drum-label="HIGH TOM" tabindex="0" role="button" aria-label="High tom">
+                <ellipse cx="635" cy="355" rx="142" ry="118"></ellipse><circle class="drum-ripple" cx="635" cy="355" r="40"></circle>
+              </g>
+              <g class="drum-hit" data-drum-part="tom2" data-drum-label="MID TOM" tabindex="0" role="button" aria-label="Mid tom">
+                <ellipse cx="925" cy="360" rx="142" ry="118"></ellipse><circle class="drum-ripple" cx="925" cy="360" r="40"></circle>
+              </g>
+              <g class="drum-hit" data-drum-part="snare" data-drum-label="SNARE" tabindex="0" role="button" aria-label="Snare drum">
+                <ellipse cx="405" cy="535" rx="155" ry="118"></ellipse><circle class="drum-ripple" cx="405" cy="535" r="42"></circle>
+              </g>
+              <g class="drum-hit" data-drum-part="floor" data-drum-label="FLOOR TOM" tabindex="0" role="button" aria-label="Floor tom">
+                <ellipse cx="1250" cy="565" rx="168" ry="132"></ellipse><circle class="drum-ripple" cx="1250" cy="565" r="44"></circle>
+              </g>
+              <g class="drum-hit" data-drum-part="kick" data-drum-label="KICK" tabindex="0" role="button" aria-label="Kick drum">
+                <ellipse cx="780" cy="735" rx="228" ry="190"></ellipse><circle class="drum-ripple" cx="780" cy="735" r="55"></circle>
+              </g>
+            </svg>
+            <span class="drum-stick-cursor" aria-hidden="true"></span>
           </div>
         </div>
 
