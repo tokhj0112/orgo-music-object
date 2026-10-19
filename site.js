@@ -350,35 +350,67 @@
       const filter = context.createBiquadFilter();
       const body = context.createGain();
       const fundamental = context.createOscillator();
-      const sub = context.createOscillator();
-      const subGain = context.createGain();
+      const roundBody = context.createOscillator();
+      const roundGain = context.createGain();
+      const harmonic = context.createOscillator();
+      const harmonicGain = context.createGain();
+      const finger = context.createBufferSource();
+      const fingerFilter = context.createBiquadFilter();
+      const fingerGain = context.createGain();
+      const roomSend = context.createGain();
       const brightness = Math.max(.25, Math.min(1, intensity));
 
       filter.type = "lowpass";
-      filter.Q.setValueAtTime(4.4 + brightness * 2.8, now);
-      filter.frequency.setValueAtTime(1350 + brightness * 950, now);
-      filter.frequency.exponentialRampToValueAtTime(190, now + .62);
+      filter.Q.setValueAtTime(.72, now);
+      filter.frequency.setValueAtTime(760 + brightness * 520, now);
+      filter.frequency.exponentialRampToValueAtTime(230, now + .74);
 
       body.gain.setValueAtTime(.0001, now);
-      body.gain.exponentialRampToValueAtTime(.19 + brightness * .13, now + .012);
-      body.gain.exponentialRampToValueAtTime(.0001, now + 1.45);
-      connectVoice(filter, body);
+      body.gain.exponentialRampToValueAtTime(.14 + brightness * .105, now + .009);
+      body.gain.exponentialRampToValueAtTime(.075 + brightness * .025, now + .16);
+      body.gain.exponentialRampToValueAtTime(.0001, now + 1.72);
+      filter.connect(body);
+      body.connect(masterGain);
+      roomSend.gain.value = .035;
+      body.connect(roomSend);
+      roomSend.connect(delayNode);
 
-      fundamental.type = "sawtooth";
-      fundamental.frequency.setValueAtTime(frequency * 1.018, now);
-      fundamental.frequency.exponentialRampToValueAtTime(frequency, now + .075);
+      fundamental.type = "triangle";
+      fundamental.frequency.setValueAtTime(frequency * 1.012, now);
+      fundamental.frequency.exponentialRampToValueAtTime(frequency, now + .055);
       fundamental.connect(filter);
 
-      sub.type = "sine";
-      sub.frequency.setValueAtTime(frequency / 2, now);
-      subGain.gain.value = .32;
-      sub.connect(subGain);
-      subGain.connect(filter);
+      roundBody.type = "sine";
+      roundBody.frequency.setValueAtTime(frequency, now);
+      roundGain.gain.value = .68;
+      roundBody.connect(roundGain);
+      roundGain.connect(filter);
+
+      harmonic.type = "sine";
+      harmonic.frequency.setValueAtTime(frequency * 2.006, now);
+      harmonicGain.gain.setValueAtTime(.12 * brightness, now);
+      harmonicGain.gain.exponentialRampToValueAtTime(.0001, now + .46);
+      harmonic.connect(harmonicGain);
+      harmonicGain.connect(filter);
+
+      finger.buffer = getDrumNoise();
+      fingerFilter.type = "bandpass";
+      fingerFilter.frequency.value = 760 + brightness * 420;
+      fingerFilter.Q.value = .65;
+      fingerGain.gain.setValueAtTime(.014 + brightness * .018, now);
+      fingerGain.gain.exponentialRampToValueAtTime(.0001, now + .032);
+      finger.connect(fingerFilter);
+      fingerFilter.connect(fingerGain);
+      fingerGain.connect(masterGain);
 
       fundamental.start(now);
-      sub.start(now);
-      fundamental.stop(now + 1.55);
-      sub.stop(now + 1.55);
+      roundBody.start(now);
+      harmonic.start(now);
+      finger.start(now);
+      finger.stop(now + .04);
+      fundamental.stop(now + 1.8);
+      roundBody.stop(now + 1.8);
+      harmonic.stop(now + .52);
     }
 
     function getDrumNoise() {
@@ -1119,86 +1151,227 @@
       });
     }
 
+    let archivePreviewTimer = 0;
+    let archiveAudioContext = null;
+    let archivePreviewVoices = [];
+
+    function stopArchivePreview(stage, button) {
+      window.clearTimeout(archivePreviewTimer);
+      archivePreviewTimer = 0;
+      archivePreviewVoices.forEach(({ gain, oscillator }) => {
+        try {
+          const now = archiveAudioContext?.currentTime || 0;
+          gain.gain.cancelScheduledValues(now);
+          gain.gain.setTargetAtTime(0, now, .02);
+          oscillator.stop(now + .08);
+        } catch {}
+      });
+      archivePreviewVoices = [];
+      stage?.classList.remove("is-playing");
+      if (button) {
+        button.classList.remove("is-playing");
+        button.textContent = "FEED + LISTEN ▶";
+        button.setAttribute("aria-pressed", "false");
+      }
+    }
+
+    function playArchivePreview(item, stage, button) {
+      stopArchivePreview(stage, button);
+      const notes = Array.isArray(item.notes) ? item.notes.slice(0, 36) : [];
+      stage.classList.add("is-playing");
+      button.classList.add("is-playing");
+      button.textContent = "STOP FEED ■";
+      button.setAttribute("aria-pressed", "true");
+
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass && notes.length) {
+        archiveAudioContext ||= new AudioContextClass();
+        archiveAudioContext.resume?.();
+        const start = archiveAudioContext.currentTime + .06;
+        const xs = notes.map((note) => Number(note.x)).filter(Number.isFinite);
+        const minX = xs.length ? Math.min(...xs) : 0;
+        const maxX = xs.length ? Math.max(...xs) : 1;
+        const rangeX = Math.max(1, maxX - minX);
+        const sourceHeight = Number(item.height) || 760;
+
+        notes.forEach((note, index) => {
+          const x = Number.isFinite(Number(note.x)) ? Number(note.x) : index * 60;
+          const y = Number.isFinite(Number(note.y)) ? Number(note.y) : sourceHeight * .5;
+          const when = start + ((x - minX) / rangeX) * 4.4;
+          const pitch = Math.max(0, Math.min(11, Math.round((1 - y / sourceHeight) * 11)));
+          const frequency = 220 * Math.pow(2, pitch / 12);
+          const oscillator = archiveAudioContext.createOscillator();
+          const gain = archiveAudioContext.createGain();
+          oscillator.type = index % 3 === 0 ? "sine" : "triangle";
+          oscillator.frequency.setValueAtTime(frequency, when);
+          oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.006, when + .42);
+          gain.gain.setValueAtTime(.0001, when);
+          gain.gain.exponentialRampToValueAtTime(.055, when + .012);
+          gain.gain.exponentialRampToValueAtTime(.0001, when + .52);
+          oscillator.connect(gain).connect(archiveAudioContext.destination);
+          oscillator.start(when);
+          oscillator.stop(when + .58);
+          archivePreviewVoices.push({ oscillator, gain });
+        });
+      }
+
+      archivePreviewTimer = window.setTimeout(() => stopArchivePreview(stage, button), 5200);
+    }
+
+    function renderFeedNotes(container, item) {
+      container.replaceChildren();
+      const notes = Array.isArray(item.notes) && item.notes.length
+        ? item.notes.slice(0, 90)
+        : Array.from({ length: 16 }, (_, index) => ({ x: index * 70, y: 150 + (index % 5) * 78 }));
+      const sourceWidth = Number(item.width) || 1200;
+      const sourceHeight = Number(item.height) || 760;
+
+      [0, 1].forEach((copy) => {
+        const stream = document.createElement("div");
+        stream.className = "archive-note-stream";
+        stream.style.left = `${copy * 100}%`;
+        notes.forEach((note, index) => {
+          const hole = document.createElement("i");
+          const shape = ["circle", "star", "heart"].includes(note.shape) ? note.shape : "circle";
+          const noteX = Number(note.x);
+          const noteY = Number(note.y);
+          hole.className = `archive-feed-hole archive-feed-hole--${shape}`;
+          hole.style.left = `${Number.isFinite(noteX) ? Math.max(2, Math.min(98, (noteX / sourceWidth) * 96 + 2)) : 4 + (index / Math.max(1, notes.length - 1)) * 92}%`;
+          hole.style.top = `${Number.isFinite(noteY) ? Math.max(15, Math.min(85, (noteY / sourceHeight) * 70 + 15)) : 20 + (index % 5) * 15}%`;
+          hole.style.setProperty("--hole-size", `${4 + (index % 4)}px`);
+          stream.appendChild(hole);
+        });
+        container.appendChild(stream);
+      });
+    }
+
     function renderArchive() {
       const items = readArchive();
       if (archiveScrollHandler) window.removeEventListener("scroll", archiveScrollHandler);
       archiveScrollHandler = null;
+      stopArchivePreview();
       archiveList.replaceChildren();
       archiveEmpty.hidden = items.length > 0;
       archiveList.hidden = items.length === 0;
-
       if (!items.length) return;
 
-      const experience = document.createElement("div");
-      experience.className = "archive-scroll-experience";
-      const noteTotal = items.reduce((total, item) => total + (Array.isArray(item.notes) ? item.notes.length : 0), 0);
-      const paperLength = Math.round(20 + items.reduce((total, item) => total + paperScoreWeight(item), 0));
-      // The score is a passing scene: it enters, feeds through the mechanism,
-      // then clears before the saved melody list begins.
-      experience.style.setProperty(
-        "--archive-min-height",
-        `${Math.max(1160, 930 + items.length * 205 + Math.min(noteTotal, 480) * .26)}px`
-      );
+      const library = document.createElement("div");
+      library.className = "archive-library";
 
-      const stage = document.createElement("div");
-      stage.className = "archive-scroll-stage";
-      stage.setAttribute("aria-hidden", "true");
+      const libraryBar = document.createElement("div");
+      libraryBar.className = "archive-library-bar";
+      const libraryLabel = document.createElement("span");
+      libraryLabel.textContent = "ORGO / LIVE PAPER ARCHIVE";
+      const libraryCount = document.createElement("span");
+      libraryCount.textContent = `${String(items.length).padStart(2, "0")} SAVED COMPOSITION${items.length === 1 ? "" : "S"}`;
+      const createLink = document.createElement("a");
+      createLink.href = "compose.html";
+      createLink.textContent = "+ NEW MELODY";
+      libraryBar.append(libraryLabel, libraryCount, createLink);
 
-      const stageLabel = document.createElement("span");
-      stageLabel.className = "archive-stage-label";
-      stageLabel.textContent = "ORGO / PAPER SCORE";
-      const stageCount = document.createElement("span");
-      stageCount.className = "archive-stage-count";
-      stageCount.textContent = `01 / ${String(items.length).padStart(2, "0")}`;
-      const paper = document.createElement("div");
-      paper.className = "archive-paper-feed";
-      paper.style.setProperty("--archive-paper-length", `${Math.max(84, paperLength)}vh`);
-      const paperHoles = document.createElement("div");
-      paperHoles.className = "archive-paper-holes";
-      renderArchivePaperScore(paperHoles, items);
-      paper.appendChild(paperHoles);
-      const boxFrame = document.createElement("div");
-      boxFrame.className = "archive-music-box-frame";
-      const boxSource = "archive-music-box-mechanism-cutout.png?v=archive-box-3";
+      const stage = document.createElement("section");
+      stage.className = "archive-feed-stage";
+      stage.setAttribute("aria-live", "polite");
+      const stageIndex = document.createElement("span");
+      stageIndex.className = "archive-feed-index";
+      const stageMeta = document.createElement("div");
+      stageMeta.className = "archive-feed-meta";
+      const stageKicker = document.createElement("span");
+      stageKicker.textContent = "SELECTED MELODY";
+      const stageTitle = document.createElement("h2");
+      const stageDetail = document.createElement("p");
+      stageMeta.append(stageKicker, stageTitle, stageDetail);
+
+      const ribbon = document.createElement("div");
+      ribbon.className = "archive-feed-ribbon";
+      const ribbonNotes = document.createElement("div");
+      ribbonNotes.className = "archive-feed-notes";
+      ribbon.appendChild(ribbonNotes);
+
+      const mechanism = document.createElement("div");
+      mechanism.className = "archive-feed-mechanism";
+      const boxSource = "archive-music-box-mechanism-cutout.png?v=archive-library-19";
       const box = document.createElement("img");
-      box.className = "archive-music-box";
+      box.className = "archive-feed-box";
       box.src = boxSource;
-      box.alt = "ORGO music box mechanism";
+      box.alt = "펀칭 악보가 통과하는 ORGO 오르골 메커니즘";
       box.addEventListener("error", () => {
-        box.src = "image/archive-music-box-mechanism-cutout.png?v=archive-box-3";
+        box.src = "image/archive-music-box-mechanism-cutout.png?v=archive-library-19";
       }, { once: true });
-      const gear = document.createElement("img");
-      gear.className = "archive-music-box-gear";
-      gear.src = boxSource;
-      gear.alt = "";
-      gear.setAttribute("aria-hidden", "true");
       const crank = document.createElement("img");
-      crank.className = "archive-music-box-crank";
+      crank.className = "archive-feed-crank";
       crank.src = boxSource;
       crank.alt = "";
       crank.setAttribute("aria-hidden", "true");
-      boxFrame.append(box, gear, crank);
-      stage.append(stageLabel, stageCount, paper, boxFrame);
+      mechanism.append(box, crank);
+
+      const stageActions = document.createElement("div");
+      stageActions.className = "archive-feed-actions";
+      const previewButton = document.createElement("button");
+      previewButton.type = "button";
+      previewButton.className = "archive-feed-toggle";
+      previewButton.textContent = "FEED + LISTEN ▶";
+      previewButton.setAttribute("aria-pressed", "false");
+      const playerLink = document.createElement("a");
+      playerLink.className = "archive-feed-open";
+      playerLink.textContent = t("archiveOpenPlayer");
+      const objectLink = document.createElement("a");
+      objectLink.className = "archive-feed-object";
+      objectLink.textContent = t("archiveMakeObject");
+      stageActions.append(previewButton, playerLink, objectLink);
+      stage.append(stageIndex, stageMeta, ribbon, mechanism, stageActions);
 
       const tracks = document.createElement("div");
       tracks.className = "archive-track-list";
-      experience.append(stage, tracks);
+      const trackNodes = [];
+      let selectedIndex = 0;
+
+      const selectTrack = (index, animate = true) => {
+        selectedIndex = Math.max(0, Math.min(items.length - 1, index));
+        const item = items[selectedIndex];
+        stopArchivePreview(stage, previewButton);
+        if (animate) {
+          stage.classList.remove("is-switching");
+          void stage.offsetWidth;
+          stage.classList.add("is-switching");
+        }
+        stageIndex.textContent = `${String(selectedIndex + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
+        stageTitle.textContent = item.title || `${t("archiveUntitled")} ${String(selectedIndex + 1).padStart(2, "0")}`;
+        stageDetail.textContent = `${item.kind === "HAND" ? "CAMERA" : "MOUSE"} COMPOSITION · ${(item.notes || []).length} NOTES · ${formatDate(item.createdAt)}`;
+        playerLink.href = `player.html?archive=${encodeURIComponent(item.id)}`;
+        objectLink.href = `object.html?melody=${encodeURIComponent(item.id)}`;
+        renderFeedNotes(ribbonNotes, item);
+        trackNodes.forEach((node, nodeIndex) => {
+          const active = nodeIndex === selectedIndex;
+          node.classList.toggle("is-active", active);
+          node.setAttribute("aria-current", active ? "true" : "false");
+        });
+      };
+
+      previewButton.addEventListener("click", () => {
+        if (stage.classList.contains("is-playing")) {
+          stopArchivePreview(stage, previewButton);
+          return;
+        }
+        playArchivePreview(items[selectedIndex], stage, previewButton);
+      });
 
       items.forEach((item, index) => {
         const card = document.createElement("article");
         card.className = "archive-track";
+        card.tabIndex = 0;
         card.dataset.index = String(index);
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-label", `${item.title || t("archiveUntitled")} 선택`);
 
         const preview = document.createElement("div");
         preview.className = "archive-score-preview";
-        const height = item.height || 420;
-        const hasHandwriting = renderHandwritingPreview(preview, item, height);
-
+        const hasHandwriting = renderHandwritingPreview(preview, item, item.height || 420);
         if (!hasHandwriting) {
           preview.classList.add("archive-score-preview--legacy");
           const legacy = document.createElement("span");
           legacy.className = "archive-score-preview-legacy";
-          legacy.textContent = "WRITING PREVIEW";
+          legacy.textContent = "SCORE";
           preview.appendChild(legacy);
         }
 
@@ -1207,33 +1380,32 @@
         const meta = document.createElement("div");
         meta.className = "archive-track-meta";
         meta.textContent = `${String(index + 1).padStart(2, "0")} / ${item.kind === "HAND" ? "HAND" : "MOUSE"} / ${(item.notes || []).length} NOTES`;
-
         const title = document.createElement("input");
         title.className = "archive-title-input";
         title.type = "text";
         title.maxLength = 32;
-        title.value = item.title || `${t("archiveUntitled")} ${String(items.length - index).padStart(2, "0")}`;
+        title.value = item.title || `${t("archiveUntitled")} ${String(index + 1).padStart(2, "0")}`;
         title.setAttribute("aria-label", t("archiveName"));
+        title.addEventListener("focus", () => selectTrack(index));
         title.addEventListener("change", () => {
           const next = readArchive();
           const found = next.find((saved) => saved.id === item.id);
           if (!found) return;
           found.title = title.value.trim() || t("archiveUntitled");
           title.value = found.title;
+          item.title = found.title;
           writeArchive(next);
+          if (selectedIndex === index) stageTitle.textContent = found.title;
         });
         const details = document.createElement("p");
         details.textContent = item.kind === "HAND" ? "CAMERA COMPOSITION" : "MOUSE COMPOSITION";
-        const actions = document.createElement("div");
-        actions.className = "archive-track-actions";
-        const play = document.createElement("a");
-        play.className = "archive-play";
-        play.href = `player.html?archive=${encodeURIComponent(item.id)}`;
-        play.textContent = t("archiveOpenPlayer");
-        const makeObject = document.createElement("a");
-        makeObject.className = "archive-make-object";
-        makeObject.href = `object.html?melody=${encodeURIComponent(item.id)}`;
-        makeObject.textContent = t("archiveMakeObject");
+        body.append(meta, title, details);
+
+        const date = document.createElement("time");
+        date.className = "archive-track-date";
+        date.dateTime = item.createdAt || "";
+        date.textContent = formatDate(item.createdAt);
+
         const remove = document.createElement("button");
         remove.className = "archive-delete";
         remove.type = "button";
@@ -1244,72 +1416,24 @@
           renderArchive();
         });
 
-        const date = document.createElement("time");
-        date.className = "archive-track-date";
-        date.dateTime = item.createdAt || "";
-        date.textContent = formatDate(item.createdAt);
-
-        actions.append(play, makeObject, remove);
-        body.append(meta, title, details, actions);
-        card.append(preview, body, date);
+        card.addEventListener("click", (event) => {
+          if (event.target.closest("input, button, a")) return;
+          selectTrack(index);
+        });
+        card.addEventListener("keydown", (event) => {
+          if ((event.key === "Enter" || event.key === " ") && !event.target.closest("input, button, a")) {
+            event.preventDefault();
+            selectTrack(index);
+          }
+        });
+        card.append(preview, body, date, remove);
         tracks.appendChild(card);
+        trackNodes.push(card);
       });
 
-      archiveList.appendChild(experience);
-
-      const trackNodes = [...tracks.querySelectorAll(".archive-track")];
-      const scoreSegments = [...paperHoles.querySelectorAll(".archive-score-segment")];
-      const updateScrollMotion = () => {
-        const stageBounds = stage.getBoundingClientRect();
-        const range = Math.max(1, stage.offsetHeight + window.innerHeight * .42);
-        const rawProgress = Math.max(0, Math.min(1, (window.innerHeight * .72 - stageBounds.top) / range));
-        const progress = rawProgress * rawProgress * (3 - 2 * rawProgress);
-        const enter = Math.max(0, Math.min(1, progress / .3));
-        const exit = Math.max(0, Math.min(1, (progress - .78) / .22));
-        const sceneOpacity = Math.max(0, Math.min(1, enter * 1.12)) * (1 - exit);
-        const paperReveal = Math.max(.025, Math.min(1, enter * (1 - exit * .92)));
-        experience.style.setProperty("--archive-progress", progress.toFixed(3));
-        experience.style.setProperty("--archive-paper-offset", `${(-progress * (78 + items.length * 9)).toFixed(1)}px`);
-        experience.style.setProperty("--archive-paper-reveal", paperReveal.toFixed(3));
-        experience.style.setProperty("--archive-scene-opacity", sceneOpacity.toFixed(3));
-        // The scene leaves with the document itself, so the mechanism travels
-        // upward on scroll instead of sliding sideways out of view.
-        experience.style.setProperty("--archive-box-x", `${((1 - enter) * 130).toFixed(1)}px`);
-        experience.style.setProperty("--archive-box-y", `${((1 - enter) * 68).toFixed(1)}px`);
-        experience.style.setProperty("--archive-crank-angle", `${(progress * 135).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-orbit-one", `${(-13 + progress * 9).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-orbit-two", `${(12 - progress * 8).toFixed(1)}deg`);
-        experience.style.setProperty("--archive-box-angle", `${(-.9 + progress * 1.8).toFixed(1)}deg`);
-      };
-      let scrollTicking = false;
-      const onScroll = () => {
-        if (scrollTicking) return;
-        scrollTicking = true;
-        requestAnimationFrame(() => {
-          updateScrollMotion();
-          scrollTicking = false;
-        });
-      };
-      updateScrollMotion();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      archiveScrollHandler = onScroll;
-
-      if ("IntersectionObserver" in window) {
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            trackNodes.forEach((node) => node.classList.toggle("is-active", node === entry.target));
-            const activeIndex = Number(entry.target.dataset.index || 0);
-            stageCount.textContent = `${String(activeIndex + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
-            scoreSegments.forEach((segment, index) => segment.classList.toggle("is-current", index === activeIndex));
-            stage.classList.remove("is-turning");
-            requestAnimationFrame(() => stage.classList.add("is-turning"));
-          });
-        }, { rootMargin: "-42% 0px -42% 0px", threshold: 0 });
-        trackNodes.forEach((node) => observer.observe(node));
-      } else {
-        trackNodes[0]?.classList.add("is-active");
-      }
+      library.append(libraryBar, stage, tracks);
+      archiveList.appendChild(library);
+      selectTrack(0, false);
     }
 
     renderArchive();
