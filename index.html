@@ -9,9 +9,9 @@
     content="당신의 손글씨를 하나의 선율로. ORGO에서 나만의 오르골을 만들어보세요."
   >
   <title>ORGO — Every line, a little music.</title>
-  <link rel="stylesheet" href="site.css?v=sound-lab-5">
-  <script src="i18n.js?v=sound-lab-5" defer></script>
-  <script src="site.js?v=sound-lab-5" defer></script>
+  <link rel="stylesheet" href="site.css?v=sound-lab-6">
+  <script src="i18n.js?v=sound-lab-6" defer></script>
+  <script src="site.js?v=sound-lab-6" defer></script>
 </head>
 
 <body>
@@ -166,18 +166,51 @@
           <div class="drum-experience" data-drum-stage aria-label="Interactive acoustic drum kit">
             <p class="drum-instruction">
               <strong data-i18n="labDrumInstruction">PLAY THE KIT</strong>
-              <small data-i18n="labDrumHint">스틱 커서를 움직여 각 파트를 직접 두드려보세요.</small>
+              <small data-i18n="labDrumHint">각 파트를 두드리고 왼쪽 페달도 밟아보세요.</small>
             </p>
             <svg class="drum-kit" viewBox="0 0 1536 1024" role="group" aria-label="Playable drum parts">
-              <image href="image/drum-black.png?v=drum-1" x="0" y="0" width="1536" height="1024" preserveAspectRatio="xMidYMid meet"></image>
+              <defs>
+                <clipPath id="drum-clip-crash"><ellipse cx="410" cy="125" rx="205" ry="112"></ellipse></clipPath>
+                <clipPath id="drum-clip-ride"><ellipse cx="1270" cy="135" rx="220" ry="118"></ellipse></clipPath>
+                <clipPath id="drum-clip-hihat"><ellipse cx="170" cy="345" rx="145" ry="76"></ellipse></clipPath>
+                <clipPath id="drum-clip-tom1"><ellipse cx="635" cy="355" rx="142" ry="118"></ellipse></clipPath>
+                <clipPath id="drum-clip-tom2"><ellipse cx="925" cy="360" rx="142" ry="118"></ellipse></clipPath>
+                <clipPath id="drum-clip-snare"><ellipse cx="405" cy="535" rx="155" ry="118"></ellipse></clipPath>
+                <clipPath id="drum-clip-floor"><ellipse cx="1250" cy="565" rx="168" ry="132"></ellipse></clipPath>
+                <clipPath id="drum-clip-kick"><ellipse cx="780" cy="735" rx="228" ry="190"></ellipse></clipPath>
+                <clipPath id="drum-clip-pedal"><ellipse cx="170" cy="825" rx="86" ry="132"></ellipse></clipPath>
+                <mask id="drum-base-mask">
+                  <rect width="1536" height="1024" fill="white"></rect>
+                  <ellipse cx="410" cy="125" rx="205" ry="112" fill="black"></ellipse>
+                  <ellipse cx="1270" cy="135" rx="220" ry="118" fill="black"></ellipse>
+                  <ellipse cx="170" cy="345" rx="145" ry="76" fill="black"></ellipse>
+                  <ellipse cx="635" cy="355" rx="142" ry="118" fill="black"></ellipse>
+                  <ellipse cx="925" cy="360" rx="142" ry="118" fill="black"></ellipse>
+                  <ellipse cx="405" cy="535" rx="155" ry="118" fill="black"></ellipse>
+                  <ellipse cx="1250" cy="565" rx="168" ry="132" fill="black"></ellipse>
+                  <ellipse cx="780" cy="735" rx="228" ry="190" fill="black"></ellipse>
+                  <ellipse cx="170" cy="825" rx="86" ry="132" fill="black"></ellipse>
+                </mask>
+              </defs>
 
-              <g class="drum-hit" data-drum-part="crash" data-drum-label="CRASH" tabindex="0" role="button" aria-label="Crash cymbal">
+              <image class="drum-base" href="image/drum-black-cutout.png?v=cutout-2" x="0" y="0" width="1536" height="1024" preserveAspectRatio="xMidYMid meet" mask="url(#drum-base-mask)"></image>
+              <g class="drum-piece drum-piece-cymbal" data-drum-piece="crash" clip-path="url(#drum-clip-crash)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+              <g class="drum-piece drum-piece-cymbal" data-drum-piece="ride" clip-path="url(#drum-clip-ride)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+              <g class="drum-piece drum-piece-hihat" data-drum-piece="hihat" clip-path="url(#drum-clip-hihat)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+              <g class="drum-piece drum-piece-drum" data-drum-piece="tom1" clip-path="url(#drum-clip-tom1)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+              <g class="drum-piece drum-piece-drum" data-drum-piece="tom2" clip-path="url(#drum-clip-tom2)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+              <g class="drum-piece drum-piece-drum" data-drum-piece="snare" clip-path="url(#drum-clip-snare)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+              <g class="drum-piece drum-piece-drum" data-drum-piece="floor" clip-path="url(#drum-clip-floor)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+              <g class="drum-piece drum-piece-kick" data-drum-piece="kick" clip-path="url(#drum-clip-kick)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+              <g class="drum-piece drum-piece-pedal" data-drum-piece="hihat-pedal" clip-path="url(#drum-clip-pedal)"><image href="image/drum-black-cutout.png?v=cutout-2" width="1536" height="1024"></image></g>
+
+              <g class="drum-hit drum-hit-cymbal" data-drum-part="crash" data-drum-label="CRASH" tabindex="0" role="button" aria-label="Crash cymbal">
                 <ellipse cx="410" cy="125" rx="205" ry="112"></ellipse><circle class="drum-ripple" cx="410" cy="125" r="44"></circle>
               </g>
-              <g class="drum-hit" data-drum-part="ride" data-drum-label="RIDE" tabindex="0" role="button" aria-label="Ride cymbal">
+              <g class="drum-hit drum-hit-cymbal" data-drum-part="ride" data-drum-label="RIDE" tabindex="0" role="button" aria-label="Ride cymbal">
                 <ellipse cx="1270" cy="135" rx="220" ry="118"></ellipse><circle class="drum-ripple" cx="1270" cy="135" r="44"></circle>
               </g>
-              <g class="drum-hit" data-drum-part="hihat" data-drum-label="HI-HAT" tabindex="0" role="button" aria-label="Hi-hat">
+              <g class="drum-hit drum-hit-cymbal" data-drum-part="hihat" data-drum-label="HI-HAT" tabindex="0" role="button" aria-label="Hi-hat">
                 <ellipse cx="170" cy="345" rx="145" ry="76"></ellipse><circle class="drum-ripple" cx="170" cy="345" r="36"></circle>
               </g>
               <g class="drum-hit" data-drum-part="tom1" data-drum-label="HIGH TOM" tabindex="0" role="button" aria-label="High tom">
@@ -194,6 +227,9 @@
               </g>
               <g class="drum-hit" data-drum-part="kick" data-drum-label="KICK" tabindex="0" role="button" aria-label="Kick drum">
                 <ellipse cx="780" cy="735" rx="228" ry="190"></ellipse><circle class="drum-ripple" cx="780" cy="735" r="55"></circle>
+              </g>
+              <g class="drum-hit drum-hit-pedal" data-drum-part="hihat-pedal" data-drum-label="HI-HAT PEDAL" tabindex="0" role="button" aria-label="Hi-hat foot pedal">
+                <ellipse cx="170" cy="825" rx="86" ry="132"></ellipse><circle class="drum-ripple" cx="170" cy="825" r="34"></circle>
               </g>
             </svg>
             <span class="drum-stick-cursor" aria-hidden="true"></span>

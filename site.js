@@ -92,6 +92,10 @@
     const bassStringControls = [...soundLab.querySelectorAll("[data-bass-string]")];
     const drumStage = soundLab.querySelector("[data-drum-stage]");
     const drumPads = [...soundLab.querySelectorAll("[data-drum-part]")];
+    const drumPieces = new Map(
+      [...soundLab.querySelectorAll("[data-drum-piece]")]
+        .map((piece) => [piece.dataset.drumPiece, piece])
+    );
     const drumCursor = soundLab.querySelector(".drum-stick-cursor");
 
     let audioContext = null;
@@ -107,6 +111,7 @@
     let bassPulseTimer = null;
     let drumNoiseBuffer = null;
     let drumCursorTimer = null;
+    const drumPieceTimers = new Map();
     const bassStringAnimations = new Map();
 
     const scale = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29];
@@ -449,8 +454,52 @@
       });
     }
 
+    function playHiHatPedal(velocity) {
+      const context = ensureAudio();
+      if (!context) return;
+      const now = context.currentTime;
+      const level = Math.max(.35, Math.min(1, velocity));
+
+      [0, .072].forEach((offset, hitIndex) => {
+        const start = now + offset;
+        const noise = context.createBufferSource();
+        const highpass = context.createBiquadFilter();
+        const bandpass = context.createBiquadFilter();
+        const gain = context.createGain();
+        noise.buffer = getDrumNoise();
+        highpass.type = "highpass";
+        highpass.frequency.value = 7200;
+        bandpass.type = "bandpass";
+        bandpass.frequency.value = hitIndex ? 9600 : 10400;
+        bandpass.Q.value = .9;
+        gain.gain.setValueAtTime(.0001, start);
+        gain.gain.exponentialRampToValueAtTime((hitIndex ? .19 : .28) * level, start + .003);
+        gain.gain.exponentialRampToValueAtTime(.0001, start + .17);
+        noise.connect(highpass);
+        highpass.connect(bandpass);
+        bandpass.connect(gain);
+        gain.connect(masterGain);
+        noise.start(start);
+        noise.stop(start + .19);
+
+        [3180, 4720].forEach((frequency, partialIndex) => {
+          const partial = context.createOscillator();
+          const partialGain = context.createGain();
+          partial.type = partialIndex ? "triangle" : "square";
+          partial.frequency.value = frequency * (hitIndex ? 1.035 : 1);
+          partialGain.gain.setValueAtTime(.012 * level, start);
+          partialGain.gain.exponentialRampToValueAtTime(.0001, start + .12);
+          partial.connect(partialGain);
+          partialGain.connect(masterGain);
+          partial.start(start);
+          partial.stop(start + .14);
+        });
+      });
+    }
+
     function playDrum(part, velocity = .82) {
-      if (part === "kick") playKick(velocity);
+      if (part === "hihat-pedal") playHiHatPedal(velocity);
+      else if (part === "kick") playKick(velocity);
       else if (part === "snare") playSnare(velocity);
       else if (part === "tom1") playTom(166, velocity);
       else if (part === "tom2") playTom(128, velocity);
@@ -559,6 +608,20 @@
       void drumPad.getBoundingClientRect();
       drumPad.classList.add("is-hit");
       window.setTimeout(() => drumPad.classList.remove("is-hit"), 430);
+
+      const piece = drumPieces.get(part);
+      if (piece) {
+        window.clearTimeout(drumPieceTimers.get(piece));
+        piece.classList.remove("is-hit");
+        void piece.getBoundingClientRect();
+        piece.classList.add("is-hit");
+        const duration = ["crash", "ride"].includes(part) ? 700 : 460;
+        const timer = window.setTimeout(() => {
+          piece.classList.remove("is-hit");
+          drumPieceTimers.delete(piece);
+        }, duration);
+        drumPieceTimers.set(piece, timer);
+      }
 
       if (drumCursor) {
         drumCursor.classList.remove("is-striking");
