@@ -286,7 +286,44 @@
     function setBassPath(control, bend = 0, bendX = 460) {
       const y = Number(control.dataset.y);
       const path = control.querySelector(".bass-string");
-      path.setAttribute("d", `M70 ${y} Q${bendX.toFixed(1)} ${(y + bend).toFixed(1)} 850 ${y}`);
+      const startX = 70;
+      const endX = 850;
+      const pluckX = Math.max(startX + 36, Math.min(endX - 36, bendX));
+
+      if (Math.abs(bend) < .01) {
+        path.setAttribute("d", `M${startX} ${y} L${endX} ${y}`);
+        return;
+      }
+
+      const leftHandle = Math.max(28, (pluckX - startX) * .42);
+      const rightHandle = Math.max(28, (endX - pluckX) * .42);
+      path.setAttribute(
+        "d",
+        `M${startX} ${y} C${(startX + leftHandle).toFixed(1)} ${y} ${(pluckX - leftHandle * .34).toFixed(1)} ${(y + bend).toFixed(1)} ${pluckX.toFixed(1)} ${(y + bend).toFixed(1)} C${(pluckX + rightHandle * .34).toFixed(1)} ${(y + bend).toFixed(1)} ${(endX - rightHandle).toFixed(1)} ${y} ${endX} ${y}`
+      );
+    }
+
+    function setBassVibrationPath(control, amplitude, phase, bendX) {
+      const y = Number(control.dataset.y);
+      const path = control.querySelector(".bass-string");
+      const startX = 70;
+      const endX = 850;
+      const pointCount = 42;
+      const pluckRatio = Math.max(.08, Math.min(.92, (bendX - startX) / (endX - startX)));
+      let d = `M${startX} ${y.toFixed(2)}`;
+
+      for (let index = 1; index <= pointCount; index += 1) {
+        const ratio = index / pointCount;
+        const x = startX + (endX - startX) * ratio;
+        const fundamental = .82 * Math.sin(Math.PI * ratio) * Math.cos(phase);
+        const second = .13 * Math.sin(Math.PI * 2 * ratio) * Math.cos(phase * 1.93 + .24);
+        const third = .05 * Math.sin(Math.PI * 3 * ratio) * Math.cos(phase * 2.81 + .62);
+        const pluckFocus = .84 + .16 * Math.exp(-Math.pow((ratio - pluckRatio) / .22, 2));
+        const offset = amplitude * pluckFocus * (fundamental + second + third);
+        d += ` L${x.toFixed(1)} ${(y + offset).toFixed(2)}`;
+      }
+
+      path.setAttribute("d", d);
     }
 
     function stopBassAnimation(control) {
@@ -298,10 +335,10 @@
     function vibrateBassString(control, bend, bendX) {
       stopBassAnimation(control);
       const startedAt = performance.now();
-      const initialBend = Math.max(13, Math.min(64, Math.abs(bend) || 17));
+      const initialBend = Math.max(9, Math.min(34, (Math.abs(bend) || 17) * .62));
       const direction = bend < 0 ? -1 : 1;
       const stringIndex = Number(control.dataset.bassString);
-      const angularSpeed = .046 + stringIndex * .008;
+      const angularSpeed = .034 + stringIndex * .0035;
 
       control.classList.remove("is-grabbed");
       bassStage.classList.add("is-resonating");
@@ -310,11 +347,11 @@
 
       const animate = (time) => {
         const elapsed = time - startedAt;
-        const amplitude = initialBend * Math.exp(-elapsed / 360);
-        const wave = Math.sin(elapsed * angularSpeed) * amplitude * direction;
-        setBassPath(control, wave, bendX);
+        const amplitude = initialBend * Math.exp(-elapsed / 480) * direction;
+        const phase = elapsed * angularSpeed;
+        setBassVibrationPath(control, amplitude, phase, bendX);
 
-        if (elapsed < 1250 && amplitude > .55) {
+        if (elapsed < 1700 && Math.abs(amplitude) > .45) {
           bassStringAnimations.set(control, window.requestAnimationFrame(animate));
         } else {
           setBassPath(control);

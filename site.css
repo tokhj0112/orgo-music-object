@@ -755,8 +755,10 @@ img {
   fill: none;
   stroke: #d9d5c7;
   stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 1px 1px #000) drop-shadow(0 0 3px #e9d9ad4d);
+  filter: drop-shadow(0 1px .7px #000c) drop-shadow(0 0 1.5px #fff4);
   transition: stroke 160ms ease, filter 160ms ease;
 }
 
@@ -773,8 +775,8 @@ img {
 .bass-string-control:hover .bass-string,
 .bass-string-control:focus-visible .bass-string,
 .bass-string-control.is-grabbed .bass-string {
-  stroke: #fff5d8;
-  filter: drop-shadow(0 0 6px #e6b67d99);
+  stroke: #f3ede0;
+  filter: drop-shadow(0 1px .7px #000c) drop-shadow(0 0 2.5px #fff7);
 }
 
 .bass-note {
