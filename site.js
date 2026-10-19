@@ -75,6 +75,69 @@
   }
 
   /* ------------------------------
+     Main — mechanical sound becomes an electronic signal
+  ------------------------------ */
+
+  const signalBridge = document.querySelector("[data-signal-bridge]");
+
+  if (signalBridge && !reduceMotion.matches) {
+    let bridgeTicking = false;
+
+    const updateSignalBridge = () => {
+      const bounds = signalBridge.getBoundingClientRect();
+      const travel = Math.max(1, signalBridge.offsetHeight - window.innerHeight);
+      const raw = Math.min(1, Math.max(0, -bounds.top / travel));
+      const eased = raw * raw * (3 - 2 * raw);
+      const wave = Math.min(1, Math.max(0, (raw - 0.06) / 0.7));
+      const exit = Math.min(1, Math.max(0, (raw - 0.82) / 0.18));
+
+      signalBridge.style.setProperty("--bridge-progress", eased.toFixed(3));
+      signalBridge.style.setProperty("--bridge-wave", wave.toFixed(3));
+      signalBridge.style.setProperty("--bridge-exit", exit.toFixed(3));
+      bridgeTicking = false;
+    };
+
+    const requestBridgeUpdate = () => {
+      if (bridgeTicking) return;
+      bridgeTicking = true;
+      window.requestAnimationFrame(updateSignalBridge);
+    };
+
+    updateSignalBridge();
+    window.addEventListener("scroll", requestBridgeUpdate, { passive: true });
+    window.addEventListener("resize", requestBridgeUpdate);
+  }
+
+  if (signalBridge) {
+    const recorderToggle = signalBridge.querySelector("[data-recorder-toggle]");
+    const recorderStatus = signalBridge.querySelector("[data-recorder-status]");
+    const bridgeStage = signalBridge.querySelector(".signal-bridge-stage");
+
+    recorderToggle?.addEventListener("click", () => {
+      const isRecording = !recorderToggle.classList.contains("is-recording");
+      recorderToggle.classList.toggle("is-recording", isRecording);
+      recorderToggle.setAttribute("aria-pressed", String(isRecording));
+      recorderToggle.setAttribute(
+        "aria-label",
+        t(isRecording ? "bridgeRecorderStop" : "bridgeRecorderStart")
+      );
+      recorderToggle.dataset.i18nAttr = isRecording
+        ? "bridgeRecorderStop"
+        : "bridgeRecorderStart";
+      bridgeStage?.classList.toggle("is-capturing", isRecording);
+
+      if (recorderStatus) {
+        recorderStatus.dataset.i18n = isRecording
+          ? "bridgeRecorderActive"
+          : "bridgeRecorderIdle";
+        recorderStatus.textContent = t(
+          isRecording ? "bridgeRecorderActive" : "bridgeRecorderIdle"
+        );
+      }
+    });
+  }
+
+  /* ------------------------------
      Main — electronic sound lab
   ------------------------------ */
 
