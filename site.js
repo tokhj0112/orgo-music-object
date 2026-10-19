@@ -75,6 +75,469 @@
   }
 
   /* ------------------------------
+     Main — electronic sound lab
+  ------------------------------ */
+
+  const soundLab = document.querySelector("[data-sound-lab]");
+
+  if (soundLab) {
+    const pad = soundLab.querySelector("[data-synth-pad]");
+    const voiceButtons = [...soundLab.querySelectorAll("[data-wave]")];
+    const stepButtons = [...soundLab.querySelectorAll(".lab-steps button")];
+    const playButton = soundLab.querySelector("[data-lab-play]");
+    const bpmInput = soundLab.querySelector("[data-lab-bpm]");
+    const bpmOutput = soundLab.querySelector("[data-lab-bpm-output]");
+    const labStatus = soundLab.querySelector("[data-lab-status]");
+    const bassStage = soundLab.querySelector("[data-bass-stage]");
+    const bassStringControls = [...soundLab.querySelectorAll("[data-bass-string]")];
+
+    let audioContext = null;
+    let masterGain = null;
+    let delayNode = null;
+    let delayFeedback = null;
+    let delayWet = null;
+    let waveform = "sine";
+    let padVoice = null;
+    let loopTimer = null;
+    let loopStep = 0;
+    let pointerPlaying = false;
+    let bassPulseTimer = null;
+    const bassStringAnimations = new Map();
+
+    const scale = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29];
+    const sequence = [0, 3, 5, 7, 10, 7, 5, 3];
+
+    function ensureAudio() {
+      if (!audioContext) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return null;
+        audioContext = new AudioContext();
+
+        const compressor = audioContext.createDynamicsCompressor();
+        compressor.threshold.value = -18;
+        compressor.knee.value = 18;
+        compressor.ratio.value = 5;
+        compressor.attack.value = .004;
+        compressor.release.value = .25;
+
+        masterGain = audioContext.createGain();
+        masterGain.gain.value = .48;
+        masterGain.connect(compressor);
+        compressor.connect(audioContext.destination);
+
+        delayNode = audioContext.createDelay(.8);
+        delayNode.delayTime.value = .24;
+        delayFeedback = audioContext.createGain();
+        delayFeedback.gain.value = .26;
+        delayWet = audioContext.createGain();
+        delayWet.gain.value = .24;
+        delayNode.connect(delayFeedback);
+        delayFeedback.connect(delayNode);
+        delayNode.connect(delayWet);
+        delayWet.connect(masterGain);
+      }
+
+      if (audioContext.state === "suspended") audioContext.resume();
+      return audioContext;
+    }
+
+    function frequencyFromY(y, offset = 0) {
+      const index = Math.round((1 - y) * (scale.length - 1));
+      const semitone = scale[Math.max(0, Math.min(scale.length - 1, index))] + offset;
+      return 82.41 * Math.pow(2, semitone / 12);
+    }
+
+    function connectVoice(filter, gain) {
+      filter.connect(gain);
+      gain.connect(masterGain);
+      gain.connect(delayNode);
+    }
+
+    function stopPadVoice() {
+      if (!padVoice || !audioContext) return;
+      const now = audioContext.currentTime;
+      padVoice.gain.gain.cancelScheduledValues(now);
+      padVoice.gain.gain.setTargetAtTime(.0001, now, .04);
+      padVoice.oscillators.forEach((oscillator) => oscillator.stop(now + .24));
+      padVoice = null;
+      pointerPlaying = false;
+      pad.classList.remove("is-touching");
+      labStatus.textContent = t("labReady");
+    }
+
+    function startPadVoice(x, y) {
+      const context = ensureAudio();
+      if (!context) return;
+      stopPadVoice();
+
+      const filter = context.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.Q.value = waveform === "sawtooth" ? 7 : 2.8;
+
+      const gain = context.createGain();
+      const now = context.currentTime;
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(.2, now + .035);
+      connectVoice(filter, gain);
+
+      const primary = context.createOscillator();
+      primary.type = waveform;
+      primary.connect(filter);
+      primary.start(now);
+
+      const shimmer = context.createOscillator();
+      shimmer.type = waveform === "square" ? "square" : "sine";
+      const shimmerGain = context.createGain();
+      shimmerGain.gain.value = waveform === "sine" ? .19 : .08;
+      shimmer.connect(shimmerGain);
+      shimmerGain.connect(filter);
+      shimmer.start(now);
+
+      padVoice = { oscillators: [primary, shimmer], primary, shimmer, filter, gain };
+      pointerPlaying = true;
+      pad.classList.add("is-touching");
+      updatePadVoice(x, y);
+    }
+
+    function updatePadVoice(x, y) {
+      pad.style.setProperty("--pad-x", `${(x * 100).toFixed(2)}%`);
+      pad.style.setProperty("--pad-y", `${(y * 100).toFixed(2)}%`);
+      if (!padVoice || !audioContext) return;
+
+      const now = audioContext.currentTime;
+      const frequency = frequencyFromY(y);
+      padVoice.primary.frequency.setTargetAtTime(frequency, now, .025);
+      padVoice.shimmer.frequency.setTargetAtTime(frequency * 2.005, now, .03);
+      padVoice.filter.frequency.setTargetAtTime(320 + x * 5200, now, .045);
+      padVoice.filter.Q.setTargetAtTime(1.2 + x * 8.5, now, .05);
+      labStatus.textContent = `${waveform.toUpperCase()} / ${Math.round(frequency)} HZ`;
+    }
+
+    function pointerPosition(event) {
+      const bounds = pad.getBoundingClientRect();
+      return {
+        x: Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width)),
+        y: Math.max(0, Math.min(1, (event.clientY - bounds.top) / bounds.height)),
+      };
+    }
+
+    function pluck(frequency) {
+      const context = ensureAudio();
+      if (!context) return;
+      const now = context.currentTime;
+      const oscillator = context.createOscillator();
+      const filter = context.createBiquadFilter();
+      const gain = context.createGain();
+
+      oscillator.type = waveform;
+      oscillator.frequency.setValueAtTime(frequency, now);
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(waveform === "sawtooth" ? 1450 : 2700, now);
+      filter.frequency.exponentialRampToValueAtTime(420, now + .28);
+      filter.Q.value = waveform === "square" ? 4 : 2;
+      gain.gain.setValueAtTime(.0001, now);
+      gain.gain.exponentialRampToValueAtTime(.21, now + .012);
+      gain.gain.exponentialRampToValueAtTime(.0001, now + .34);
+      oscillator.connect(filter);
+      connectVoice(filter, gain);
+      oscillator.start(now);
+      oscillator.stop(now + .38);
+    }
+
+    function pluckBass(frequency, intensity = .72) {
+      const context = ensureAudio();
+      if (!context) return;
+
+      const now = context.currentTime;
+      const filter = context.createBiquadFilter();
+      const body = context.createGain();
+      const fundamental = context.createOscillator();
+      const sub = context.createOscillator();
+      const subGain = context.createGain();
+      const brightness = Math.max(.25, Math.min(1, intensity));
+
+      filter.type = "lowpass";
+      filter.Q.setValueAtTime(4.4 + brightness * 2.8, now);
+      filter.frequency.setValueAtTime(1350 + brightness * 950, now);
+      filter.frequency.exponentialRampToValueAtTime(190, now + .62);
+
+      body.gain.setValueAtTime(.0001, now);
+      body.gain.exponentialRampToValueAtTime(.19 + brightness * .13, now + .012);
+      body.gain.exponentialRampToValueAtTime(.0001, now + 1.45);
+      connectVoice(filter, body);
+
+      fundamental.type = "sawtooth";
+      fundamental.frequency.setValueAtTime(frequency * 1.018, now);
+      fundamental.frequency.exponentialRampToValueAtTime(frequency, now + .075);
+      fundamental.connect(filter);
+
+      sub.type = "sine";
+      sub.frequency.setValueAtTime(frequency / 2, now);
+      subGain.gain.value = .32;
+      sub.connect(subGain);
+      subGain.connect(filter);
+
+      fundamental.start(now);
+      sub.start(now);
+      fundamental.stop(now + 1.55);
+      sub.stop(now + 1.55);
+    }
+
+    function setBassPath(control, bend = 0, bendX = 500) {
+      const y = Number(control.dataset.y);
+      const path = control.querySelector(".bass-string");
+      path.setAttribute("d", `M60 ${y} Q${bendX.toFixed(1)} ${(y + bend).toFixed(1)} 940 ${y}`);
+    }
+
+    function stopBassAnimation(control) {
+      const frame = bassStringAnimations.get(control);
+      if (frame) window.cancelAnimationFrame(frame);
+      bassStringAnimations.delete(control);
+    }
+
+    function vibrateBassString(control, bend, bendX) {
+      stopBassAnimation(control);
+      const startedAt = performance.now();
+      const initialBend = Math.max(13, Math.min(64, Math.abs(bend) || 17));
+      const direction = bend < 0 ? -1 : 1;
+      const stringIndex = Number(control.dataset.bassString);
+      const angularSpeed = .046 + stringIndex * .008;
+
+      control.classList.remove("is-grabbed");
+      bassStage.classList.add("is-resonating");
+      window.clearTimeout(bassPulseTimer);
+      bassPulseTimer = window.setTimeout(() => bassStage.classList.remove("is-resonating"), 440);
+
+      const animate = (time) => {
+        const elapsed = time - startedAt;
+        const amplitude = initialBend * Math.exp(-elapsed / 360);
+        const wave = Math.sin(elapsed * angularSpeed) * amplitude * direction;
+        setBassPath(control, wave, bendX);
+
+        if (elapsed < 1250 && amplitude > .55) {
+          bassStringAnimations.set(control, window.requestAnimationFrame(animate));
+        } else {
+          setBassPath(control);
+          bassStringAnimations.delete(control);
+        }
+      };
+
+      bassStringAnimations.set(control, window.requestAnimationFrame(animate));
+    }
+
+    function bassPoint(event) {
+      const bounds = bassStage.querySelector(".bass-strings").getBoundingClientRect();
+      return {
+        x: Math.max(60, Math.min(940, ((event.clientX - bounds.left) / bounds.width) * 1000)),
+        y: ((event.clientY - bounds.top) / bounds.height) * 420,
+      };
+    }
+
+    function stopLoop() {
+      if (loopTimer) window.clearInterval(loopTimer);
+      loopTimer = null;
+      stepButtons.forEach((step) => step.classList.remove("is-current"));
+      playButton.classList.remove("is-playing");
+      playButton.textContent = t("labStart");
+      labStatus.textContent = waveform === "sawtooth" ? t("labBassReady") : t("labReady");
+    }
+
+    function tickLoop() {
+      stepButtons.forEach((step, index) => step.classList.toggle("is-current", index === loopStep));
+      if (stepButtons[loopStep].classList.contains("is-on")) {
+        const frequency = 110 * Math.pow(2, sequence[loopStep] / 12);
+        if (waveform === "sawtooth") pluckBass(frequency / 2, .48);
+        else pluck(frequency);
+      }
+      loopStep = (loopStep + 1) % stepButtons.length;
+    }
+
+    function startLoop() {
+      ensureAudio();
+      stopLoop();
+      loopStep = 0;
+      playButton.classList.add("is-playing");
+      playButton.textContent = t("labStop");
+      labStatus.textContent = t("labPlaying");
+      tickLoop();
+      const interval = (60000 / Number(bpmInput.value)) / 2;
+      loopTimer = window.setInterval(tickLoop, interval);
+    }
+
+    voiceButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        waveform = button.dataset.wave || "sine";
+        const bassMode = waveform === "sawtooth";
+        voiceButtons.forEach((item) => {
+          const active = item === button;
+          item.classList.toggle("is-active", active);
+          item.setAttribute("aria-pressed", String(active));
+        });
+        if (pointerPlaying) stopPadVoice();
+        soundLab.classList.toggle("is-bass-mode", bassMode);
+        pad.setAttribute(
+          "aria-label",
+          bassMode ? "Pull and release a bass string" : "Drag to play pitch and texture"
+        );
+
+        if (bassMode) {
+          labStatus.textContent = t("labBassReady");
+          pluckBass(55, .42);
+        } else {
+          bassStringControls.forEach((control) => {
+            stopBassAnimation(control);
+            setBassPath(control);
+          });
+          labStatus.textContent = `${button.querySelector("strong").textContent} / READY`;
+          pluck(frequencyFromY(.52));
+        }
+      });
+    });
+
+    bassStringControls.forEach((control) => {
+      let dragState = null;
+      const frequency = Number(control.dataset.frequency);
+
+      control.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        stopBassAnimation(control);
+        control.setPointerCapture(event.pointerId);
+        const point = bassPoint(event);
+        dragState = { pointerId: event.pointerId, bend: 0, x: point.x };
+        control.classList.add("is-grabbed");
+      });
+
+      control.addEventListener("pointermove", (event) => {
+        if (!dragState || event.pointerId !== dragState.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const point = bassPoint(event);
+        const baseY = Number(control.dataset.y);
+        dragState.x = point.x;
+        dragState.bend = Math.max(-68, Math.min(68, point.y - baseY));
+        setBassPath(control, dragState.bend, dragState.x);
+      });
+
+      const releaseString = (event) => {
+        if (!dragState || (event.pointerId !== undefined && event.pointerId !== dragState.pointerId)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const { bend, x } = dragState;
+        const strength = Math.max(.28, Math.min(1, Math.abs(bend) / 58));
+        dragState = null;
+        control.classList.remove("is-grabbed");
+        pluckBass(frequency, strength);
+        vibrateBassString(control, bend || 17, x);
+        labStatus.textContent = `${control.getAttribute("aria-label").toUpperCase()} / ${frequency.toFixed(1)} HZ`;
+      };
+
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => {
+        control.addEventListener(eventName, releaseString);
+      });
+
+      control.addEventListener("keydown", (event) => {
+        if (!["Enter", " "].includes(event.key) || event.repeat) return;
+        event.preventDefault();
+        event.stopPropagation();
+        stopBassAnimation(control);
+        control.classList.add("is-grabbed");
+        setBassPath(control, 28, 500);
+      });
+
+      control.addEventListener("keyup", (event) => {
+        if (!["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        control.classList.remove("is-grabbed");
+        pluckBass(frequency, .68);
+        vibrateBassString(control, 28, 500);
+        labStatus.textContent = `${control.getAttribute("aria-label").toUpperCase()} / ${frequency.toFixed(1)} HZ`;
+      });
+    });
+
+    pad.addEventListener("pointerdown", (event) => {
+      if (soundLab.classList.contains("is-bass-mode")) return;
+      event.preventDefault();
+      pad.setPointerCapture(event.pointerId);
+      const position = pointerPosition(event);
+      startPadVoice(position.x, position.y);
+    });
+
+    pad.addEventListener("pointermove", (event) => {
+      if (soundLab.classList.contains("is-bass-mode")) return;
+      const position = pointerPosition(event);
+      if (pointerPlaying) updatePadVoice(position.x, position.y);
+      else {
+        pad.style.setProperty("--pad-x", `${(position.x * 100).toFixed(2)}%`);
+        pad.style.setProperty("--pad-y", `${(position.y * 100).toFixed(2)}%`);
+      }
+    });
+
+    ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => {
+      pad.addEventListener(eventName, stopPadVoice);
+    });
+
+    pad.addEventListener("keydown", (event) => {
+      if (soundLab.classList.contains("is-bass-mode")) return;
+      if (!["Enter", " "].includes(event.key) || pointerPlaying) return;
+      event.preventDefault();
+      startPadVoice(.5, .5);
+    });
+
+    pad.addEventListener("keyup", (event) => {
+      if (!["Enter", " "].includes(event.key)) return;
+      event.preventDefault();
+      stopPadVoice();
+    });
+
+    stepButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const active = !button.classList.contains("is-on");
+        button.classList.toggle("is-on", active);
+        button.setAttribute("aria-pressed", String(active));
+        if (active) {
+          const frequency = 110 * Math.pow(2, sequence[stepButtons.indexOf(button)] / 12);
+          if (waveform === "sawtooth") pluckBass(frequency / 2, .5);
+          else pluck(frequency);
+        }
+      });
+    });
+
+    playButton.addEventListener("click", () => {
+      if (loopTimer) stopLoop();
+      else startLoop();
+    });
+
+    bpmInput.addEventListener("input", () => {
+      bpmOutput.value = String(bpmInput.value).padStart(3, "0");
+      if (loopTimer) startLoop();
+    });
+
+    document.addEventListener("orgo-languagechange", () => {
+      playButton.textContent = loopTimer ? t("labStop") : t("labStart");
+      if (!pointerPlaying) {
+        labStatus.textContent = loopTimer
+          ? t("labPlaying")
+          : waveform === "sawtooth"
+            ? t("labBassReady")
+            : t("labReady");
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        stopPadVoice();
+        stopLoop();
+        bassStringControls.forEach((control) => {
+          stopBassAnimation(control);
+          setBassPath(control);
+        });
+      }
+    });
+  }
+
+  /* ------------------------------
      Object 페이지
   ------------------------------ */
 

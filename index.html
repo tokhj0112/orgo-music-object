@@ -9,9 +9,9 @@
     content="당신의 손글씨를 하나의 선율로. ORGO에서 나만의 오르골을 만들어보세요."
   >
   <title>ORGO — Every line, a little music.</title>
-  <link rel="stylesheet" href="site.css?v=home-orbit-flow-2">
-  <script src="i18n.js?v=main-language-only-1" defer></script>
-  <script src="site.js" defer></script>
+  <link rel="stylesheet" href="site.css?v=sound-lab-2">
+  <script src="i18n.js?v=sound-lab-2" defer></script>
+  <script src="site.js?v=sound-lab-2" defer></script>
 </head>
 
 <body>
@@ -24,13 +24,14 @@
 
     <nav class="site-nav" aria-label="메인 메뉴">
       <a href="#story">STORY</a>
+      <a href="#sound-lab">LAB</a>
       <a href="compose.html">COMPOSE</a>
       <a href="archive.html">ARCHIVE</a>
       <a href="object.html">OBJECT</a>
     </nav>
 
-    <a class="outline-link header-action" href="compose.html">
-      PLAY SOUND <span>↗</span>
+    <a class="outline-link header-action" href="#sound-lab">
+      OPEN LAB <span>↓</span>
     </a>
   </header>
 
@@ -38,7 +39,7 @@
     <section class="hero" aria-labelledby="hero-title" data-scroll-product>
       <div class="hero-stage">
       <div class="hero-copy">
-        <p class="eyebrow">HANDWRITING INTO MELODY</p>
+        <p class="eyebrow">HANDWRITING / SOUND / OBJECT</p>
 
         <h1 id="hero-title">
           Every line,<br>
@@ -54,11 +55,9 @@
       <div class="hero-art">
         <svg class="orbit orbit-one" viewBox="0 0 1200 560" preserveAspectRatio="none" aria-hidden="true">
           <ellipse class="orbit-track" cx="600" cy="280" rx="590" ry="270"></ellipse>
-          <ellipse class="orbit-glint" cx="600" cy="280" rx="590" ry="270" pathLength="100"></ellipse>
         </svg>
         <svg class="orbit orbit-two" viewBox="0 0 1200 560" preserveAspectRatio="none" aria-hidden="true">
           <ellipse class="orbit-track" cx="600" cy="280" rx="590" ry="270"></ellipse>
-          <ellipse class="orbit-glint" cx="600" cy="280" rx="590" ry="270" pathLength="100"></ellipse>
         </svg>
 
         <a
@@ -91,7 +90,99 @@
 
       <div class="hero-bottom-line">
         <span data-i18n="heroBottom">손으로 남긴 마음. 소리로 이어지는 기억.</span>
-        <span>ORGO MUSIC OBJECT</span>
+        <span>ORGO SOUND OBJECT</span>
+      </div>
+      </div>
+    </section>
+
+    <section class="sound-lab" id="sound-lab" aria-labelledby="sound-lab-title">
+      <header class="sound-lab-intro reveal">
+        <p class="eyebrow">02 — INTERACTIVE SOUND</p>
+        <h2 id="sound-lab-title" data-i18n="labTitle" data-i18n-html="true">소리를 고르고,<br>손끝으로 움직여보세요.</h2>
+        <p data-i18n="labDescription">오르골을 넘어 파형과 리듬을 직접 만지는 전자음악 플레이그라운드입니다.</p>
+      </header>
+
+      <div class="sound-lab-board reveal" data-sound-lab>
+        <div class="lab-voices" aria-label="Sound palette">
+          <span class="lab-label">SOUND</span>
+          <button class="lab-voice is-active" type="button" data-wave="sine" aria-pressed="true">
+            <span>01</span><strong>GLASS</strong><small data-i18n="labGlass">맑고 둥근 소리</small>
+          </button>
+          <button class="lab-voice" type="button" data-wave="square" aria-pressed="false">
+            <span>02</span><strong>PULSE</strong><small data-i18n="labPulse">짧고 선명한 파동</small>
+          </button>
+          <button class="lab-voice" type="button" data-wave="triangle" aria-pressed="false">
+            <span>03</span><strong>AIR</strong><small data-i18n="labAir">가볍게 번지는 질감</small>
+          </button>
+          <button class="lab-voice" type="button" data-wave="sawtooth" aria-pressed="false">
+            <span>04</span><strong>BASS</strong><small data-i18n="labBass">낮고 거친 진동</small>
+          </button>
+        </div>
+
+        <div class="lab-pad" data-synth-pad role="application" tabindex="0" aria-label="Drag to play pitch and texture">
+          <span class="lab-pad-orbit lab-pad-orbit-one" aria-hidden="true"></span>
+          <span class="lab-pad-orbit lab-pad-orbit-two" aria-hidden="true"></span>
+          <span class="lab-pad-cursor" aria-hidden="true"></span>
+          <span class="lab-pad-axis lab-pad-high">HIGH</span>
+          <span class="lab-pad-axis lab-pad-low">LOW</span>
+          <span class="lab-pad-axis lab-pad-soft">SOFT</span>
+          <span class="lab-pad-axis lab-pad-sharp">SHARP</span>
+          <div class="lab-pad-copy">
+            <strong data-i18n="labPadTitle">HOLD + MOVE</strong>
+            <small data-i18n="labPadHint">누른 채 움직여 음높이와 질감을 바꿔보세요.</small>
+          </div>
+
+          <div class="bass-experience" data-bass-stage aria-label="Interactive bass guitar">
+            <p class="bass-instruction">
+              <strong data-i18n="labBassInstruction">DRAG A STRING</strong>
+              <small data-i18n="labBassHint">줄을 끌었다 놓아 저음을 울려보세요.</small>
+            </p>
+            <img class="bass-instrument" src="image/bass2" alt="" aria-hidden="true" width="1112" height="1414">
+            <svg class="bass-strings" viewBox="0 0 1000 420" preserveAspectRatio="none" aria-label="Four playable bass strings">
+              <g class="bass-string-control" data-bass-string="0" data-frequency="41.2" data-y="180" tabindex="0" role="button" aria-label="E string">
+                <path class="bass-string" d="M60 180 Q500 180 940 180"></path>
+                <path class="bass-string-hit" d="M60 180 Q500 180 940 180"></path>
+              </g>
+              <g class="bass-string-control" data-bass-string="1" data-frequency="55" data-y="199" tabindex="0" role="button" aria-label="A string">
+                <path class="bass-string" d="M60 199 Q500 199 940 199"></path>
+                <path class="bass-string-hit" d="M60 199 Q500 199 940 199"></path>
+              </g>
+              <g class="bass-string-control" data-bass-string="2" data-frequency="73.42" data-y="218" tabindex="0" role="button" aria-label="D string">
+                <path class="bass-string" d="M60 218 Q500 218 940 218"></path>
+                <path class="bass-string-hit" d="M60 218 Q500 218 940 218"></path>
+              </g>
+              <g class="bass-string-control" data-bass-string="3" data-frequency="98" data-y="237" tabindex="0" role="button" aria-label="G string">
+                <path class="bass-string" d="M60 237 Q500 237 940 237"></path>
+                <path class="bass-string-hit" d="M60 237 Q500 237 940 237"></path>
+              </g>
+            </svg>
+            <span class="bass-note bass-note-e">E</span>
+            <span class="bass-note bass-note-g">G</span>
+          </div>
+        </div>
+
+        <div class="lab-sequencer">
+          <div class="lab-transport">
+            <button class="lab-play" type="button" data-lab-play data-i18n="labStart">START LOOP ▶</button>
+            <label>
+              <span>BPM</span>
+              <input type="range" min="70" max="150" value="96" step="1" data-lab-bpm>
+              <output data-lab-bpm-output>096</output>
+            </label>
+          </div>
+          <div class="lab-steps" aria-label="Eight step sequencer">
+            <button type="button" class="is-on" aria-label="Step 1" aria-pressed="true"><span>01</span></button>
+            <button type="button" aria-label="Step 2" aria-pressed="false"><span>02</span></button>
+            <button type="button" class="is-on" aria-label="Step 3" aria-pressed="true"><span>03</span></button>
+            <button type="button" aria-label="Step 4" aria-pressed="false"><span>04</span></button>
+            <button type="button" class="is-on" aria-label="Step 5" aria-pressed="true"><span>05</span></button>
+            <button type="button" aria-label="Step 6" aria-pressed="false"><span>06</span></button>
+            <button type="button" class="is-on" aria-label="Step 7" aria-pressed="true"><span>07</span></button>
+            <button type="button" aria-label="Step 8" aria-pressed="false"><span>08</span></button>
+          </div>
+        </div>
+
+        <p class="lab-status" data-lab-status data-i18n="labReady">패드를 누르거나 루프를 시작해보세요.</p>
       </div>
     </section>
 
@@ -99,7 +190,7 @@
       <div class="story-intro reveal">
         <p class="eyebrow">ABOUT / ORGO</p>
         <h2 id="story-title" data-i18n="storyTitle" data-i18n-html="true">글씨를 쓰고,<br>손으로 돌립니다.</h2>
-        <span class="story-index">01 — HANDWRITING INTO MELODY</span>
+        <span class="story-index">03 — FROM LINE TO SOUND</span>
       </div>
 
       <div class="story-content reveal">
@@ -118,7 +209,6 @@
           <article><span>02</span><strong>MAP</strong><p data-i18n="storyMap">선을 음으로 읽는다.</p></article>
           <article><span>03</span><strong>TURN</strong><p data-i18n="storyTurn">손으로 다시 듣는다.</p></article>
         </div>
-      </div>
       </div>
     </section>
   </main>
