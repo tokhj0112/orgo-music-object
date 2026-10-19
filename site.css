@@ -454,8 +454,8 @@ img {
   overflow: clip;
   border-top: 1px solid var(--border);
   background:
-    radial-gradient(circle at 78% 58%, #18344b00 0, #18344b00 20%, transparent 54%),
-    linear-gradient(180deg, #101010 0%, #0d1620 62%, #0b121b 100%);
+    radial-gradient(circle at 78% 58%, #2d303200 0, #2d303200 20%, transparent 54%),
+    linear-gradient(180deg, #101010 0%, #151617 62%, #111213 100%);
 }
 
 .signal-bridge-stage {
@@ -472,8 +472,8 @@ img {
   position: absolute;
   inset: 0;
   z-index: -2;
-  background: radial-gradient(circle at 72% 57%, #193b55 0, #112333 25%, transparent 60%);
-  opacity: calc(var(--bridge-progress) * .82);
+  background: radial-gradient(circle at 72% 57%, #34383b 0, #202325 26%, transparent 61%);
+  opacity: calc(var(--bridge-progress) * .54);
 }
 
 .signal-bridge-grid {
@@ -482,8 +482,8 @@ img {
   z-index: -1;
   opacity: calc(.08 + var(--bridge-progress) * .08);
   background-image:
-    linear-gradient(#8fb8d50e 1px, transparent 1px),
-    linear-gradient(90deg, #8fb8d50e 1px, transparent 1px);
+    linear-gradient(#c5c8ca0a 1px, transparent 1px),
+    linear-gradient(90deg, #c5c8ca0a 1px, transparent 1px);
   background-size: 6vw 6vw;
   transform: translateY(calc(var(--bridge-progress) * -2vw));
 }
@@ -586,7 +586,7 @@ img {
 .signal-bridge-recorder.is-recording .signal-recorder-active {
   opacity: 1;
   transform: translateY(0) scale(1);
-  filter: brightness(1.08) drop-shadow(0 0 22px #79bce04a);
+  filter: brightness(1.06) drop-shadow(0 0 18px #c7cbcd35);
 }
 
 .signal-bridge-recorder:active .signal-bridge-recorder-visual {
@@ -681,12 +681,12 @@ img {
   letter-spacing: -.065em;
 }
 
-.signal-bridge-copy h2 span { color: #91a8b8; }
+.signal-bridge-copy h2 span { color: #a5a8aa; }
 
 .signal-bridge-copy > p:last-child {
   width: min(100%, 480px);
   margin: 0;
-  color: #a5b5c2;
+  color: #a9aaab;
   font-size: 12px;
   line-height: 1.9;
 }
@@ -711,12 +711,12 @@ img {
 }
 
 .signal-bridge-teeth {
-  stroke: #b8d7e9;
+  stroke: #c7cacb;
   stroke-width: 1.25;
   stroke-linecap: round;
   opacity: calc(.5 - var(--bridge-wave) * .42);
   transform: translateX(calc(var(--bridge-wave) * -14px));
-  filter: drop-shadow(0 0 5px #79bfe04a);
+  filter: drop-shadow(0 0 4px #d8dbdc2c);
 }
 
 .signal-bridge-teeth line {
@@ -746,12 +746,12 @@ img {
 }
 
 .signal-bridge-thread {
-  stroke: #d4e6f2;
+  stroke: #d5d7d8;
   stroke-width: 1.35;
 }
 
 .signal-bridge-glow {
-  stroke: #5f9bc6;
+  stroke: #a8adaf;
   stroke-width: 7;
   opacity: calc(var(--bridge-wave) * .16);
   filter: blur(6px);
@@ -763,10 +763,10 @@ img {
   top: 50%;
   width: 9px;
   height: 9px;
-  border: 1px solid #d8efff;
+  border: 1px solid #e1e3e3;
   border-radius: 50%;
-  background: #86c6e9;
-  box-shadow: 0 0 0 8px #78b9df1f, 0 0 32px #7cc7f0a3;
+  background: #bfc3c4;
+  box-shadow: 0 0 0 8px #d4d7d719, 0 0 28px #d9dddd66;
   opacity: var(--bridge-wave);
   transform: translate(-50%, -50%) scale(calc(.72 + var(--bridge-wave) * .28));
   animation: signal-pulse 1.8s ease-in-out infinite;
@@ -777,7 +777,7 @@ img {
   left: 4%;
   bottom: 4.5%;
   margin: 0;
-  color: #748b9b;
+  color: #858889;
   font: 8px/1 monospace;
   letter-spacing: 1.7px;
   opacity: calc(.9 - var(--bridge-progress) - var(--bridge-exit));
@@ -789,8 +789,8 @@ img {
 }
 
 @keyframes signal-pulse {
-  0%, 100% { box-shadow: 0 0 0 5px #78b9df14, 0 0 22px #7cc7f06b; }
-  50% { box-shadow: 0 0 0 14px #78b9df08, 0 0 42px #7cc7f0b5; }
+  0%, 100% { box-shadow: 0 0 0 5px #d4d7d712, 0 0 20px #d7dbdc3d; }
+  50% { box-shadow: 0 0 0 14px #d4d7d708, 0 0 34px #e0e3e359; }
 }
 
 @keyframes bridge-spectrum-breathe {
@@ -813,8 +813,8 @@ img {
   overflow: hidden;
   border-top: 1px solid var(--border);
   background:
-    radial-gradient(circle at 68% 48%, #1a3043 0, #101e2b 25%, transparent 55%),
-    #0b1118;
+    radial-gradient(circle at 68% 48%, #292c2e 0, #1a1c1e 26%, transparent 56%),
+    #111213;
 }
 
 .sound-lab::before {
@@ -822,7 +822,7 @@ img {
   position: absolute;
   right: 1.8%;
   top: 50%;
-  color: #738b9c;
+  color: #7f8284;
   font: 8px/1 monospace;
   letter-spacing: 2px;
   writing-mode: vertical-rl;
@@ -850,7 +850,7 @@ img {
 .sound-lab-intro > p:last-child {
   max-width: 430px;
   margin: 0 0 7px;
-  color: #a5b5c2;
+  color: #a9aaab;
   font-size: 13px;
   line-height: 1.85;
 }
@@ -863,9 +863,9 @@ img {
   gap: 0;
   max-width: 1560px;
   margin: 0 auto;
-  border: 1px solid #314252;
+  border: 1px solid #3b3e40;
   border-radius: 26px;
-  background: #111922e8;
+  background: #181a1be8;
   box-shadow: 0 34px 90px #0007;
   overflow: hidden;
 }
@@ -873,13 +873,13 @@ img {
 .lab-voices {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #314252;
-  background: #0d141c;
+  border-right: 1px solid #3b3e40;
+  background: #141617;
 }
 
 .lab-label {
   padding: 20px 22px 16px;
-  color: #718696;
+  color: #828587;
   font: 9px/1 monospace;
   letter-spacing: 2px;
 }
@@ -892,26 +892,26 @@ img {
   min-height: 88px;
   padding: 18px 22px;
   border: 0;
-  border-top: 1px solid #273746;
+  border-top: 1px solid #303335;
   background: transparent;
-  color: #7e93a2;
+  color: #8f9294;
   text-align: left;
   transition: color 260ms ease, background 260ms ease, padding-left 260ms ease;
 }
 
-.lab-voice:last-child { border-bottom: 1px solid #273746; }
-.lab-voice > span { grid-row: 1 / 3; color: #5c7180; font: 9px/1 monospace; }
+.lab-voice:last-child { border-bottom: 1px solid #303335; }
+.lab-voice > span { grid-row: 1 / 3; color: #6f7274; font: 9px/1 monospace; }
 .lab-voice strong { font: 500 18px/1 sans-serif; letter-spacing: .03em; }
 .lab-voice small { font-size: 10px; line-height: 1.45; }
 
 .lab-voice:hover,
 .lab-voice.is-active {
   padding-left: 27px;
-  color: #eef7fc;
-  background: linear-gradient(90deg, #1d3447, transparent);
+  color: #f1f1ee;
+  background: linear-gradient(90deg, #2c2f31, transparent);
 }
 
-.lab-voice.is-active > span { color: #afcfe2; }
+.lab-voice.is-active > span { color: #c3c6c7; }
 
 .lab-pad {
   --pad-x: 50%;
@@ -923,8 +923,8 @@ img {
   touch-action: none;
   isolation: isolate;
   background:
-    radial-gradient(circle at var(--pad-x) var(--pad-y), #bfe8ff2d 0 4%, #4d8cb422 8%, transparent 28%),
-    linear-gradient(135deg, #152433, #0c141d 68%);
+    radial-gradient(circle at var(--pad-x) var(--pad-y), #f0f1f125 0 4%, #aeb3b51b 8%, transparent 28%),
+    linear-gradient(135deg, #202325, #121415 68%);
 }
 
 .lab-pad::before,
@@ -934,7 +934,7 @@ img {
   inset: 50% auto auto 50%;
   width: min(54vw, 680px);
   aspect-ratio: 1;
-  border: 1px solid #6a9dbd40;
+  border: 1px solid #a7abad2b;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   animation: lab-breathe 9s ease-in-out infinite;
@@ -942,12 +942,12 @@ img {
 
 .lab-pad::after {
   width: min(37vw, 460px);
-  border-color: #6a9dbd26;
+  border-color: #a7abad1c;
   animation-delay: -4.5s;
 }
 
 .lab-pad.is-touching { cursor: none; }
-.lab-pad.is-touching::before { border-color: #9ed5f46b; }
+.lab-pad.is-touching::before { border-color: #d8dbdc52; }
 
 .lab-pad-orbit {
   position: absolute;
@@ -956,7 +956,7 @@ img {
   top: 50%;
   width: 82%;
   height: 44%;
-  border: 1px solid #6798b83d;
+  border: 1px solid #a4a9ab29;
   border-radius: 50%;
 }
 
@@ -970,7 +970,7 @@ img {
   top: var(--pad-y);
   width: 18px;
   aspect-ratio: 1;
-  border: 1px solid #d8f1ff;
+  border: 1px solid #e2e4e4;
   border-radius: 50%;
   opacity: .4;
   transform: translate(-50%, -50%);
@@ -980,7 +980,7 @@ img {
 .lab-pad.is-touching .lab-pad-cursor {
   width: 34px;
   opacity: 1;
-  box-shadow: 0 0 0 9px #9cd8f516, 0 0 36px #79c4eb59;
+  box-shadow: 0 0 0 9px #d8dbdc14, 0 0 32px #d9dddd38;
 }
 
 .lab-pad-axis {
@@ -1012,7 +1012,7 @@ img {
 }
 
 .lab-pad-copy strong { font: 400 clamp(23px, 3.1vw, 48px)/1 sans-serif; letter-spacing: -.04em; }
-.lab-pad-copy small { color: #91a6b4; font-size: 11px; line-height: 1.6; }
+.lab-pad-copy small { color: #9da0a2; font-size: 11px; line-height: 1.6; }
 .lab-pad.is-touching .lab-pad-copy { opacity: .1; transform: translate(-50%, -50%) scale(.96); }
 
 /* BASS — pull and release the strings */
@@ -1402,7 +1402,7 @@ img {
   display: grid;
   grid-template-columns: minmax(230px, .42fr) 1.3fr;
   min-height: 136px;
-  border-top: 1px solid #314252;
+  border-top: 1px solid #3b3e40;
 }
 
 .lab-transport {
@@ -1411,26 +1411,26 @@ img {
   justify-content: center;
   gap: 18px;
   padding: 22px;
-  border-right: 1px solid #314252;
-  background: #0d141c;
+  border-right: 1px solid #3b3e40;
+  background: #141617;
 }
 
 .lab-play {
   width: 100%;
   padding: 13px 16px;
-  border: 1px solid #5f7c90;
+  border: 1px solid #6f7375;
   border-radius: 999px;
   background: transparent;
-  color: #e7f3fa;
+  color: #eceeed;
   font: 10px/1 monospace;
   letter-spacing: 1px;
 }
 
-.lab-play.is-playing { background: #ccecff; color: #0d1821; }
+.lab-play.is-playing { background: #d8dada; color: #151617; }
 
-.lab-transport label { display: grid; grid-template-columns: 30px 1fr 32px; align-items: center; gap: 10px; color: #758b9b; font: 8px/1 monospace; }
-.lab-transport input { width: 100%; accent-color: #9fd8f7; }
-.lab-transport output { color: #b8cedc; text-align: right; }
+.lab-transport label { display: grid; grid-template-columns: 30px 1fr 32px; align-items: center; gap: 10px; color: #858889; font: 8px/1 monospace; }
+.lab-transport input { width: 100%; accent-color: #bfc3c4; }
+.lab-transport output { color: #b6b9ba; text-align: right; }
 
 .lab-steps {
   display: grid;
@@ -1442,18 +1442,18 @@ img {
   position: relative;
   min-width: 0;
   border: 0;
-  border-right: 1px solid #293b4a;
-  background: #101923;
-  color: #627b8c;
+  border-right: 1px solid #343739;
+  background: #181a1b;
+  color: #75787a;
   transition: background 150ms ease, color 150ms ease;
 }
 
 .lab-steps button:last-child { border-right: 0; }
 .lab-steps button::before { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; aspect-ratio: 1; border: 1px solid currentColor; border-radius: 50%; transform: translate(-50%, -50%); }
 .lab-steps button span { position: absolute; left: 10px; bottom: 10px; font: 8px/1 monospace; }
-.lab-steps button.is-on { color: #bde5fb; background: #172b3a; }
-.lab-steps button.is-on::before { background: currentColor; box-shadow: 0 0 18px #79c4eb66; }
-.lab-steps button.is-current { color: #fff; background: #24445b; }
+.lab-steps button.is-on { color: #d7d9d9; background: #282b2d; }
+.lab-steps button.is-on::before { background: currentColor; box-shadow: 0 0 16px #d8dcdd3d; }
+.lab-steps button.is-current { color: #fff; background: #3b3f41; }
 
 .lab-status {
   position: absolute;
