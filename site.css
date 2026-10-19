@@ -1717,7 +1717,7 @@ img {
 .archive-feed-mechanism::before { content: ""; position: absolute; z-index: -1; left: 51%; top: 0; width: 60%; aspect-ratio: 1.55; border-radius: 50%; background: radial-gradient(ellipse, #e9e9df13 0%, transparent 70%); filter: blur(24px); transform: translate(-50%, -50%); }
 .archive-feed-box, .archive-feed-crank { position: absolute; left: 50%; top: 0; width: 100%; max-width: none; height: auto; transform: translate(-50%, -39%); pointer-events: none; user-select: none; }
 .archive-feed-box { z-index: 1; filter: saturate(.78) contrast(1.02) brightness(.96); }
-.archive-feed-crank { z-index: 2; transform-origin: 31.2% 55%; transform-style: preserve-3d; filter: saturate(.88) brightness(.96); will-change: transform, filter; }
+.archive-feed-crank { z-index: 2; transform-origin: 31.5% 48.5%; transform-style: preserve-3d; filter: saturate(.88) brightness(.96); will-change: transform, filter; }
 .archive-feed-stage.is-switching .archive-feed-ribbon { animation: archive-ribbon-select .55s cubic-bezier(.2,.8,.2,1) both; }
 .archive-feed-stage.is-switching .archive-feed-mechanism { animation: archive-mechanism-select .55s cubic-bezier(.2,.8,.2,1) both; }
 .archive-feed-stage.is-playing .archive-note-stream { animation: archive-feed-notes var(--feed-speed) linear infinite; }
