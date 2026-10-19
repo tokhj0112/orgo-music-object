@@ -81,29 +81,53 @@
   const signalBridge = document.querySelector("[data-signal-bridge]");
 
   if (signalBridge && !reduceMotion.matches) {
-    let bridgeTicking = false;
+    let bridgeCurrent = 0;
+    let bridgeTarget = 0;
+    let bridgeFrame = 0;
 
-    const updateSignalBridge = () => {
+    const smoothstep = (start, end, value) => {
+      const amount = Math.min(1, Math.max(0, (value - start) / (end - start)));
+      return amount * amount * (3 - 2 * amount);
+    };
+
+    const readBridgeProgress = () => {
       const bounds = signalBridge.getBoundingClientRect();
       const travel = Math.max(1, signalBridge.offsetHeight - window.innerHeight);
-      const raw = Math.min(1, Math.max(0, -bounds.top / travel));
-      const eased = raw * raw * (3 - 2 * raw);
-      const wave = Math.min(1, Math.max(0, (raw - 0.06) / 0.7));
-      const exit = Math.min(1, Math.max(0, (raw - 0.82) / 0.18));
+      return Math.min(1, Math.max(0, -bounds.top / travel));
+    };
 
-      signalBridge.style.setProperty("--bridge-progress", eased.toFixed(3));
+    const renderSignalBridge = (raw) => {
+      const motion = smoothstep(0.02, 0.78, raw);
+      const wave = smoothstep(0.1, 0.76, raw);
+      const recorder = smoothstep(0.25, 0.78, raw);
+      const exit = smoothstep(0.88, 1, raw);
+
+      signalBridge.style.setProperty("--bridge-progress", motion.toFixed(3));
       signalBridge.style.setProperty("--bridge-wave", wave.toFixed(3));
+      signalBridge.style.setProperty("--bridge-recorder", recorder.toFixed(3));
       signalBridge.style.setProperty("--bridge-exit", exit.toFixed(3));
-      bridgeTicking = false;
+    };
+
+    const animateSignalBridge = () => {
+      bridgeCurrent += (bridgeTarget - bridgeCurrent) * 0.11;
+      if (Math.abs(bridgeTarget - bridgeCurrent) < 0.0007) bridgeCurrent = bridgeTarget;
+      renderSignalBridge(bridgeCurrent);
+
+      if (bridgeCurrent !== bridgeTarget) {
+        bridgeFrame = window.requestAnimationFrame(animateSignalBridge);
+      } else {
+        bridgeFrame = 0;
+      }
     };
 
     const requestBridgeUpdate = () => {
-      if (bridgeTicking) return;
-      bridgeTicking = true;
-      window.requestAnimationFrame(updateSignalBridge);
+      bridgeTarget = readBridgeProgress();
+      if (!bridgeFrame) bridgeFrame = window.requestAnimationFrame(animateSignalBridge);
     };
 
-    updateSignalBridge();
+    bridgeTarget = readBridgeProgress();
+    bridgeCurrent = bridgeTarget;
+    renderSignalBridge(bridgeCurrent);
     window.addEventListener("scroll", requestBridgeUpdate, { passive: true });
     window.addEventListener("resize", requestBridgeUpdate);
   }
