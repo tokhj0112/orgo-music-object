@@ -684,7 +684,7 @@
     playButton.disabled = true;
     finishButton.disabled = true;
     saveHandButton.disabled = true;
-    finishButton.textContent = "선율 완성하기 →";
+    finishButton.textContent = "곡 완성하기 →";
     updateSheet();
   }
 
@@ -712,23 +712,23 @@
     stopDrawing();
     undoButton.disabled = true;
     finishButton.disabled = true;
-    finishButton.textContent = "선율 완성됨 ✓";
+    finishButton.textContent = "곡 완성 ✓";
     playButton.disabled = false;
     saveHandButton.disabled = false;
-    handState.textContent = "선율을 완성했어요 · 아래 버튼으로 들어보세요";
-    cameraStatus.textContent = "입력을 마쳤습니다. ‘내 선율 연주하기’에서 손잡이로 직접 들어보세요.";
+    handState.textContent = "곡 완성 · 아래 버튼에서 재생할 수 있습니다";
+    cameraStatus.textContent = "입력이 끝났습니다. ‘연주하기’에서 손잡이를 돌려 재생하세요.";
   }
 
   function requestArchiveName(onSave) {
     const korean = document.documentElement.lang === "ko";
     const copy = korean
       ? {
-        title: "선율 이름 정하기",
-        description: "아카이브에 남길 이름을 적어주세요.",
-        placeholder: "예: 비 오는 날의 멜로디",
+        title: "곡 제목 입력",
+        description: "아카이브에 표시할 제목을 입력하세요.",
+        placeholder: "예: 비 오는 날",
         cancel: "취소",
         save: "저장하기",
-        fallback: "이름 없는 선율",
+        fallback: "제목 없음",
       }
       : {
         title: "Name this melody",

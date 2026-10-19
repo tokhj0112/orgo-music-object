@@ -1821,11 +1821,11 @@
     const configuration = getConfiguration();
 
     const contents = [
-      "ORGO — 나의 오르골 구성",
+      "ORGO — 오르골 구성",
       "",
       `소재: ${configuration.material}`,
       `패키지: ${configuration.packaging}`,
-      `선율: ${configuration.melody ? `${configuration.melody.title} (${configuration.melody.notes} NOTES)` : "선택 안 함"}`,
+      `곡: ${configuration.melody ? `${configuration.melody.title} (${configuration.melody.notes} NOTES)` : "선택 안 함"}`,
       `사진 프린팅: ${configuration.photo || "없음"}`,
       `각인 문구: ${configuration.engraving || "없음"}`,
       "",

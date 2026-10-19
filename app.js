@@ -993,13 +993,13 @@
     const copy = isKorean() ? {
       write: [
         "01 / WRITE",
-        "먼저, 당신의 글씨를 남겨주세요.",
-        "가로 위치는 시간, 세로 위치는 음의 높이가 됩니다.",
+        "종이에 글씨를 써주세요",
+        "가로 위치는 시간, 세로 위치는 음높이로 변환됩니다.",
       ],
       punch: [
         "02 / PUNCH",
-        "글씨를 따라, 소리가 날 자리를 뚫어요.",
-        "빈 점을 직접 누르거나 자동으로 모두 뚫어보세요.",
+        "글씨를 펀칭 위치로 변환합니다.",
+        "점을 직접 누르거나 자동 펀칭을 사용하세요.",
       ],
       listen: [
         "03 / PLAY",
@@ -1661,12 +1661,12 @@
   function requestArchiveName(onSave) {
     const copy = isKorean()
       ? {
-        title: "선율 이름 정하기",
-        description: "아카이브에 남길 이름을 적어주세요.",
-        placeholder: "예: 비 오는 날의 멜로디",
+        title: "곡 제목 입력",
+        description: "아카이브에 표시할 제목을 입력하세요.",
+        placeholder: "예: 비 오는 날",
         cancel: "취소",
         save: "저장하기",
-        fallback: "이름 없는 선율",
+        fallback: "제목 없음",
       }
       : {
         title: "Name this melody",
@@ -1824,17 +1824,17 @@
   function updateArchivePlaybackCopy() {
     if (!archivePlayback) return;
 
-    const fallback = isKorean() ? "이름 없는 선율" : "Untitled melody";
+    const fallback = isKorean() ? "제목 없음" : "Untitled melody";
     const title = archivePlayback.title?.trim() || fallback;
     const prefix = isKorean() ? "ARCHIVE / 연주 중" : "ARCHIVE / PLAYING";
 
     $("stage-label").textContent = prefix;
     $("stage-title").textContent = title;
     $("stage-description").textContent = isKorean()
-      ? "저장된 종이를 손잡이로 돌려, 만든 음색 그대로 들어보세요."
+      ? "손잡이를 돌려 저장한 곡을 재생하세요."
       : "Turn the crank to hear this saved paper in its original tone.";
     $("hint").textContent = isKorean()
-      ? "아카이브에서 불러온 선율입니다. 손잡이를 시계 방향으로 돌려 연주해 보세요."
+      ? "아카이브에서 불러온 곡입니다. 손잡이를 시계 방향으로 돌리세요."
       : "This melody came from your archive. Turn the crank clockwise to play it.";
     document.title = `${title} — ORGO`;
   }
@@ -1945,10 +1945,10 @@
       close: "튜토리얼 닫기",
       guide: "GUIDE ?",
       callouts: [
-        ["먼저 음색을 골라보세요", "원하는 오르골 소리와 음량을 미리 확인할 수 있어요."],
+        ["먼저 음색을 선택하세요", "오르골 음색과 음량을 미리 확인할 수 있습니다."],
         ["쓰기 · 펀칭 · 연주", "세 단계가 왼쪽에서 오른쪽으로 이어집니다."],
-        ["이 종이 위에 글씨를 써보세요", "가로는 시간, 세로는 음의 높이가 됩니다."],
-        ["완성되면 손잡이를 돌려보세요", "직접 돌리는 속도에 맞춰 선율이 재생됩니다."],
+        ["종이에 글씨를 써주세요", "가로는 시간, 세로는 음높이로 변환됩니다."],
+        ["완성 후 손잡이를 돌리세요", "손잡이를 돌리는 속도에 맞춰 곡이 재생됩니다."],
       ],
     },
     en: {

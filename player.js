@@ -72,7 +72,7 @@
 
   function updateCopy() {
     if (!item) return;
-    const fallback = isKorean() ? "이름 없는 선율" : "Untitled melody";
+    const fallback = isKorean() ? "제목 없음" : "Untitled melody";
     const title = item.title?.trim() || fallback;
     $("player-title").textContent = title;
     $("player-description").textContent = t("playerDescription");

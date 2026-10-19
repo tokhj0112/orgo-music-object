@@ -9,8 +9,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  <script src="i18n.js?v=undo-button-1" defer></script>
-  <script src="camera.js?v=undo-button-1" defer></script>
+  <script src="i18n.js?v=ko-copy-23" defer></script>
+  <script src="camera.js?v=ko-copy-23" defer></script>
 </head>
 
 <body>
@@ -27,9 +27,9 @@
     <section class="intro">
       <div>
         <p class="eyebrow">CAMERA / FINGERTIP COMPOSE</p>
-        <h1 data-i18n="cameraTitle">손끝으로 그린 선율.</h1>
+        <h1 data-i18n="cameraTitle">손동작으로 곡 만들기</h1>
       </div>
-      <p data-i18n="cameraIntro" data-i18n-html="true">검지와 엄지를 맞대면 선이 시작됩니다.<br>공중에 그린 움직임이 당신의 악보가 됩니다.</p>
+      <p data-i18n="cameraIntro" data-i18n-html="true">검지와 엄지를 맞대고 공중에 선을 그리세요.<br>움직임이 펀칭 악보로 변환됩니다.</p>
     </section>
 
     <section class="camera-workbench" aria-label="카메라로 손끝을 인식해 악보 만들기">
@@ -69,9 +69,9 @@
         <div class="sheet-actions">
           <button id="clear-sheet" type="button" data-i18n="cameraClear">새로 그리기 ↶</button>
           <button id="undo-stroke" type="button" disabled data-i18n="cameraUndo">방금 획 되돌리기 ↶</button>
-          <button id="finish-score" type="button" disabled data-i18n="cameraFinish">선율 완성하기 →</button>
+          <button id="finish-score" type="button" disabled data-i18n="cameraFinish">곡 완성하기 →</button>
           <button id="save-hand-archive" type="button" disabled data-i18n="cameraSave">아카이브에 저장하기 +</button>
-          <button id="play-score" type="button" disabled data-i18n="cameraPlay">내 선율 연주하기 →</button>
+          <button id="play-score" type="button" disabled data-i18n="cameraPlay">연주하기 →</button>
         </div>
       </div>
     </section>
@@ -84,7 +84,7 @@
     </section>
   </main>
 
-  <section id="player-screen" class="player-screen" hidden aria-label="완성한 선율 연주하기">
+  <section id="player-screen" class="player-screen" hidden aria-label="완성한 곡 연주하기">
     <div class="player-header">
       <span>ORGO / YOUR HANDWRITING MELODY</span>
       <button id="close-player" type="button" data-i18n="cameraBack">작업대로 돌아가기 ←</button>
