@@ -1177,7 +1177,11 @@
 
     function playArchivePreview(item, stage, button) {
       stopArchivePreview(stage, button);
-      const notes = Array.isArray(item.notes) ? item.notes.slice(0, 36) : [];
+      const sourceNotes = Array.isArray(item.notes)
+        ? [...item.notes].sort((a, b) => (Number(a.x) || 0) - (Number(b.x) || 0))
+        : [];
+      const noteStride = Math.max(1, Math.ceil(sourceNotes.length / 18));
+      const notes = sourceNotes.filter((_, index) => index % noteStride === 0).slice(0, 18);
       stage.classList.add("is-playing");
       button.classList.add("is-playing");
       button.textContent = "STOP FEED ■";
@@ -1193,29 +1197,57 @@
         const maxX = xs.length ? Math.max(...xs) : 1;
         const rangeX = Math.max(1, maxX - minX);
         const sourceHeight = Number(item.height) || 760;
+        const gentleScale = [329.63, 392, 440, 523.25, 587.33, 659.25];
+        const dryBus = archiveAudioContext.createGain();
+        const echo = archiveAudioContext.createDelay(.4);
+        const echoGain = archiveAudioContext.createGain();
+        const toneFilter = archiveAudioContext.createBiquadFilter();
+        dryBus.gain.value = .82;
+        echo.delayTime.value = .16;
+        echoGain.gain.value = .12;
+        toneFilter.type = "lowpass";
+        toneFilter.frequency.value = 2900;
+        toneFilter.Q.value = .35;
+        dryBus.connect(toneFilter).connect(archiveAudioContext.destination);
+        dryBus.connect(echo).connect(echoGain).connect(toneFilter);
+        const usedSteps = new Set();
 
         notes.forEach((note, index) => {
           const x = Number.isFinite(Number(note.x)) ? Number(note.x) : index * 60;
           const y = Number.isFinite(Number(note.y)) ? Number(note.y) : sourceHeight * .5;
-          const when = start + ((x - minX) / rangeX) * 4.4;
-          const pitch = Math.max(0, Math.min(11, Math.round((1 - y / sourceHeight) * 11)));
-          const frequency = 220 * Math.pow(2, pitch / 12);
+          const timeline = Math.max(0, Math.min(1, (x - minX) / rangeX));
+          const step = Math.round(timeline * 18);
+          if (usedSteps.has(step)) return;
+          usedSteps.add(step);
+          const when = start + (step / 18) * 4.8;
+          const scaleIndex = Math.max(0, Math.min(gentleScale.length - 1, Math.round((1 - y / sourceHeight) * (gentleScale.length - 1))));
+          const frequency = gentleScale[scaleIndex];
           const oscillator = archiveAudioContext.createOscillator();
           const gain = archiveAudioContext.createGain();
-          oscillator.type = index % 3 === 0 ? "sine" : "triangle";
+          const shimmer = archiveAudioContext.createOscillator();
+          const shimmerGain = archiveAudioContext.createGain();
+          oscillator.type = "sine";
           oscillator.frequency.setValueAtTime(frequency, when);
-          oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.006, when + .42);
           gain.gain.setValueAtTime(.0001, when);
-          gain.gain.exponentialRampToValueAtTime(.055, when + .012);
-          gain.gain.exponentialRampToValueAtTime(.0001, when + .52);
-          oscillator.connect(gain).connect(archiveAudioContext.destination);
+          gain.gain.exponentialRampToValueAtTime(.016, when + .014);
+          gain.gain.exponentialRampToValueAtTime(.0001, when + 1.05);
+          oscillator.connect(gain).connect(dryBus);
+          shimmer.type = "sine";
+          shimmer.frequency.setValueAtTime(frequency * 2.005, when);
+          shimmerGain.gain.setValueAtTime(.0001, when);
+          shimmerGain.gain.exponentialRampToValueAtTime(.0032, when + .01);
+          shimmerGain.gain.exponentialRampToValueAtTime(.0001, when + .58);
+          shimmer.connect(shimmerGain).connect(dryBus);
           oscillator.start(when);
-          oscillator.stop(when + .58);
+          shimmer.start(when);
+          oscillator.stop(when + 1.12);
+          shimmer.stop(when + .64);
           archivePreviewVoices.push({ oscillator, gain });
+          archivePreviewVoices.push({ oscillator: shimmer, gain: shimmerGain });
         });
       }
 
-      archivePreviewTimer = window.setTimeout(() => stopArchivePreview(stage, button), 5200);
+      archivePreviewTimer = window.setTimeout(() => stopArchivePreview(stage, button), 6100);
     }
 
     function renderFeedNotes(container, item) {
@@ -1290,17 +1322,13 @@
 
       const mechanism = document.createElement("div");
       mechanism.className = "archive-feed-mechanism";
-      const boxSource = "archive-music-box-mechanism-cutout.png?v=archive-library-19";
       const box = document.createElement("img");
       box.className = "archive-feed-box";
-      box.src = boxSource;
+      box.src = "image/archive-music-box-body.png?v=archive-crank-21";
       box.alt = "펀칭 악보가 통과하는 ORGO 오르골 메커니즘";
-      box.addEventListener("error", () => {
-        box.src = "image/archive-music-box-mechanism-cutout.png?v=archive-library-19";
-      }, { once: true });
       const crank = document.createElement("img");
       crank.className = "archive-feed-crank";
-      crank.src = boxSource;
+      crank.src = "image/archive-music-box-crank.png?v=archive-crank-21";
       crank.alt = "";
       crank.setAttribute("aria-hidden", "true");
       mechanism.append(box, crank);
