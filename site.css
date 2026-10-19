@@ -474,6 +474,8 @@ img {
   z-index: -2;
   background: radial-gradient(circle at 72% 57%, #34383b 0, #202325 26%, transparent 61%);
   opacity: calc(var(--bridge-progress) * .54);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 54%, #000b 70%, #0004 86%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 54%, #000b 70%, #0004 86%, transparent 100%);
 }
 
 .signal-bridge-grid {
@@ -824,8 +826,24 @@ img {
   overflow: hidden;
   border-top: 1px solid var(--border);
   background:
+    linear-gradient(180deg, #111213 0%, #111213e8 5%, transparent 20%),
     radial-gradient(circle at 68% 48%, #292c2e 0, #1a1c1e 26%, transparent 56%),
     #111213;
+}
+
+.sound-lab::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: clamp(90px, 14vw, 210px);
+  background: linear-gradient(180deg, #111213 0%, #111213b8 22%, #1112134d 62%, transparent 100%);
+  pointer-events: none;
+}
+
+.sound-lab > * {
+  position: relative;
+  z-index: 1;
 }
 
 .sound-lab::before {
