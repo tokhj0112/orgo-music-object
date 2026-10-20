@@ -9,8 +9,8 @@
     content="손글씨와 움직임을 소리로 바꾸는 인터랙티브 음악 웹사이트 ORGO."
   >
   <title>ORGO — Every line, a little music.</title>
-  <link rel="stylesheet" href="site.css?v=hero-explode-single-25">
-  <script src="i18n.js?v=ko-copy-23" defer></script>
+  <link rel="stylesheet" href="site.css?v=ux-guide-27">
+  <script src="i18n.js?v=ux-guide-27" defer></script>
   <script src="site.js?v=ko-copy-23" defer></script>
 </head>
 
@@ -30,8 +30,8 @@
       <a href="object.html">OBJECT</a>
     </nav>
 
-    <a class="outline-link header-action" href="#sound-lab">
-      OPEN LAB <span>↓</span>
+    <a class="outline-link header-action" href="compose.html" data-i18n="navStart" data-i18n-html="true">
+      처음 시작하기 <span>→</span>
     </a>
   </header>
 
@@ -50,6 +50,11 @@
           선과 움직임을<br>
           <span>소리로 바꿉니다</span>
         </p>
+
+        <div class="hero-actions">
+          <a class="solid-link" href="compose.html" data-i18n="heroPrimary" data-i18n-html="true">음악 만들기 <span>→</span></a>
+          <a class="text-link" href="#sound-lab" data-i18n="heroSecondary" data-i18n-html="true">먼저 소리 체험하기 <span>↓</span></a>
+        </div>
       </div>
 
       <div class="hero-art">
@@ -84,16 +89,30 @@
         </span>
       </div>
 
-      <div class="hero-bottom-line">
-        <span data-i18n="heroBottom">직접 만들고 연주하는 사운드 인터페이스</span>
-        <span>ORGO SOUND OBJECT</span>
-      </div>
+      <nav class="hero-bottom-line hero-path" aria-label="ORGO 이용 순서">
+        <span class="hero-path-label" data-i18n="pathLabel">처음이라면 이 순서로 시작하세요</span>
+        <a href="#sound-lab">
+          <b>01</b><span data-i18n="pathSoundTitle">소리 체험</span><small data-i18n="pathSoundDesc">눌러서 먼저 들어보기</small>
+        </a>
+        <a href="compose.html">
+          <b>02</b><span data-i18n="pathComposeTitle">곡 만들기</span><small data-i18n="pathComposeDesc">손글씨로 악보 만들기</small>
+        </a>
+        <a href="archive.html">
+          <b>03</b><span data-i18n="pathArchiveTitle">저장한 곡</span><small data-i18n="pathArchiveDesc">다시 듣고 오르골 구성하기</small>
+        </a>
+      </nav>
       </div>
     </section>
 
     <section class="signal-bridge" data-signal-bridge aria-labelledby="signal-bridge-title">
       <div class="signal-bridge-stage">
         <div class="signal-bridge-grid" aria-hidden="true"></div>
+
+        <div class="signal-bridge-entry" aria-hidden="true">
+          <span>INPUT / 01</span>
+          <strong>MECHANICAL<br>SOUND</strong>
+          <small>ONE OBJECT · ONE SIGNAL</small>
+        </div>
 
         <div class="signal-bridge-index" aria-hidden="true">
           <span>01 / MECHANICAL</span>
@@ -168,6 +187,12 @@
         <h2 id="sound-lab-title" data-i18n="labTitle" data-i18n-html="true">소리를 선택하고<br>직접 움직이세요</h2>
         <p data-i18n="labDescription">파형과 리듬을 직접 조작하는 전자음악 실험실입니다.</p>
       </header>
+
+      <ol class="lab-howto reveal" aria-label="사운드 랩 사용 순서">
+        <li><b>1</b><span data-i18n="labHowOne">왼쪽에서 소리를 고르세요</span></li>
+        <li><b>2</b><span data-i18n="labHowTwo">가운데를 누른 채 움직이세요</span></li>
+        <li><b>3</b><span data-i18n="labHowThree">아래 버튼으로 루프를 재생하세요</span></li>
+      </ol>
 
       <div class="sound-lab-board reveal" data-sound-lab>
         <div class="lab-voices" aria-label="Sound palette">
@@ -351,6 +376,8 @@
           <article><span>02</span><strong>MAP</strong><p data-i18n="storyMap">선을 음으로 읽는다.</p></article>
           <article><span>03</span><strong>TURN</strong><p data-i18n="storyTurn">손으로 다시 듣는다.</p></article>
         </div>
+
+        <a class="story-link solid-link" href="compose.html" data-i18n="storyStart" data-i18n-html="true">내 음악 만들기 <span>→</span></a>
       </div>
     </section>
   </main>

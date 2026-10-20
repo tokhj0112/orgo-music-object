@@ -201,7 +201,7 @@ img {
   min-height: calc(100svh - 1px);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  padding: 46px 4% 84px;
+  padding: 46px 4% 118px;
 }
 
 .hero-copy {
@@ -242,6 +242,25 @@ img {
 
 .hero-description span {
   color: var(--muted);
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 0 0 10px;
+  pointer-events: auto;
+}
+
+.hero-actions .solid-link {
+  min-height: 46px;
+  padding: 13px 19px;
+  font-size: 12px;
+}
+
+.hero-actions .text-link {
+  gap: 18px;
+  font-size: 11px;
 }
 
 .hero-art {
@@ -408,12 +427,57 @@ img {
   left: 4%;
   right: 4%;
   border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 20px 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 1.25fr) repeat(3, minmax(145px, 1fr));
+  gap: 0;
+  min-height: 84px;
+  padding: 0;
   color: var(--muted);
   font: 9px monospace;
+}
+
+.hero-path-label {
+  display: flex;
+  align-items: center;
+  padding-right: 22px;
+  color: #a0a29f;
+  line-height: 1.6;
+}
+
+.hero-path a {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 11px;
+  align-content: center;
+  min-width: 0;
+  padding: 15px 18px;
+  border-left: 1px solid var(--border);
+  color: #d5d6d1;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.hero-path a:hover,
+.hero-path a:focus-visible {
+  background: #ffffff08;
+  color: #fff;
+}
+
+.hero-path b {
+  grid-row: 1 / 3;
+  align-self: center;
+  color: #7f8280;
+  font-size: 8px;
+  font-weight: 400;
+}
+
+.hero-path span { font-size: 10px; }
+
+.hero-path small {
+  overflow: hidden;
+  color: #777a78;
+  font-size: 7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* HERO → SOUND LAB TRANSITION */
@@ -464,6 +528,52 @@ img {
   transform: translateY(calc(var(--bridge-progress) * -2vw));
 }
 
+.signal-bridge-entry {
+  position: absolute;
+  z-index: 1;
+  top: 31%;
+  left: 7%;
+  width: min(31vw, 430px);
+  color: #a8aaab;
+  opacity: clamp(0, calc(1 - var(--bridge-progress) * 2.45), 1);
+  transform: translate3d(calc(var(--bridge-progress) * -3vw), calc(var(--bridge-progress) * -28px), 0);
+  will-change: opacity, transform;
+  pointer-events: none;
+}
+
+.signal-bridge-entry::after {
+  content: "";
+  display: block;
+  width: min(100%, 310px);
+  height: 1px;
+  margin-top: 30px;
+  background: linear-gradient(90deg, #85898a80, transparent);
+  transform: scaleX(calc(1 - var(--bridge-progress) * .5));
+  transform-origin: left;
+}
+
+.signal-bridge-entry span,
+.signal-bridge-entry small {
+  display: block;
+  font: 8px/1 monospace;
+  letter-spacing: 2px;
+}
+
+.signal-bridge-entry strong {
+  display: block;
+  margin: 24px 0 20px;
+  color: #d2d4d4;
+  font-size: clamp(44px, 4.9vw, 78px);
+  font-weight: 400;
+  line-height: .88;
+  letter-spacing: -.065em;
+}
+
+.signal-bridge-entry small {
+  color: #747778;
+  letter-spacing: 1.55px;
+}
+
 .signal-bridge-index {
   position: absolute;
   top: clamp(32px, 5vw, 72px);
@@ -481,11 +591,11 @@ img {
   position: absolute;
   left: 0;
   top: 50%;
-  width: clamp(250px, 31vw, 520px);
+  width: clamp(280px, 36vw, 610px);
   aspect-ratio: 1;
   transform:
-    translate3d(calc(49vw - var(--bridge-progress) * 41vw), calc(-50% - var(--bridge-exit) * 18vh), 0)
-    scale(calc(.92 - var(--bridge-progress) * .18))
+    translate3d(calc(51vw - var(--bridge-progress) * 44vw), calc(-50% - var(--bridge-exit) * 18vh), 0)
+    scale(calc(.98 - var(--bridge-progress) * .22))
     rotate(calc(-8deg + var(--bridge-progress) * 8deg));
   opacity: calc(1 - var(--bridge-exit));
   filter: drop-shadow(0 34px 40px #000a);
@@ -856,6 +966,49 @@ img {
   color: #a9aaab;
   font-size: 13px;
   line-height: 1.85;
+}
+
+.lab-howto {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 980px;
+  margin: calc(clamp(42px, 5vw, 76px) * -.45) 0 clamp(28px, 3.2vw, 46px);
+  padding: 0;
+  border-top: 1px solid #424547;
+  border-bottom: 1px solid #2d3032;
+  list-style: none;
+}
+
+.lab-howto li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 17px;
+  color: #aaaead;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.lab-howto li + li { border-left: 1px solid #343739; }
+
+.lab-howto b {
+  display: grid;
+  place-items: center;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  border: 1px solid #606465;
+  border-radius: 50%;
+  color: #e2e4e1;
+  font: 8px monospace;
+}
+
+.story-link {
+  width: fit-content;
+  margin-top: 48px;
+  padding: 13px 18px;
+  font-size: 11px;
 }
 
 .sound-lab-board {
@@ -2272,7 +2425,7 @@ legend {
     display: flex;
     flex-direction: column;
     min-height: auto;
-    padding: 32px 5% 84px;
+    padding: 32px 5% 178px;
   }
 
   .eyebrow {
@@ -2288,6 +2441,22 @@ legend {
   .hero-description {
     font-size: 11px;
     margin: 0;
+  }
+
+  .hero-actions {
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .hero-actions .solid-link {
+    min-height: 42px;
+    padding: 11px 14px;
+    font-size: 10px;
+  }
+
+  .hero-actions .text-link {
+    gap: 9px;
+    font-size: 9px;
   }
 
   .hero-art {
@@ -2321,6 +2490,21 @@ legend {
   }
 
   .signal-bridge-index span:nth-child(2) { display: none; }
+
+  .signal-bridge-entry {
+    top: 17%;
+    left: 8%;
+    width: 54%;
+  }
+
+  .signal-bridge-entry strong {
+    margin: 16px 0 13px;
+    font-size: clamp(30px, 9vw, 42px);
+  }
+
+  .signal-bridge-entry::after {
+    margin-top: 18px;
+  }
 
   .signal-bridge-machine {
     top: 35%;
@@ -2383,6 +2567,22 @@ legend {
   .sound-lab-intro h2 { font-size: clamp(36px, 11vw, 55px); }
   .sound-lab-intro > p:last-child { font-size: 11px; }
 
+  .lab-howto {
+    grid-template-columns: 1fr;
+    margin: -14px 0 27px;
+  }
+
+  .lab-howto li {
+    min-height: 44px;
+    padding: 8px 11px;
+    font-size: 9px;
+  }
+
+  .lab-howto li + li {
+    border-top: 1px solid #343739;
+    border-left: 0;
+  }
+
   .sound-lab-board {
     display: flex;
     flex-direction: column;
@@ -2433,9 +2633,29 @@ legend {
   }
 
   .hero-bottom-line {
+    grid-template-columns: repeat(3, 1fr);
+    min-height: 145px;
     font-size: 7px;
-    padding: 18px 0;
   }
+
+  .hero-path-label {
+    grid-column: 1 / -1;
+    min-height: 38px;
+    padding: 0 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-path a {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px 8px;
+  }
+
+  .hero-path a:first-of-type { border-left: 0; }
+  .hero-path b { align-self: flex-start; }
+  .hero-path span { font-size: 9px; }
+  .hero-path small { white-space: normal; line-height: 1.35; }
 
   .story {
     grid-template-columns: 1fr;
