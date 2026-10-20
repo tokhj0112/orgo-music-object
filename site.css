@@ -930,18 +930,6 @@ img {
   z-index: 1;
 }
 
-.sound-lab::before {
-  content: "ORGO / LIVE SIGNAL";
-  position: absolute;
-  right: 1.8%;
-  top: 50%;
-  color: #7f8284;
-  font: 8px/1 monospace;
-  letter-spacing: 2px;
-  writing-mode: vertical-rl;
-  transform: translateY(-50%);
-}
-
 .sound-lab-intro {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
@@ -2326,10 +2314,6 @@ legend {
     font-size: 11px;
   }
 
-  .header-action {
-    display: none;
-  }
-
   .hero {
     min-height: 145svh;
   }
@@ -2554,8 +2538,6 @@ legend {
     min-height: auto;
     padding: 76px 5%;
   }
-
-  .sound-lab::before { display: none; }
 
   .sound-lab-intro {
     grid-template-columns: 1fr;
