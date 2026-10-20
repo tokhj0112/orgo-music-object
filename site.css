@@ -344,35 +344,9 @@ img {
   will-change: opacity, transform;
 }
 
-/* 분해도는 하나의 이미지지만, 부품별 영역을 따로 움직여 조립이 풀리는 듯한 흐름을 만듭니다. */
-.explode-crank {
-  clip-path: inset(0 27% 67% 27%);
-  transform-origin: 50% 25%;
-  transform: translate(-42px, calc((1 - var(--explode, 0)) * 210px)) rotate(calc((1 - var(--explode, 0)) * -12deg));
-  animation: crank-rock 2.8s ease-in-out infinite;
-}
-
-.explode-lid {
-  clip-path: inset(16% 14% 54% 14%);
-  transform: translateY(calc((1 - var(--explode, 0)) * 120px)) scale(calc(.86 + var(--explode, 0) * .14));
-}
-
-.explode-case {
-  clip-path: inset(32% 10% 42% 10%);
-  transform: scale(calc(.68 + var(--explode, 0) * .32));
-}
-
-.explode-cylinder {
-  clip-path: inset(49% 0 25% 0);
-  transform-origin: 50% 60%;
-  transform: translateY(calc((1 - var(--explode, 0)) * -96px)) scale(calc(.6 + var(--explode, 0) * .4));
-  animation: cylinder-turn 3.6s ease-in-out infinite;
-}
-
-.explode-mechanism {
-  clip-path: inset(67% 5% 0 5%);
-  transform: translateY(calc((1 - var(--explode, 0)) * -175px)) scale(calc(.7 + var(--explode, 0) * .3));
-  animation: comb-resonance 1.7s ease-in-out infinite;
+.explode-complete {
+  transform: translateY(calc((1 - var(--explode, 0)) * 34px)) scale(calc(.94 + var(--explode, 0) * .06));
+  transition: opacity 160ms linear;
 }
 
 .hero:not(.is-exploding) .music-box:hover,
