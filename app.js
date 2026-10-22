@@ -83,22 +83,63 @@
   };
 
   let toneName = "warm";
+  let backingName = "none";
   // 아카이브에서 불러온 곡은 새 곡처럼 다시 저장하지 않고,
   // 이 페이지를 오르골 플레이어로 사용합니다.
   let archivePlayback = null;
   let lastArchivedId = null;
   let reverbMix = null;
-  let lastHarmonyTime = -Infinity;
-  let activeHarmonyStep = -1;
+  let backingBus = null;
+  let guitarBus = null;
+  let bassBus = null;
+  let beatBus = null;
+  let backingNoiseBuffer = null;
+  let activeBackingBeat = -1;
 
-  // 손글씨의 어느 높이에서도 어울리도록 C 메이저 펜타토닉으로 제한하고,
-  // 종이 진행에 따라 C → Am → F → G 코드가 아주 약하게 받쳐줍니다.
-  const harmonyProgression = [
-    [261.63, 329.63, 392],
-    [220, 261.63, 329.63],
-    [174.61, 220, 261.63],
-    [196, 246.94, 293.66],
+  // 한 페이지를 16박으로 나누고, 각 4박 구간의 손글씨 음을 분석해
+  // 통기타와 베이스가 실제 멜로디에 어울리는 코드를 고릅니다.
+  const BACKING_STEPS = 16;
+  const harmonyChoices = [
+    { name: "Cadd9", root: 65.41, tones: [0, 2, 4, 7], frequencies: [130.81, 164.81, 196, 293.66] },
+    { name: "Am7", root: 55, tones: [9, 0, 4, 7], frequencies: [110, 130.81, 164.81, 196] },
+    { name: "Fmaj7", root: 43.65, tones: [5, 9, 0, 4], frequencies: [87.31, 130.81, 164.81, 220] },
+    { name: "Gsus2", root: 49, tones: [7, 9, 2], frequencies: [98, 146.83, 196, 220] },
+    { name: "Dm7", root: 73.42, tones: [2, 5, 9, 0], frequencies: [146.83, 174.61, 220, 261.63] },
+    { name: "Em7", root: 82.41, tones: [4, 7, 11, 2], frequencies: [164.81, 196, 246.94, 293.66] },
   ];
+  const fallbackHarmony = [0, 1, 2, 3];
+
+  // 멜로디 음색과 같은 방향으로 반주도 밝기와 어택을 바꿉니다.
+  // 반주가 별개의 트랙처럼 튀지 않고 어떤 손글씨에서도 한 악기군처럼 들리게 합니다.
+  const backingCharacters = {
+    bright: {
+      guitarBrightness: 0.69,
+      guitarCutoff: 5000,
+      guitarLevel: 0.96,
+      bassAttack: 1080,
+      bassLevel: 0.92,
+      percussionTone: 4200,
+      percussionLevel: 0.9,
+    },
+    warm: {
+      guitarBrightness: 0.57,
+      guitarCutoff: 4250,
+      guitarLevel: 1,
+      bassAttack: 890,
+      bassLevel: 1,
+      percussionTone: 3400,
+      percussionLevel: 0.82,
+    },
+    soft: {
+      guitarBrightness: 0.45,
+      guitarCutoff: 3350,
+      guitarLevel: 0.92,
+      bassAttack: 720,
+      bassLevel: 0.9,
+      percussionTone: 2750,
+      percussionLevel: 0.68,
+    },
+  };
 
   let strokes = [];
   let holes = [];
@@ -137,6 +178,48 @@
      오디오 초기화
   ------------------------------ */
 
+  function saturationCurve(amount = 1.8) {
+    const curve = new Float32Array(2048);
+    const normalizer = Math.tanh(amount);
+    for (let index = 0; index < curve.length; index++) {
+      const x = (index / (curve.length - 1)) * 2 - 1;
+      curve[index] = Math.tanh(x * amount) / normalizer;
+    }
+    return curve;
+  }
+
+  function acousticBodyImpulse(context) {
+    const duration = 0.42;
+    const buffer = context.createBuffer(
+      2,
+      Math.floor(context.sampleRate * duration),
+      context.sampleRate
+    );
+    const modes = [
+      [108, 0.34, 11],
+      [196, 0.24, 14],
+      [284, 0.16, 17],
+      [422, 0.11, 20],
+      [760, 0.07, 25],
+      [1180, 0.04, 31],
+    ];
+
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const data = buffer.getChannelData(channel);
+      for (let index = 0; index < data.length; index++) {
+        const time = index / context.sampleRate;
+        let sample = (Math.random() * 2 - 1) * 0.018 * Math.exp(-time * 24);
+        modes.forEach(([frequency, gain, decay], modeIndex) => {
+          const detune = channel === 0 ? 1 : 1 + (modeIndex + 1) * 0.0007;
+          sample += Math.sin(Math.PI * 2 * frequency * detune * time) * gain * Math.exp(-time * decay);
+        });
+        data[index] = sample * 0.42;
+      }
+    }
+
+    return buffer;
+  }
+
   async function audioReady() {
     try {
       if (!audio) {
@@ -153,6 +236,85 @@
         master.gain.value = sound
           ? Number($("volume").value) / 100
           : 0;
+
+        backingBus = audio.createGain();
+        backingBus.gain.value = 0.96;
+        backingBus.connect(master);
+
+        guitarBus = audio.createGain();
+        const guitarHighpass = audio.createBiquadFilter();
+        const guitarWood = audio.createBiquadFilter();
+        const guitarBody = audio.createBiquadFilter();
+        const guitarPresence = audio.createBiquadFilter();
+        const guitarAir = audio.createBiquadFilter();
+        const guitarBodySpace = audio.createConvolver();
+        const guitarDry = audio.createGain();
+        const guitarWet = audio.createGain();
+        const guitarCompressor = audio.createDynamicsCompressor();
+        guitarBus.gain.value = 1;
+        guitarHighpass.type = "highpass";
+        guitarHighpass.frequency.value = 72;
+        guitarWood.type = "peaking";
+        guitarWood.frequency.value = 112;
+        guitarWood.Q.value = 0.7;
+        guitarWood.gain.value = 2.4;
+        guitarBody.type = "peaking";
+        guitarBody.frequency.value = 218;
+        guitarBody.Q.value = 0.82;
+        guitarBody.gain.value = 4;
+        guitarPresence.type = "peaking";
+        guitarPresence.frequency.value = 2850;
+        guitarPresence.Q.value = 0.75;
+        guitarPresence.gain.value = -1.35;
+        guitarAir.type = "lowpass";
+        guitarAir.frequency.value = 5250;
+        guitarAir.Q.value = 0.42;
+        guitarBodySpace.buffer = acousticBodyImpulse(audio);
+        guitarDry.gain.value = 0.78;
+        guitarWet.gain.value = 0.34;
+        guitarCompressor.threshold.value = -25;
+        guitarCompressor.knee.value = 14;
+        guitarCompressor.ratio.value = 3.2;
+        guitarCompressor.attack.value = 0.006;
+        guitarCompressor.release.value = 0.2;
+        guitarBus
+          .connect(guitarHighpass)
+          .connect(guitarWood)
+          .connect(guitarBody)
+          .connect(guitarPresence)
+          .connect(guitarAir);
+        guitarAir.connect(guitarDry).connect(guitarCompressor);
+        guitarAir.connect(guitarBodySpace).connect(guitarWet).connect(guitarCompressor);
+        guitarCompressor.connect(backingBus);
+
+        bassBus = audio.createGain();
+        const bassHighpass = audio.createBiquadFilter();
+        const bassWeight = audio.createBiquadFilter();
+        const bassSaturation = audio.createWaveShaper();
+        const bassCompressor = audio.createDynamicsCompressor();
+        bassBus.gain.value = 1.04;
+        bassHighpass.type = "highpass";
+        bassHighpass.frequency.value = 31;
+        bassWeight.type = "lowshelf";
+        bassWeight.frequency.value = 116;
+        bassWeight.gain.value = 4.6;
+        bassSaturation.curve = saturationCurve(1.3);
+        bassSaturation.oversample = "4x";
+        bassCompressor.threshold.value = -29;
+        bassCompressor.knee.value = 18;
+        bassCompressor.ratio.value = 4.2;
+        bassCompressor.attack.value = 0.012;
+        bassCompressor.release.value = 0.24;
+        bassBus
+          .connect(bassHighpass)
+          .connect(bassWeight)
+          .connect(bassSaturation)
+          .connect(bassCompressor)
+          .connect(backingBus);
+
+        beatBus = audio.createGain();
+        beatBus.gain.value = 0.92;
+        beatBus.connect(backingBus);
 
         const limiter = audio.createDynamicsCompressor();
         limiter.threshold.value = -10;
@@ -436,7 +598,7 @@
 
     // 펀칭 순간에도 선택한 모양의 재질감을 짧게 미리 들려줍니다.
     if (point.shape && point.shape !== "circle") {
-      playHoleNote(point, 0.24, false);
+      playHoleNote(point, 0.24);
     }
   }
 
@@ -534,7 +696,7 @@
      오르골 음색
   ------------------------------ */
 
-  function note(y, strength = 0.82, x) {
+  function note(y, strength = 0.82) {
     if (!sound || !audioOK) return;
 
     const time = audio.currentTime;
@@ -612,9 +774,6 @@
       };
     });
 
-    if (x !== undefined) {
-      playHarmony(x, strength);
-    }
   }
 
   function pitchForY(y) {
@@ -628,13 +787,13 @@
     return pitches[pitchIndex];
   }
 
-  function playHoleNote(point, strength = 0.82, withHarmony = true) {
+  function playHoleNote(point, strength = 0.82) {
     if (!sound || !audioOK) return;
 
     const { shape, size } = normalizedHole(point);
 
     if (shape === "circle") {
-      note(point.y, strength * (0.9 + size * 0.1), withHarmony ? point.x : undefined);
+      note(point.y, strength * (0.9 + size * 0.1));
       return;
     }
 
@@ -714,60 +873,310 @@
       };
     });
 
-    if (withHarmony && point.x !== undefined) {
-      playHarmony(point.x, strength * 0.82);
+  }
+
+  function backingNoise() {
+    if (backingNoiseBuffer) return backingNoiseBuffer;
+
+    backingNoiseBuffer = audio.createBuffer(
+      1,
+      Math.floor(audio.sampleRate * 0.36),
+      audio.sampleRate
+    );
+
+    const data = backingNoiseBuffer.getChannelData(0);
+    for (let index = 0; index < data.length; index++) {
+      data[index] = Math.random() * 2 - 1;
+    }
+
+    return backingNoiseBuffer;
+  }
+
+  function pitchClassForHole(hole) {
+    const frequency = pitchForY(hole.y);
+    const midi = Math.round(69 + 12 * Math.log2(frequency / 440));
+    return ((midi % 12) + 12) % 12;
+  }
+
+  function harmonyForSection(sectionIndex) {
+    const sectionStart = (sectionIndex / 4) * PAGE_WIDTH;
+    const sectionEnd = ((sectionIndex + 1) / 4) * PAGE_WIDTH;
+    const melodyTones = holes
+      .filter((hole) => hole.x >= sectionStart && hole.x < sectionEnd)
+      .map(pitchClassForHole);
+    const fallbackIndex = fallbackHarmony[sectionIndex] ?? 0;
+
+    if (!melodyTones.length) return harmonyChoices[fallbackIndex];
+
+    return harmonyChoices.reduce((best, choice, choiceIndex) => {
+      const score = melodyTones.reduce((total, pitchClass) => {
+        if (choice.tones.includes(pitchClass)) return total + 3;
+        const nearest = Math.min(...choice.tones.map((tone) => {
+          const distance = Math.abs(tone - pitchClass);
+          return Math.min(distance, 12 - distance);
+        }));
+        return total + (nearest === 1 ? 0.25 : -1.1);
+      }, choiceIndex === fallbackIndex ? 0.45 : 0);
+
+      return !best || score > best.score ? { choice, score } : best;
+    }, null).choice;
+  }
+
+  function pluckedStringBuffer(frequency, duration = 1.25, brightness = 0.78) {
+    const length = Math.floor(audio.sampleRate * duration);
+    const buffer = audio.createBuffer(1, length, audio.sampleRate);
+    const data = buffer.getChannelData(0);
+    const period = Math.max(2, Math.round(audio.sampleRate / frequency));
+    const damping = 0.992 + brightness * 0.0043;
+    let previousNoise = 0;
+
+    for (let index = 0; index < period && index < data.length; index++) {
+      const pickPosition = Math.sin((Math.PI * (index + 1)) / (period + 1));
+      const rawNoise = Math.random() * 2 - 1;
+      // 흰 노이즈를 그대로 쓰면 일렉 기타처럼 날카로워집니다.
+      // 앞 샘플과 섞어 나일론/브론즈 현을 손가락으로 튕긴 듯한 둥근 어택을 만듭니다.
+      previousNoise = previousNoise * (0.54 - brightness * 0.16) + rawNoise * (0.46 + brightness * 0.16);
+      data[index] = previousNoise * (0.58 + pickPosition * 0.42);
+    }
+
+    for (let index = period; index < data.length; index++) {
+      const first = data[index - period];
+      const second = data[index - period + 1] || first;
+      const bridgeLoss = index % period === 0 ? 0.997 : 1;
+      data[index] = (first + second) * 0.5 * damping * bridgeLoss;
+    }
+
+    return buffer;
+  }
+
+  function playGuitarBacking(beatIndex, harmony, mix = 1, noteDensity = 0) {
+    const beatInChord = beatIndex % 4;
+    const time = audio.currentTime;
+    const character = backingCharacters[toneName] || backingCharacters.warm;
+    const accent = [1, 0.5, 0.74, 0.42][beatInChord];
+    const voicing = [...harmony.frequencies];
+    const topRoot = harmony.root * 4;
+    if (!voicing.some((frequency) => Math.abs(frequency - topRoot) < 2)) {
+      voicing.push(topRoot);
+    }
+
+    // 글씨가 많은 구간에는 가장 약한 업스트로크를 비워 멜로디가 숨 쉴 자리를 만듭니다.
+    if (noteDensity >= 6 && beatInChord === 3) return;
+
+    const downstroke = beatInChord % 2 === 0;
+    let chord = downstroke ? voicing : [...voicing].reverse();
+    if (!downstroke) chord = chord.slice(0, noteDensity >= 4 ? 2 : 3);
+    else if (beatInChord === 2 && noteDensity >= 5) chord = chord.slice(0, 3);
+
+    chord.forEach((frequency, index) => {
+      const humanDelay = Math.random() * 0.004;
+      const start = time + index * (downstroke ? 0.021 : 0.014) + humanDelay;
+      const source = audio.createBufferSource();
+      const envelope = audio.createGain();
+      const pickTone = audio.createBiquadFilter();
+      const panner = audio.createStereoPanner ? audio.createStereoPanner() : null;
+      const brightness = character.guitarBrightness + (beatInChord === 0 ? 0.06 : -0.035);
+      const duration = beatInChord === 0 ? 1.34 : 0.96;
+      const velocityHumanize = 0.94 + Math.random() * 0.1;
+
+      source.buffer = pluckedStringBuffer(frequency, duration, brightness);
+      source.playbackRate.value = 1 + (Math.random() - 0.5) * 0.0016;
+      pickTone.type = "lowpass";
+      pickTone.frequency.value = character.guitarCutoff * (beatInChord === 0 ? 1.06 : 0.9);
+      pickTone.Q.value = 0.28;
+      if (panner) panner.pan.value = (index - (chord.length - 1) / 2) * 0.095;
+
+      envelope.gain.setValueAtTime(0.0001, start);
+      envelope.gain.exponentialRampToValueAtTime(
+        0.071 * accent * mix * character.guitarLevel * velocityHumanize * (1 - index * 0.04),
+        start + 0.008
+      );
+      envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+      source.connect(envelope).connect(pickTone);
+      if (panner) pickTone.connect(panner).connect(guitarBus);
+      else pickTone.connect(guitarBus);
+      source.start(start);
+      source.stop(start + duration + 0.03);
+      source.onended = () => {
+        source.disconnect();
+        envelope.disconnect();
+        pickTone.disconnect();
+        if (panner) panner.disconnect();
+      };
+    });
+  }
+
+  function playBassBacking(beatIndex, harmony, mix = 1, noteDensity = 0) {
+    const beatInChord = beatIndex % 4;
+    const time = audio.currentTime;
+    const character = backingCharacters[toneName] || backingCharacters.warm;
+    const ratios = [1, 2, 1.5, 2];
+    const accents = [0.205, 0.085, 0.145, 0.07];
+    const frequency = harmony.root * ratios[beatInChord];
+    const tone = audio.createBiquadFilter();
+    const envelope = audio.createGain();
+    const panner = audio.createStereoPanner ? audio.createStereoPanner() : null;
+
+    // 촘촘한 멜로디에서는 네 번째 워킹 음을 생략해 저음이 문장을 덮지 않게 합니다.
+    if (noteDensity >= 7 && beatInChord === 3) return;
+
+    tone.type = "lowpass";
+    tone.frequency.setValueAtTime(character.bassAttack, time);
+    tone.frequency.exponentialRampToValueAtTime(325, time + 0.42);
+    tone.Q.value = 0.82;
+    if (panner) panner.pan.value = beatInChord % 2 === 0 ? -0.025 : 0.025;
+
+    envelope.gain.setValueAtTime(0.0001, time);
+    envelope.gain.exponentialRampToValueAtTime(
+      accents[beatInChord] * mix * character.bassLevel,
+      time + 0.012
+    );
+    envelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.76);
+
+    // 현의 짧은 어택과 둥근 바디를 겹쳐 신스 베이스 대신 어쿠스틱 베이스에 가깝게 만듭니다.
+    const string = audio.createBufferSource();
+    const stringGain = audio.createGain();
+    string.buffer = pluckedStringBuffer(frequency, 0.94, 0.3);
+    stringGain.gain.value = 0.52;
+    string.connect(stringGain).connect(envelope);
+
+    const body = audio.createOscillator();
+    const bodyGain = audio.createGain();
+    body.type = "sine";
+    body.frequency.setValueAtTime(frequency * 1.035, time);
+    body.frequency.exponentialRampToValueAtTime(frequency, time + 0.045);
+    bodyGain.gain.value = 0.78;
+    body.connect(bodyGain).connect(envelope);
+
+    const wood = audio.createOscillator();
+    const woodGain = audio.createGain();
+    wood.type = "triangle";
+    wood.frequency.value = frequency;
+    wood.detune.value = -2;
+    woodGain.gain.value = 0.14;
+    wood.connect(woodGain).connect(envelope);
+
+    envelope.connect(tone);
+    if (panner) tone.connect(panner).connect(bassBus);
+    else tone.connect(bassBus);
+
+    string.start(time);
+    string.stop(time + 0.96);
+    body.start(time);
+    body.stop(time + 0.8);
+    wood.start(time);
+    wood.stop(time + 0.8);
+    body.onended = () => {
+      string.disconnect();
+      stringGain.disconnect();
+      body.disconnect();
+      bodyGain.disconnect();
+      wood.disconnect();
+      woodGain.disconnect();
+      envelope.disconnect();
+      tone.disconnect();
+      if (panner) panner.disconnect();
+    };
+  }
+
+  function playBeatBacking(beatIndex, mix = 1, noteDensity = 0) {
+    const time = audio.currentTime;
+    const beatInChord = beatIndex % 4;
+    const character = backingCharacters[toneName] || backingCharacters.warm;
+
+    // 빽빽한 구간에서는 오프비트 하이햇을 비워 타악기가 글씨 리듬과 경쟁하지 않게 합니다.
+    if (noteDensity < 6 || beatInChord % 2 === 0) {
+      const hat = audio.createBufferSource();
+      const hatFilter = audio.createBiquadFilter();
+      const hatEnvelope = audio.createGain();
+      hat.buffer = backingNoise();
+      hatFilter.type = "bandpass";
+      hatFilter.frequency.value = character.percussionTone;
+      hatFilter.Q.value = 0.78;
+      hatEnvelope.gain.setValueAtTime(
+        (beatInChord % 2 === 0 ? 0.04 : 0.024) * mix * character.percussionLevel,
+        time
+      );
+      hatEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.09);
+      hat.connect(hatFilter).connect(hatEnvelope).connect(beatBus);
+      hat.start(time);
+      hat.stop(time + 0.1);
+      hat.onended = () => {
+        hat.disconnect();
+        hatFilter.disconnect();
+        hatEnvelope.disconnect();
+      };
+    }
+
+    if (beatInChord === 0 || beatInChord === 2) {
+      const kick = audio.createOscillator();
+      const kickEnvelope = audio.createGain();
+      kick.type = "sine";
+      kick.frequency.setValueAtTime(92, time);
+      kick.frequency.exponentialRampToValueAtTime(48, time + 0.18);
+      kickEnvelope.gain.setValueAtTime(
+        (beatInChord === 0 ? 0.255 : 0.19) * mix * character.percussionLevel,
+        time
+      );
+      kickEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.36);
+      kick.connect(kickEnvelope).connect(beatBus);
+      kick.start(time);
+      kick.stop(time + 0.38);
+      kick.onended = () => {
+        kick.disconnect();
+        kickEnvelope.disconnect();
+      };
+    }
+
+    if (beatInChord === 1 || beatInChord === 3) {
+      const snare = audio.createBufferSource();
+      const snareFilter = audio.createBiquadFilter();
+      const snareEnvelope = audio.createGain();
+      snare.buffer = backingNoise();
+      snareFilter.type = "bandpass";
+      snareFilter.frequency.value = character.percussionTone * 0.43;
+      snareFilter.Q.value = 0.68;
+      snareEnvelope.gain.setValueAtTime(
+        (beatInChord === 1 ? 0.105 : 0.08) * mix * character.percussionLevel,
+        time
+      );
+      snareEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.21);
+      snare.connect(snareFilter).connect(snareEnvelope).connect(beatBus);
+      snare.start(time);
+      snare.stop(time + 0.23);
+      snare.onended = () => {
+        snare.disconnect();
+        snareFilter.disconnect();
+        snareEnvelope.disconnect();
+      };
     }
   }
 
-  function playHarmony(x, strength) {
-    const time = audio.currentTime;
-    const step = Math.min(
-      harmonyProgression.length - 1,
-      Math.floor((x / PAGE_WIDTH) * harmonyProgression.length)
+  function playBackingBeat(beatIndex) {
+    if (
+      backingName === "none" ||
+      !sound ||
+      !audioOK ||
+      !backingBus
+    ) return;
+
+    const sectionIndex = Math.min(3, Math.floor(beatIndex / 4));
+    const harmony = harmonyForSection(sectionIndex);
+
+    const beatStart = (beatIndex / BACKING_STEPS) * PAGE_WIDTH;
+    const beatEnd = ((beatIndex + 1) / BACKING_STEPS) * PAGE_WIDTH;
+    const noteDensity = holes.reduce(
+      (count, hole) => count + (hole.x >= beatStart && hole.x < beatEnd ? 1 : 0),
+      0
     );
+    // 음표가 빽빽한 구간에서는 반주를 살짝 낮추고,
+    // 비어 있는 구간에서는 반주가 리듬을 채우도록 자동 조절합니다.
+    const mix = Math.max(0.78, Math.min(1.12, 1.12 - noteDensity * 0.052));
 
-    if (step === activeHarmonyStep || time - lastHarmonyTime < 0.65) {
-      return;
-    }
-
-    activeHarmonyStep = step;
-    lastHarmonyTime = time;
-
-    const profile = toneProfiles[toneName];
-
-    harmonyProgression[step].forEach((frequency, index) => {
-      const oscillator = audio.createOscillator();
-      const envelope = audio.createGain();
-      const tone = audio.createBiquadFilter();
-
-      oscillator.type = "sine";
-      oscillator.frequency.value = frequency;
-      oscillator.detune.value = (index - 1) * 2;
-
-      tone.type = "lowpass";
-      tone.frequency.value = profile.filter * 0.7;
-      tone.Q.value = 0.25;
-
-      envelope.gain.setValueAtTime(0.0001, time);
-      envelope.gain.exponentialRampToValueAtTime(
-        profile.harmony * strength,
-        time + 0.035
-      );
-      envelope.gain.exponentialRampToValueAtTime(
-        0.0001,
-        time + 2.7
-      );
-
-      oscillator.connect(envelope).connect(tone).connect(master);
-      oscillator.start();
-      oscillator.stop(time + 2.76);
-
-      oscillator.onended = () => {
-        oscillator.disconnect();
-        envelope.disconnect();
-        tone.disconnect();
-      };
-    });
+    if (backingName === "guitar") playGuitarBacking(beatIndex, harmony, mix, noteDensity);
+    else if (backingName === "bass") playBassBacking(beatIndex, harmony, mix, noteDensity);
+    else if (backingName === "beat") playBeatBacking(beatIndex, mix, noteDensity);
   }
 
   /* ------------------------------
@@ -926,15 +1335,15 @@
 
     silencePencil();
 
-    $("autoplay").textContent = isKorean() ? "자동재생 · 한 페이지 반복 ↻" : "Autoplay · repeat page ↻";
+    $("autoplay").textContent = isKorean() ? "자동재생 · 한 페이지 반복" : "Autoplay · repeat page";
 
     $("autoplay").setAttribute("aria-pressed", "false");
 
     $("auto").textContent = isKorean() ? "자동으로 모두 뚫기" : "Punch all automatically";
 
     $("next").textContent = isKorean()
-      ? (mode === "listen" ? "다시 연주하기 ↶" : mode === "punch" ? "이 종이로 연주하기 →" : "다 썼어요 · 펀칭하기 →")
-      : (mode === "listen" ? "Play again ↶" : mode === "punch" ? "Play this page →" : "Finished writing · punch it →");
+      ? (mode === "listen" ? "다시 연주하기" : mode === "punch" ? "이 종이로 연주하기" : "다 썼어요 · 펀칭하기")
+      : (mode === "listen" ? "Play again" : mode === "punch" ? "Play this page" : "Finished writing · punch it");
 
     draw(mode === "listen" ? progress : undefined);
   }
@@ -978,7 +1387,7 @@
 
     if (mode === "listen") {
       $("save-archive").textContent = isKorean() ? "아카이브에 저장하기 +" : "Save to archive +";
-      $("open-archive").textContent = isKorean() ? "아카이브에서 보기 ↗" : "View in archive ↗";
+      $("open-archive").textContent = isKorean() ? "아카이브에서 보기" : "View in archive";
     }
 
     document.body.dataset.mode = mode;
@@ -987,7 +1396,7 @@
     $("rewind").disabled = mode !== "listen";
 
     $("crank-label").textContent = mode === "listen"
-      ? (isKorean() ? "시계 방향으로 돌려보세요 ↻" : "Turn clockwise ↻")
+      ? (isKorean() ? "시계 방향으로 돌려보세요" : "Turn clockwise")
       : (isKorean() ? "종이를 완성하면 연주할 수 있어요" : "Finish the paper to play it.");
 
     const copy = isKorean() ? {
@@ -1039,7 +1448,7 @@
   }
 
   /* ------------------------------
-     손글씨 → 펀칭 위치
+     손글씨와 펀칭 위치 연결
   ------------------------------ */
 
   function buildCandidates() {
@@ -1366,6 +1775,34 @@
       `${toneProfiles[toneName].label} 음색으로 바꿨어요.`;
   };
 
+  $("backing").onchange = async (event) => {
+    const nextBacking = event.target.value;
+    backingName = ["none", "guitar", "bass", "beat"].includes(nextBacking)
+      ? nextBacking
+      : "none";
+    activeBackingBeat = -1;
+
+    const labels = isKorean()
+      ? {
+        none: "반주 없이 멜로디만 재생합니다.",
+        guitar: "통기타의 나무 울림을 추가했어요. 손글씨 음정에 맞는 코드를 고르고 빽빽한 구간은 가볍게 연주합니다.",
+        bass: "둥근 어쿠스틱 베이스를 추가했어요. 손글씨 멜로디의 코드와 밀도에 맞춰 저음을 연주합니다.",
+        beat: "부드러운 킥·스네어 리듬을 추가했어요. 손글씨가 많은 구간에서는 하이햇을 비워줍니다.",
+      }
+      : {
+        none: "The melody will play without backing.",
+        guitar: "Acoustic strums now choose chords from your handwritten melody.",
+        bass: "Rounded acoustic bass follows the chord roots and density of your melody.",
+        beat: "Soft kick and snare leave out hi-hat notes under denser handwriting.",
+      };
+
+    $("hint").textContent = labels[backingName];
+
+    if (backingName !== "none" && (await audioReady())) {
+      playBackingBeat(0);
+    }
+  };
+
   /* ------------------------------
      자동 펀칭 / 즉시 완성
   ------------------------------ */
@@ -1459,7 +1896,7 @@
     while (travel > 0) {
       if (progress >= PAGE_WIDTH) {
         progress = 0;
-        activeHarmonyStep = -1;
+        activeBackingBeat = -1;
       }
 
       const oldProgress = progress;
@@ -1471,6 +1908,16 @@
 
       progress += step;
       travel -= step;
+
+      const backingBeat = Math.min(
+        BACKING_STEPS - 1,
+        Math.floor((progress / PAGE_WIDTH) * BACKING_STEPS)
+      );
+
+      if (backingBeat !== activeBackingBeat) {
+        activeBackingBeat = backingBeat;
+        playBackingBeat(backingBeat);
+      }
 
       for (const hole of holes) {
         if (
@@ -1573,7 +2020,7 @@
     progress = 0;
     angle = 0;
     previousAngle = null;
-    activeHarmonyStep = -1;
+    activeBackingBeat = -1;
 
     crank.style.setProperty("--angle", "0rad");
 
@@ -1732,6 +2179,7 @@
       width: PAGE_WIDTH,
       height: PAGE_HEIGHT,
       tone: toneName,
+      backing: backingName,
       volume: Number($("volume").value),
       notes: holes.map(({ x, y, shape, size }) => ({
         x,
@@ -1891,6 +2339,11 @@
       $("tone").value = toneName;
     }
 
+    if (["none", "guitar", "bass", "beat"].includes(archivePlayback.backing)) {
+      backingName = archivePlayback.backing;
+      $("backing").value = backingName;
+    }
+
     if (Number.isFinite(Number(archivePlayback.volume))) {
       $("volume").value = Math.max(0, Math.min(100, Number(archivePlayback.volume)));
     }
@@ -1924,61 +2377,90 @@
   const dialog = document.getElementById("compose-tutorial");
   const title = document.getElementById("tutorial-title");
   const headingCopy = dialog?.querySelector(".tutorial-heading p");
+  const callout = document.getElementById("tutorial-callout");
+  const stepLabel = document.getElementById("tutorial-step-label");
+  const calloutTitle = document.getElementById("tutorial-callout-title");
+  const calloutCopy = document.getElementById("tutorial-callout-copy");
+  const progress = [...(dialog?.querySelectorAll(".tutorial-progress i") || [])];
+  const previous = document.getElementById("tutorial-prev");
   const next = document.getElementById("tutorial-next");
   const skip = document.getElementById("tutorial-skip");
   const closeButton = document.getElementById("tutorial-close");
   const openButton = document.getElementById("open-tutorial");
-  const svg = dialog?.querySelector(".tutorial-lines");
   const ringLayer = dialog?.querySelector(".tutorial-focus-rings");
-  const callouts = [...(dialog?.querySelectorAll(".tutorial-callout") || [])];
   let frame = 0;
+  let currentStep = 0;
 
-  if (!dialog || !title || !next || !skip || !closeButton || !svg || !ringLayer) return;
+  if (
+    !dialog || !title || !headingCopy || !callout || !stepLabel || !calloutTitle ||
+    !calloutCopy || !previous || !next || !skip || !closeButton || !ringLayer
+  ) return;
 
   const isKorean = () => document.documentElement.lang === "ko";
+  const steps = [
+    { target: ".camera-mode-link", placement: "below" },
+    { target: ".sound-dock", placement: "below" },
+    { target: ".steps", placement: "below" },
+    { target: ".paper", placement: "inside-left" },
+    { target: "#crank", placement: "left" },
+    { target: ".actionbar", placement: "above" },
+  ];
   const translations = {
     ko: {
-      title: "화면을 따라 천천히 시작해 보세요.",
-      heading: "화살표가 가리키는 순서대로 사용하면 됩니다.",
+      title: "이 화면에서 곡을 만드는 순서",
+      heading: "한 단계씩 핵심 기능을 확인해 보세요.",
+      previous: "이전 단계",
+      next: "다음 단계",
       skip: "안내 건너뛰기",
       start: "바로 시작하기",
       close: "튜토리얼 닫기",
-      guide: "GUIDE ?",
-      callouts: [
-        ["먼저 음색을 선택하세요", "오르골 음색과 음량을 미리 확인할 수 있습니다."],
-        ["쓰기 · 펀칭 · 연주", "세 단계가 왼쪽에서 오른쪽으로 이어집니다."],
-        ["종이에 글씨를 써주세요", "가로는 시간, 세로는 음높이로 변환됩니다."],
-        ["완성 후 손잡이를 돌리세요", "손잡이를 돌리는 속도에 맞춰 곡이 재생됩니다."],
+      guide: "사용 안내",
+      steps: [
+        ["01 / INPUT", "마우스 또는 카메라를 선택하세요", "현재 작업대에서는 마우스로, 카메라 모드에서는 손끝 움직임으로 그릴 수 있습니다."],
+        ["02 / SOUND", "음색과 배경 반주를 선택하세요", "통기타·베이스·비트가 손글씨의 음정과 밀도를 읽고 밝기와 연주량을 자동으로 맞춥니다."],
+        ["03 / FLOW", "쓰기 · 펀칭 · 연주 순서입니다", "현재 단계가 밝게 표시되며, 완료하면 다음 작업으로 자연스럽게 이어집니다."],
+        ["04 / WRITE + PUNCH", "글씨가 음의 위치가 됩니다", "가로는 시간, 세로는 음높이입니다. 펀칭 단계에서는 원·별·하트와 크기를 선택할 수 있습니다."],
+        ["05 / PLAY", "손잡이를 돌려 직접 재생하세요", "종이와 멜로디, 선택한 반주가 손잡이를 돌리는 속도에 맞춰 함께 움직입니다."],
+        ["06 / SAVE", "완성한 곡은 저장할 수 있습니다", "하단 작업 버튼에서 자동 재생을 확인하고 아카이브에 곡을 저장하세요."],
       ],
     },
     en: {
-      title: "Follow the screen to begin.",
-      heading: "Use the controls in the order shown by the arrows.",
+      title: "How to build a melody here",
+      heading: "Check the essential controls one step at a time.",
+      previous: "Previous step",
+      next: "Next step",
       skip: "Skip guide",
       start: "Start composing",
       close: "Close tutorial",
-      guide: "GUIDE ?",
-      callouts: [
-        ["Choose a sound first", "Preview the music-box tone and set its volume."],
-        ["Write · Punch · Play", "The three stages move from left to right."],
-        ["Write directly on this paper", "Horizontal position is time; vertical position is pitch."],
-        ["Turn the crank when finished", "The melody follows the speed of your hand."],
+      guide: "GUIDE",
+      steps: [
+        ["01 / INPUT", "Choose mouse or camera input", "Write with the mouse here, or use fingertip movement in camera mode."],
+        ["02 / SOUND", "Choose a tone and backing", "Guitar, bass, and beat adapt their harmony, brightness, and activity to your handwriting."],
+        ["03 / FLOW", "Write · Punch · Play", "The active stage is highlighted and each completed task leads to the next."],
+        ["04 / WRITE + PUNCH", "Your writing becomes note positions", "Horizontal position is time and vertical position is pitch. In Punch, choose circles, stars, hearts, and their size."],
+        ["05 / PLAY", "Turn the crank to play", "The paper, melody, and selected backing move at the speed of your hand."],
+        ["06 / SAVE", "Save the finished melody", "Use the bottom controls to preview the loop and save it to your archive."],
       ],
     },
   };
 
   function renderText() {
     const copy = translations[isKorean() ? "ko" : "en"];
+    const [label, heading, body] = copy.steps[currentStep];
     title.textContent = copy.title;
     headingCopy.textContent = copy.heading;
+    stepLabel.textContent = label;
+    calloutTitle.textContent = heading;
+    calloutCopy.textContent = body;
+    previous.textContent = copy.previous;
+    previous.hidden = currentStep === 0;
     skip.textContent = copy.skip;
-    next.innerHTML = `${copy.start} <span aria-hidden="true">→</span>`;
+    next.textContent = currentStep === steps.length - 1 ? copy.start : copy.next;
     closeButton.setAttribute("aria-label", copy.close);
     if (openButton) openButton.textContent = copy.guide;
-    callouts.forEach((callout, index) => {
-      const [heading, body] = copy.callouts[index];
-      callout.querySelector("strong").textContent = heading;
-      callout.querySelector("p").textContent = body;
+    progress.forEach((marker, index) => {
+      marker.classList.toggle("is-active", index === currentStep);
+      marker.classList.toggle("is-complete", index < currentStep);
     });
   }
 
@@ -1990,73 +2472,41 @@
     const narrow = window.innerWidth < 720;
     const margin = narrow ? 14 : 24;
     ringLayer.replaceChildren();
-    svg.replaceChildren();
-    svg.setAttribute("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
-    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
-    const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-    const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    marker.id = "tutorial-arrow";
-    marker.setAttribute("viewBox", "0 0 10 10");
-    marker.setAttribute("refX", "9");
-    marker.setAttribute("refY", "5");
-    marker.setAttribute("markerWidth", "6");
-    marker.setAttribute("markerHeight", "6");
-    marker.setAttribute("orient", "auto-start-reverse");
-    arrow.setAttribute("d", "M 1 1 L 9 5 L 1 9");
-    arrow.setAttribute("fill", "none");
-    arrow.setAttribute("stroke", "#f4f4ee");
-    arrow.setAttribute("stroke-width", "1.5");
-    marker.append(arrow);
-    defs.append(marker);
-    svg.append(defs);
+    const step = steps[currentStep];
+    const target = document.querySelector(step.target);
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const ring = document.createElement("span");
+    ring.className = "tutorial-focus-ring";
+    ring.style.left = `${clamp(rect.left - 5, 6, window.innerWidth - 12)}px`;
+    ring.style.top = `${clamp(rect.top - 5, 6, window.innerHeight - 12)}px`;
+    ring.style.width = `${Math.min(rect.width + 10, window.innerWidth - 12)}px`;
+    ring.style.height = `${Math.min(rect.height + 10, window.innerHeight - 12)}px`;
+    ringLayer.append(ring);
 
-    callouts.forEach((callout, index) => {
-      const target = document.querySelector(callout.dataset.target);
-      if (!target) return;
-      const rect = target.getBoundingClientRect();
-      const ring = document.createElement("span");
-      ring.className = "tutorial-focus-ring";
-      ring.style.left = `${clamp(rect.left - 5, 6, window.innerWidth - 12)}px`;
-      ring.style.top = `${clamp(rect.top - 5, 6, window.innerHeight - 12)}px`;
-      ring.style.width = `${Math.min(rect.width + 10, window.innerWidth - 12)}px`;
-      ring.style.height = `${Math.min(rect.height + 10, window.innerHeight - 12)}px`;
-      ringLayer.append(ring);
+    let left;
+    let top;
+    if (narrow) {
+      left = margin;
+      top = window.innerHeight - callout.offsetHeight - 78;
+    } else if (step.placement === "above") {
+      left = rect.left + rect.width / 2 - callout.offsetWidth / 2;
+      top = rect.top - callout.offsetHeight - 18;
+    } else if (step.placement === "inside-left") {
+      left = rect.left + 24;
+      top = rect.top + 24;
+    } else if (step.placement === "left") {
+      left = rect.left - callout.offsetWidth - 22;
+      top = rect.top + rect.height / 2 - callout.offsetHeight / 2;
+    } else {
+      left = rect.left + rect.width / 2 - callout.offsetWidth / 2;
+      top = rect.bottom + 18;
+    }
 
-      let left;
-      let top;
-      const placement = callout.dataset.placement;
-      if (narrow) {
-        left = index % 2 ? window.innerWidth - 194 : 14;
-        top = 96 + index * 112;
-      } else if (placement === "above") {
-        left = rect.left + rect.width * .18;
-        top = rect.top - 88;
-      } else if (placement === "below") {
-        left = rect.left + rect.width * .24;
-        top = rect.bottom + 18;
-      } else if (placement === "inside-left") {
-        left = rect.left + 28;
-        top = rect.top + rect.height * .38;
-      } else {
-        left = rect.right - 224;
-        top = rect.top + rect.height * .52;
-      }
-
-      left = clamp(left, margin, window.innerWidth - callout.offsetWidth - margin);
-      top = clamp(top, 92, window.innerHeight - callout.offsetHeight - 84);
-      callout.style.left = `${left}px`;
-      callout.style.top = `${top}px`;
-
-      const label = callout.getBoundingClientRect();
-      const startX = label.left + label.width / 2;
-      const startY = label.top + label.height / 2;
-      const targetX = clamp(rect.left + rect.width / 2, 10, window.innerWidth - 10);
-      const targetY = clamp(rect.top + rect.height / 2, 10, window.innerHeight - 10);
-      const bendY = startY + (targetY - startY) * .58;
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", `M ${startX} ${startY} Q ${startX} ${bendY}, ${targetX} ${targetY}`);
-      svg.append(path);
-    });
+    left = clamp(left, margin, window.innerWidth - callout.offsetWidth - margin);
+    top = clamp(top, 94, window.innerHeight - callout.offsetHeight - 76);
+    callout.style.left = `${left}px`;
+    callout.style.top = `${top}px`;
   }
 
   function scheduleGuide() {
@@ -2070,18 +2520,39 @@
     document.getElementById("sheet")?.focus({ preventScroll: true });
   }
 
-  function open() {
+  function showStep(index) {
+    currentStep = clamp(index, 0, steps.length - 1);
     renderText();
+    const target = document.querySelector(steps[currentStep].target);
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      if (getComputedStyle(target).position !== "fixed" && (rect.top < 88 || rect.bottom > window.innerHeight - 82)) {
+        target.scrollIntoView({ behavior: "instant", block: "center" });
+      }
+    }
+    requestAnimationFrame(scheduleGuide);
+  }
+
+  function open() {
+    currentStep = 0;
     dialog.hidden = false;
     document.body.classList.add("tutorial-is-open");
     window.scrollTo({ top: 0, behavior: "instant" });
     requestAnimationFrame(() => {
-      placeGuide();
+      showStep(0);
       closeButton.focus({ preventScroll: true });
     });
   }
 
-  next.addEventListener("click", () => close());
+  previous.addEventListener("click", () => showStep(currentStep - 1));
+  next.addEventListener("click", () => {
+    if (currentStep === steps.length - 1) {
+      close();
+      document.querySelector(".paper")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      showStep(currentStep + 1);
+    }
+  });
   skip.addEventListener("click", () => close());
   closeButton.addEventListener("click", () => close());
   openButton?.addEventListener("click", open);

@@ -79,6 +79,32 @@
   ------------------------------ */
 
   const signalBridge = document.querySelector("[data-signal-bridge]");
+  const recorderRoot = signalBridge?.querySelector("[data-recorder]");
+  const recorderStatus = signalBridge?.querySelector("[data-recorder-status]");
+  const recorderControls = [...(signalBridge?.querySelectorAll("[data-recorder-action]") || [])];
+  const bridgeStage = signalBridge?.querySelector(".signal-bridge-stage");
+  let recorderIsFront = false;
+
+  const setRecorderStatus = (key) => {
+    if (!recorderStatus) return;
+    recorderStatus.dataset.i18n = key;
+    recorderStatus.textContent = t(key);
+  };
+
+  const setRecorderFront = (isFront) => {
+    if (!recorderRoot) return;
+    const changed = recorderIsFront !== isFront;
+    recorderIsFront = isFront;
+    recorderRoot.classList.toggle("is-front-view", isFront);
+    recorderControls.forEach((control) => { control.disabled = !isFront; });
+    if (changed && !isFront) {
+      recorderRoot.classList.remove("is-recording", "is-playing");
+      bridgeStage?.classList.remove("is-capturing");
+      setRecorderStatus("bridgeRecorderWaiting");
+    } else if (changed && isFront) {
+      setRecorderStatus("bridgeRecorderIdle");
+    }
+  };
 
   if (signalBridge && !reduceMotion.matches) {
     let bridgeCurrent = 0;
@@ -99,17 +125,29 @@
     const renderSignalBridge = (raw) => {
       const motion = smoothstep(0.02, 0.78, raw);
       const wave = smoothstep(0.1, 0.76, raw);
-      const recorder = smoothstep(0.25, 0.78, raw);
-      const exit = smoothstep(0.88, 1, raw);
+      const recorder = smoothstep(0.03, 0.76, raw);
+      const exit = smoothstep(0.84, 1, raw);
+      const recorderBack = 1 - smoothstep(.1, .25, recorder);
+      const recorderSide = smoothstep(.12, .27, recorder) * (1 - smoothstep(.34, .48, recorder));
+      const recorderAngle = smoothstep(.33, .48, recorder) * (1 - smoothstep(.62, .78, recorder));
+      const recorderFront = smoothstep(.63, .82, recorder);
+      const compact = window.innerWidth <= 650;
+      const recorderX = (compact ? 18 : 12) + recorder * (compact ? 52 : 60);
 
       signalBridge.style.setProperty("--bridge-progress", motion.toFixed(3));
       signalBridge.style.setProperty("--bridge-wave", wave.toFixed(3));
       signalBridge.style.setProperty("--bridge-recorder", recorder.toFixed(3));
+      signalBridge.style.setProperty("--bridge-recorder-x", `${recorderX.toFixed(2)}%`);
       signalBridge.style.setProperty("--bridge-exit", exit.toFixed(3));
+      signalBridge.style.setProperty("--recorder-back", recorderBack.toFixed(3));
+      signalBridge.style.setProperty("--recorder-side", recorderSide.toFixed(3));
+      signalBridge.style.setProperty("--recorder-angle", recorderAngle.toFixed(3));
+      signalBridge.style.setProperty("--recorder-front", recorderFront.toFixed(3));
+      setRecorderFront(recorderFront > .88 && exit < .35);
     };
 
     const animateSignalBridge = () => {
-      bridgeCurrent += (bridgeTarget - bridgeCurrent) * 0.11;
+      bridgeCurrent += (bridgeTarget - bridgeCurrent) * 0.16;
       if (Math.abs(bridgeTarget - bridgeCurrent) < 0.0007) bridgeCurrent = bridgeTarget;
       renderSignalBridge(bridgeCurrent);
 
@@ -132,33 +170,159 @@
     window.addEventListener("resize", requestBridgeUpdate);
   }
 
-  if (signalBridge) {
-    const recorderToggle = signalBridge.querySelector("[data-recorder-toggle]");
-    const recorderStatus = signalBridge.querySelector("[data-recorder-status]");
-    const bridgeStage = signalBridge.querySelector(".signal-bridge-stage");
+  if (signalBridge && recorderRoot) {
+    let recorderAudioContext = null;
+    let playbackTimer = 0;
+    const activeRecorderVoices = new Set();
+    const activeRecorderOutputs = new Set();
 
-    recorderToggle?.addEventListener("click", () => {
-      const isRecording = !recorderToggle.classList.contains("is-recording");
-      recorderToggle.classList.toggle("is-recording", isRecording);
-      recorderToggle.setAttribute("aria-pressed", String(isRecording));
-      recorderToggle.setAttribute(
-        "aria-label",
-        t(isRecording ? "bridgeRecorderStop" : "bridgeRecorderStart")
-      );
-      recorderToggle.dataset.i18nAttr = isRecording
-        ? "bridgeRecorderStop"
-        : "bridgeRecorderStart";
-      bridgeStage?.classList.toggle("is-capturing", isRecording);
+    const silenceRecorderVoices = () => {
+      const now = recorderAudioContext?.currentTime || 0;
+      activeRecorderOutputs.forEach((output) => {
+        try {
+          output.gain.cancelScheduledValues(now);
+          output.gain.setTargetAtTime(.0001, now, .018);
+        } catch (_) { /* already disconnected */ }
+      });
+      activeRecorderOutputs.clear();
+      activeRecorderVoices.forEach((oscillator) => {
+        try { oscillator.stop(); } catch (_) { /* already stopped */ }
+      });
+      activeRecorderVoices.clear();
+    };
 
-      if (recorderStatus) {
-        recorderStatus.dataset.i18n = isRecording
-          ? "bridgeRecorderActive"
-          : "bridgeRecorderIdle";
-        recorderStatus.textContent = t(
-          isRecording ? "bridgeRecorderActive" : "bridgeRecorderIdle"
-        );
-      }
+    const stopRecorder = () => {
+      window.clearTimeout(playbackTimer);
+      silenceRecorderVoices();
+      recorderRoot.classList.remove("is-recording", "is-playing");
+      bridgeStage?.classList.remove("is-capturing");
+      setRecorderStatus(recorderIsFront ? "bridgeRecorderIdle" : "bridgeRecorderWaiting");
+    };
+
+    const playRecorderSignal = (transpose = 0) => {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      recorderAudioContext ||= new AudioContextClass();
+      recorderAudioContext.resume?.();
+      const start = recorderAudioContext.currentTime + .04;
+      const ratio = 2 ** (transpose / 12);
+      const notes = [220, 277.18, 329.63, 369.99, 493.88, 329.63].map((note) => note * ratio);
+      const signalBus = recorderAudioContext.createGain();
+      const toneFilter = recorderAudioContext.createBiquadFilter();
+      const compressor = recorderAudioContext.createDynamicsCompressor();
+      const output = recorderAudioContext.createGain();
+      const delay = recorderAudioContext.createDelay(.8);
+      const feedback = recorderAudioContext.createGain();
+      const wet = recorderAudioContext.createGain();
+      const real = new Float32Array([0, 0, 0, 0, 0]);
+      const imag = new Float32Array([0, 1, .24, .065, .025]);
+      const warmWave = recorderAudioContext.createPeriodicWave(real, imag);
+
+      toneFilter.type = "lowpass";
+      toneFilter.frequency.value = 3200;
+      toneFilter.Q.value = .38;
+      compressor.threshold.value = -21;
+      compressor.knee.value = 22;
+      compressor.ratio.value = 3;
+      compressor.attack.value = .012;
+      compressor.release.value = .3;
+      output.gain.value = .86;
+      delay.delayTime.value = .27;
+      feedback.gain.value = .16;
+      wet.gain.value = .15;
+
+      signalBus.connect(toneFilter).connect(compressor);
+      signalBus.connect(delay);
+      delay.connect(feedback).connect(delay);
+      delay.connect(wet).connect(compressor);
+      compressor.connect(output).connect(recorderAudioContext.destination);
+      activeRecorderOutputs.add(output);
+
+      notes.forEach((frequency, index) => {
+        const oscillator = recorderAudioContext.createOscillator();
+        const companion = recorderAudioContext.createOscillator();
+        const companionGain = recorderAudioContext.createGain();
+        const noteFilter = recorderAudioContext.createBiquadFilter();
+        const gain = recorderAudioContext.createGain();
+        const begins = start + index * .22;
+        const ends = begins + 1.24;
+
+        oscillator.setPeriodicWave(warmWave);
+        oscillator.frequency.setValueAtTime(frequency, begins);
+        oscillator.detune.value = -2;
+        companion.type = "sine";
+        companion.frequency.setValueAtTime(frequency, begins);
+        companion.detune.value = 3;
+        companionGain.gain.value = .18;
+        noteFilter.type = "lowpass";
+        noteFilter.Q.value = .55;
+        noteFilter.frequency.setValueAtTime(2450, begins);
+        noteFilter.frequency.exponentialRampToValueAtTime(820, ends);
+        gain.gain.setValueAtTime(.0001, begins);
+        gain.gain.exponentialRampToValueAtTime(.075, begins + .032);
+        gain.gain.exponentialRampToValueAtTime(.043, begins + .2);
+        gain.gain.exponentialRampToValueAtTime(.0001, ends);
+
+        oscillator.connect(noteFilter);
+        companion.connect(companionGain).connect(noteFilter);
+        noteFilter.connect(gain).connect(signalBus);
+        activeRecorderVoices.add(oscillator);
+        activeRecorderVoices.add(companion);
+        oscillator.addEventListener("ended", () => activeRecorderVoices.delete(oscillator), { once: true });
+        companion.addEventListener("ended", () => activeRecorderVoices.delete(companion), { once: true });
+        oscillator.start(begins);
+        companion.start(begins);
+        oscillator.stop(ends + .03);
+        companion.stop(ends + .03);
+      });
+
+      window.setTimeout(() => {
+        activeRecorderOutputs.delete(output);
+        try { output.disconnect(); } catch (_) { /* already disconnected */ }
+      }, 3600);
+    };
+
+    recorderControls.forEach((control) => {
+      control.addEventListener("click", () => {
+        if (!recorderIsFront) return;
+        const action = control.dataset.recorderAction;
+
+        if (action === "stop") {
+          stopRecorder();
+          return;
+        }
+
+        if (action === "record") {
+          const willRecord = !recorderRoot.classList.contains("is-recording");
+          stopRecorder();
+          recorderRoot.classList.toggle("is-recording", willRecord);
+          bridgeStage?.classList.toggle("is-capturing", willRecord);
+          setRecorderStatus(willRecord ? "bridgeRecorderActive" : "bridgeRecorderIdle");
+          return;
+        }
+
+        if (action === "play") {
+          stopRecorder();
+          recorderRoot.classList.add("is-playing");
+          bridgeStage?.classList.add("is-capturing");
+          setRecorderStatus("bridgeRecorderPlaying");
+          playRecorderSignal();
+          playbackTimer = window.setTimeout(stopRecorder, 3000);
+          return;
+        }
+
+        if (action === "tone") {
+          stopRecorder();
+          recorderRoot.classList.add("is-playing");
+          bridgeStage?.classList.add("is-capturing");
+          setRecorderStatus("bridgeRecorderPlaying");
+          playRecorderSignal(Number(control.dataset.recorderShift || 0));
+          playbackTimer = window.setTimeout(stopRecorder, 1050);
+        }
+      });
     });
+
+    if (reduceMotion.matches) setRecorderFront(true);
   }
 
   /* ------------------------------
@@ -172,6 +336,7 @@
     const voiceButtons = [...soundLab.querySelectorAll("[data-wave]")];
     const stepButtons = [...soundLab.querySelectorAll(".lab-steps button")];
     const playButton = soundLab.querySelector("[data-lab-play]");
+    const stopButton = soundLab.querySelector("[data-lab-stop]");
     const bpmInput = soundLab.querySelector("[data-lab-bpm]");
     const bpmOutput = soundLab.querySelector("[data-lab-bpm-output]");
     const labStatus = soundLab.querySelector("[data-lab-status]");
@@ -354,50 +519,94 @@
       const roundGain = context.createGain();
       const harmonic = context.createOscillator();
       const harmonicGain = context.createGain();
+      const presence = context.createOscillator();
+      const presenceGain = context.createGain();
       const finger = context.createBufferSource();
       const fingerFilter = context.createBiquadFilter();
       const fingerGain = context.createGain();
       const roomSend = context.createGain();
-      const brightness = Math.max(.25, Math.min(1, intensity));
+      const bassTone = context.createBiquadFilter();
+      const bassPunch = context.createBiquadFilter();
+      const bassCompressor = context.createDynamicsCompressor();
+      const bassBus = context.createGain();
+      const impact = context.createOscillator();
+      const impactGain = context.createGain();
+      const level = Math.max(.45, Math.min(1, intensity));
 
       filter.type = "lowpass";
-      filter.Q.setValueAtTime(.72, now);
-      filter.frequency.setValueAtTime(760 + brightness * 520, now);
-      filter.frequency.exponentialRampToValueAtTime(230, now + .74);
+      filter.Q.setValueAtTime(.58, now);
+      filter.frequency.setValueAtTime(780 + level * 420, now);
+      filter.frequency.exponentialRampToValueAtTime(210, now + 1.35);
+
+      bassTone.type = "lowshelf";
+      bassTone.frequency.value = 170;
+      bassTone.gain.value = 8.5;
+      bassPunch.type = "peaking";
+      bassPunch.frequency.value = 105;
+      bassPunch.Q.value = .72;
+      bassPunch.gain.value = 4.5;
+      bassCompressor.threshold.value = -22;
+      bassCompressor.knee.value = 18;
+      bassCompressor.ratio.value = 3.2;
+      bassCompressor.attack.value = .012;
+      bassCompressor.release.value = .32;
+      bassBus.gain.value = 2.35;
 
       body.gain.setValueAtTime(.0001, now);
-      body.gain.exponentialRampToValueAtTime(.14 + brightness * .105, now + .009);
-      body.gain.exponentialRampToValueAtTime(.075 + brightness * .025, now + .16);
-      body.gain.exponentialRampToValueAtTime(.0001, now + 1.72);
+      body.gain.exponentialRampToValueAtTime(.48 + level * .22, now + .014);
+      body.gain.exponentialRampToValueAtTime(.24 + level * .11, now + .24);
+      body.gain.exponentialRampToValueAtTime(.0001, now + 2.2);
       filter.connect(body);
-      body.connect(masterGain);
-      roomSend.gain.value = .035;
+      body.connect(bassTone);
+      bassTone.connect(bassPunch);
+      bassPunch.connect(bassCompressor);
+      bassCompressor.connect(bassBus);
+      bassBus.connect(masterGain);
+      roomSend.gain.value = .018;
       body.connect(roomSend);
       roomSend.connect(delayNode);
 
       fundamental.type = "triangle";
-      fundamental.frequency.setValueAtTime(frequency * 1.012, now);
-      fundamental.frequency.exponentialRampToValueAtTime(frequency, now + .055);
+      fundamental.frequency.setValueAtTime(frequency * 1.035, now);
+      fundamental.frequency.exponentialRampToValueAtTime(frequency, now + .075);
       fundamental.connect(filter);
 
       roundBody.type = "sine";
       roundBody.frequency.setValueAtTime(frequency, now);
-      roundGain.gain.value = .68;
+      roundGain.gain.value = .92;
       roundBody.connect(roundGain);
       roundGain.connect(filter);
 
       harmonic.type = "sine";
       harmonic.frequency.setValueAtTime(frequency * 2.006, now);
-      harmonicGain.gain.setValueAtTime(.12 * brightness, now);
-      harmonicGain.gain.exponentialRampToValueAtTime(.0001, now + .46);
+      harmonicGain.gain.setValueAtTime(.3 + level * .1, now);
+      harmonicGain.gain.exponentialRampToValueAtTime(.065, now + .9);
+      harmonicGain.gain.exponentialRampToValueAtTime(.0001, now + 1.8);
       harmonic.connect(harmonicGain);
       harmonicGain.connect(filter);
 
+      // Keep only a soft upper edge so the body stays round instead of synthetic.
+      presence.type = "triangle";
+      presence.frequency.setValueAtTime(frequency * 3.01, now);
+      presenceGain.gain.setValueAtTime(.06 + level * .04, now);
+      presenceGain.gain.exponentialRampToValueAtTime(.0001, now + .55);
+      presence.connect(presenceGain);
+      presenceGain.connect(filter);
+
+      // A short pitch fall gives the pluck a physical, speaker-like "thump".
+      impact.type = "sine";
+      impact.frequency.setValueAtTime(frequency * 1.18, now);
+      impact.frequency.exponentialRampToValueAtTime(frequency, now + .11);
+      impactGain.gain.setValueAtTime(.22 + level * .12, now);
+      impactGain.gain.exponentialRampToValueAtTime(.0001, now + .42);
+      impact.connect(impactGain);
+      impactGain.connect(filter);
+
       finger.buffer = getDrumNoise();
       fingerFilter.type = "bandpass";
-      fingerFilter.frequency.value = 760 + brightness * 420;
+      fingerFilter.frequency.value = 620 + level * 360;
       fingerFilter.Q.value = .65;
-      fingerGain.gain.setValueAtTime(.014 + brightness * .018, now);
+      fingerGain.gain.setValueAtTime(.012 + level * .014, now);
       fingerGain.gain.exponentialRampToValueAtTime(.0001, now + .032);
       finger.connect(fingerFilter);
       fingerFilter.connect(fingerGain);
@@ -406,11 +615,15 @@
       fundamental.start(now);
       roundBody.start(now);
       harmonic.start(now);
+      presence.start(now);
+      impact.start(now);
       finger.start(now);
       finger.stop(now + .04);
-      fundamental.stop(now + 1.8);
-      roundBody.stop(now + 1.8);
-      harmonic.stop(now + .52);
+      fundamental.stop(now + 2.3);
+      roundBody.stop(now + 2.3);
+      harmonic.stop(now + 1.9);
+      presence.stop(now + .62);
+      impact.stop(now + .48);
     }
 
     function getDrumNoise() {
@@ -754,11 +967,11 @@
     }
 
     function stopLoop() {
-      if (loopTimer) window.clearInterval(loopTimer);
+      if (loopTimer) window.clearTimeout(loopTimer);
       loopTimer = null;
       stepButtons.forEach((step) => step.classList.remove("is-current"));
       playButton.classList.remove("is-playing");
-      playButton.textContent = t("labStart");
+      playButton.setAttribute("aria-pressed", "false");
       labStatus.textContent = readyText();
     }
 
@@ -776,16 +989,20 @@
       loopStep = (loopStep + 1) % stepButtons.length;
     }
 
+    function advanceLoop() {
+      tickLoop();
+      const interval = (60000 / Number(bpmInput.value)) / 2;
+      loopTimer = window.setTimeout(advanceLoop, interval);
+    }
+
     function startLoop() {
       ensureAudio();
       stopLoop();
       loopStep = 0;
       playButton.classList.add("is-playing");
-      playButton.textContent = t("labStop");
+      playButton.setAttribute("aria-pressed", "true");
       labStatus.textContent = t("labPlaying");
-      tickLoop();
-      const interval = (60000 / Number(bpmInput.value)) / 2;
-      loopTimer = window.setInterval(tickLoop, interval);
+      advanceLoop();
     }
 
     voiceButtons.forEach((button) => {
@@ -973,9 +1190,10 @@
     });
 
     playButton.addEventListener("click", () => {
-      if (loopTimer) stopLoop();
-      else startLoop();
+      if (!loopTimer) startLoop();
     });
+
+    stopButton.addEventListener("click", stopLoop);
 
     bpmInput.addEventListener("input", () => {
       bpmOutput.value = String(bpmInput.value).padStart(3, "0");
@@ -983,12 +1201,26 @@
     });
 
     document.addEventListener("orgo-languagechange", () => {
-      playButton.textContent = loopTimer ? t("labStop") : t("labStart");
+      [
+        [playButton, "labPlay"],
+        [stopButton, "labStop"],
+      ].forEach(([button, key]) => {
+        button.setAttribute("aria-label", t(key));
+        button.setAttribute("title", t(key));
+      });
       if (!pointerPlaying) {
         labStatus.textContent = loopTimer
           ? t("labPlaying")
           : readyText();
       }
+    });
+
+    [
+      [playButton, "labPlay"],
+      [stopButton, "labStop"],
+    ].forEach(([button, key]) => {
+      button.setAttribute("aria-label", t(key));
+      button.setAttribute("title", t(key));
     });
 
     document.addEventListener("visibilitychange", () => {
@@ -1170,7 +1402,7 @@
       stage?.classList.remove("is-playing");
       if (button) {
         button.classList.remove("is-playing");
-        button.textContent = "FEED + LISTEN ▶";
+        button.textContent = "FEED + LISTEN";
         button.setAttribute("aria-pressed", "false");
       }
     }
@@ -1281,7 +1513,6 @@
       const items = readArchive();
       if (archiveScrollHandler) window.removeEventListener("scroll", archiveScrollHandler);
       archiveScrollHandler = null;
-      stopArchivePreview();
       archiveList.replaceChildren();
       archiveEmpty.hidden = items.length > 0;
       archiveList.hidden = items.length === 0;
@@ -1301,96 +1532,13 @@
       createLink.textContent = "+ NEW MELODY";
       libraryBar.append(libraryLabel, libraryCount, createLink);
 
-      const stage = document.createElement("section");
-      stage.className = "archive-feed-stage";
-      stage.setAttribute("aria-live", "polite");
-      const stageIndex = document.createElement("span");
-      stageIndex.className = "archive-feed-index";
-      const stageMeta = document.createElement("div");
-      stageMeta.className = "archive-feed-meta";
-      const stageKicker = document.createElement("span");
-      stageKicker.textContent = "SELECTED MELODY";
-      const stageTitle = document.createElement("h2");
-      const stageDetail = document.createElement("p");
-      stageMeta.append(stageKicker, stageTitle, stageDetail);
-
-      const ribbon = document.createElement("div");
-      ribbon.className = "archive-feed-ribbon";
-      const ribbonNotes = document.createElement("div");
-      ribbonNotes.className = "archive-feed-notes";
-      ribbon.appendChild(ribbonNotes);
-
-      const mechanism = document.createElement("div");
-      mechanism.className = "archive-feed-mechanism";
-      const box = document.createElement("img");
-      box.className = "archive-feed-box";
-      box.src = "image/archive-music-box-body.png?v=archive-crank-21";
-      box.alt = "펀칭 악보가 통과하는 ORGO 오르골 메커니즘";
-      const crank = document.createElement("img");
-      crank.className = "archive-feed-crank";
-      crank.src = "image/archive-music-box-crank.png?v=archive-crank-21";
-      crank.alt = "";
-      crank.setAttribute("aria-hidden", "true");
-      mechanism.append(box, crank);
-
-      const stageActions = document.createElement("div");
-      stageActions.className = "archive-feed-actions";
-      const previewButton = document.createElement("button");
-      previewButton.type = "button";
-      previewButton.className = "archive-feed-toggle";
-      previewButton.textContent = "FEED + LISTEN ▶";
-      previewButton.setAttribute("aria-pressed", "false");
-      const playerLink = document.createElement("a");
-      playerLink.className = "archive-feed-open";
-      playerLink.textContent = t("archiveOpenPlayer");
-      const objectLink = document.createElement("a");
-      objectLink.className = "archive-feed-object";
-      objectLink.textContent = t("archiveMakeObject");
-      stageActions.append(previewButton, playerLink, objectLink);
-      stage.append(stageIndex, stageMeta, ribbon, mechanism, stageActions);
-
       const tracks = document.createElement("div");
       tracks.className = "archive-track-list";
-      const trackNodes = [];
-      let selectedIndex = 0;
-
-      const selectTrack = (index, animate = true) => {
-        selectedIndex = Math.max(0, Math.min(items.length - 1, index));
-        const item = items[selectedIndex];
-        stopArchivePreview(stage, previewButton);
-        if (animate) {
-          stage.classList.remove("is-switching");
-          void stage.offsetWidth;
-          stage.classList.add("is-switching");
-        }
-        stageIndex.textContent = `${String(selectedIndex + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
-        stageTitle.textContent = item.title || `${t("archiveUntitled")} ${String(selectedIndex + 1).padStart(2, "0")}`;
-        stageDetail.textContent = `${item.kind === "HAND" ? "CAMERA" : "MOUSE"} COMPOSITION · ${(item.notes || []).length} NOTES · ${formatDate(item.createdAt)}`;
-        playerLink.href = `player.html?archive=${encodeURIComponent(item.id)}`;
-        objectLink.href = `object.html?melody=${encodeURIComponent(item.id)}`;
-        renderFeedNotes(ribbonNotes, item);
-        trackNodes.forEach((node, nodeIndex) => {
-          const active = nodeIndex === selectedIndex;
-          node.classList.toggle("is-active", active);
-          node.setAttribute("aria-current", active ? "true" : "false");
-        });
-      };
-
-      previewButton.addEventListener("click", () => {
-        if (stage.classList.contains("is-playing")) {
-          stopArchivePreview(stage, previewButton);
-          return;
-        }
-        playArchivePreview(items[selectedIndex], stage, previewButton);
-      });
 
       items.forEach((item, index) => {
         const card = document.createElement("article");
         card.className = "archive-track";
-        card.tabIndex = 0;
         card.dataset.index = String(index);
-        card.setAttribute("role", "button");
-        card.setAttribute("aria-label", `${item.title || t("archiveUntitled")} 선택`);
 
         const preview = document.createElement("div");
         preview.className = "archive-score-preview";
@@ -1414,7 +1562,6 @@
         title.maxLength = 32;
         title.value = item.title || `${t("archiveUntitled")} ${String(index + 1).padStart(2, "0")}`;
         title.setAttribute("aria-label", t("archiveName"));
-        title.addEventListener("focus", () => selectTrack(index));
         title.addEventListener("change", () => {
           const next = readArchive();
           const found = next.find((saved) => saved.id === item.id);
@@ -1423,7 +1570,6 @@
           title.value = found.title;
           item.title = found.title;
           writeArchive(next);
-          if (selectedIndex === index) stageTitle.textContent = found.title;
         });
         const details = document.createElement("p");
         details.textContent = item.kind === "HAND" ? "CAMERA COMPOSITION" : "MOUSE COMPOSITION";
@@ -1444,24 +1590,12 @@
           renderArchive();
         });
 
-        card.addEventListener("click", (event) => {
-          if (event.target.closest("input, button, a")) return;
-          selectTrack(index);
-        });
-        card.addEventListener("keydown", (event) => {
-          if ((event.key === "Enter" || event.key === " ") && !event.target.closest("input, button, a")) {
-            event.preventDefault();
-            selectTrack(index);
-          }
-        });
         card.append(preview, body, date, remove);
         tracks.appendChild(card);
-        trackNodes.push(card);
       });
 
-      library.append(libraryBar, stage, tracks);
+      library.append(libraryBar, tracks);
       archiveList.appendChild(library);
-      selectTrack(0, false);
     }
 
     renderArchive();

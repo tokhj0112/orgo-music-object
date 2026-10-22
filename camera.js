@@ -684,7 +684,7 @@
     playButton.disabled = true;
     finishButton.disabled = true;
     saveHandButton.disabled = true;
-    finishButton.textContent = "곡 완성하기 →";
+    finishButton.textContent = "곡 완성하기";
     updateSheet();
   }
 

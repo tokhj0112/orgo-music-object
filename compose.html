@@ -5,24 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>ORGO — Compose atelier</title>
-  <link rel="stylesheet" href="style.css?v=ux-guide-27">
-  <script src="i18n.js?v=ux-guide-27" defer></script>
-  <script src="app.js?v=ko-copy-23" defer></script>
+  <link rel="stylesheet" href="style.css?v=acoustic-ensemble-63">
+  <script src="i18n.js?v=acoustic-ensemble-63" defer></script>
+  <script src="app.js?v=acoustic-ensemble-63" defer></script>
 </head>
 
 <body data-mode="write">
   <header>
     <a class="logo" href="index.html">orgo<sup>®</sup></a>
 
-    <nav class="compose-mode" aria-label="컴포즈 방식 선택">
-      <a href="compose.html" aria-current="page" data-i18n="composeMouse">마우스로 만들기</a>
-      <a href="camera.html" data-i18n="composeHand">손끝으로 만들기</a>
-    </nav>
-
     <span class="header-label">THE COMPOSING ROOM</span>
 
     <button id="open-tutorial" class="guide-trigger" type="button" data-i18n="composeGuide">
-      사용 안내 ?
+      사용 안내
     </button>
 
   </header>
@@ -34,10 +29,25 @@
         <h1 data-i18n="composeTitle">펀칭 악보 만들기</h1>
       </div>
 
-      <p data-i18n="composeIntro" data-i18n-html="true">
-        쓰고, 뚫고, 돌려보세요.<br>
-        모든 과정이 이 작은 작업대 위에서.
-      </p>
+      <div class="intro-side">
+        <p data-i18n="composeIntro" data-i18n-html="true">
+          쓰고, 뚫고, 돌려보세요.<br>
+          모든 과정이 이 작은 작업대 위에서.
+        </p>
+
+        <a class="camera-mode-link" href="camera.html">
+          <span class="camera-mode-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img">
+              <path d="M8.2 6.5 9.6 4.8h4.8l1.4 1.7H19a2 2 0 0 1 2 2v8.7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8.5a2 2 0 0 1 2-2h3.2Z"/>
+              <circle cx="12" cy="12.7" r="3.5"/>
+            </svg>
+          </span>
+          <span class="camera-mode-copy">
+            <small data-i18n="composeCameraKicker">다른 입력 방식</small>
+            <strong data-i18n="composeCameraAction">카메라로 손끝 작곡</strong>
+          </span>
+        </a>
+      </div>
     </div>
 
     <section class="sound-dock" aria-label="오르골 사운드 설정">
@@ -48,6 +58,16 @@
             <option value="bright" data-i18n="toneBright">맑은 별빛 · 선명한 고음</option>
             <option value="warm" selected data-i18n="toneWarm">따뜻한 숲 · 균형 잡힌 울림</option>
             <option value="soft" data-i18n="toneSoft">밤의 자장가 · 부드러운 여운</option>
+          </select>
+        </label>
+
+        <label class="backing-picker">
+          <span data-i18n="composeBacking">반주</span>
+          <select id="backing" aria-label="배경 반주 선택" data-i18n-attr="composeBackingSelect">
+            <option value="none" selected data-i18n="backingNone">없음 · 멜로디만</option>
+            <option value="guitar" data-i18n="backingGuitar">ACOUSTIC · 나무 울림 스트럼</option>
+            <option value="bass" data-i18n="backingBass">ACOUSTIC BASS · 둥근 현의 울림</option>
+            <option value="beat" data-i18n="backingBeat">SOFT BEAT · 부드러운 킥 · 스네어</option>
           </select>
         </label>
 
@@ -65,23 +85,16 @@
       <button id="write" type="button" class="active" aria-pressed="true">
         <b>01</b>
         <span data-i18n="composeWrite">쓰기</span>
-        <small>WRITE</small>
       </button>
-
-      <span aria-hidden="true">→</span>
 
       <button id="punch" type="button" aria-pressed="false">
         <b>02</b>
         <span data-i18n="composePunch">펀칭</span>
-        <small>PUNCH</small>
       </button>
-
-      <span aria-hidden="true">→</span>
 
       <button id="listen" type="button" aria-pressed="false">
         <b>03</b>
         <span data-i18n="composePlay">연주</span>
-        <small>PLAY</small>
       </button>
     </nav>
 
@@ -170,7 +183,7 @@
           </div>
 
           <div>
-            <button id="undo" type="button" data-i18n="composeUndo">되돌리기 ↶</button>
+            <button id="undo" type="button" data-i18n="composeUndo">되돌리기</button>
             <button id="clear" type="button" data-i18n="composeClear">새로 쓰기</button>
           </div>
         </div>
@@ -194,7 +207,6 @@
 
           <div class="paper-bottom">
             <span data-i18n="composeAxis">왼쪽에서 오른쪽으로 흐르는 시간</span>
-            <span aria-hidden="true">→</span>
           </div>
         </div>
 
@@ -246,7 +258,7 @@
           <span id="position">0% · 종이의 시작</span>
 
           <button id="rewind" type="button" disabled data-i18n="composeRewind">
-            처음으로 ↶
+            처음으로
           </button>
         </div>
       </aside>
@@ -276,7 +288,7 @@
           hidden
           aria-pressed="false"
         >
-          자동재생 · 한 페이지 반복 ↻
+          자동재생 · 한 페이지 반복
         </button>
 
         <button id="auto" type="button" hidden>
@@ -288,11 +300,11 @@
         </button>
 
         <button id="open-archive" type="button" hidden>
-          아카이브에서 보기 ↗
+          아카이브에서 보기
         </button>
 
         <button id="next" type="button" class="primary" disabled data-i18n="composeNext">
-          다 썼어요 · 펀칭하기 →
+          다 썼어요 · 펀칭하기
         </button>
       </div>
     </div>
@@ -312,40 +324,25 @@
 
     <div class="tutorial-heading">
       <span>ORGO / QUICK GUIDE</span>
-      <h2 id="tutorial-title">화면을 따라 천천히 시작해 보세요.</h2>
-      <p>화살표가 가리키는 순서대로 사용하면 됩니다.</p>
+      <h2 id="tutorial-title">이 화면에서 곡을 만드는 순서</h2>
+      <p>한 단계씩 핵심 기능을 확인해 보세요.</p>
+      <div class="tutorial-progress" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
     </div>
 
-    <svg class="tutorial-lines" aria-hidden="true"></svg>
     <div class="tutorial-focus-rings" aria-hidden="true"></div>
 
-    <div class="tutorial-callout" data-target=".sound-dock" data-placement="above">
-      <span>01 / SOUND</span>
-      <strong>먼저 음색을 골라보세요</strong>
-      <p>원하는 오르골 소리와 음량을 미리 확인할 수 있어요.</p>
-    </div>
-
-    <div class="tutorial-callout" data-target=".steps" data-placement="below">
-      <span>02 / FLOW</span>
-      <strong>쓰기 · 펀칭 · 연주</strong>
-      <p>세 단계가 왼쪽에서 오른쪽으로 이어집니다.</p>
-    </div>
-
-    <div class="tutorial-callout" data-target=".paper" data-placement="inside-left">
-      <span>03 / WRITE</span>
-      <strong>이 종이 위에 글씨를 써보세요</strong>
-      <p>가로는 시간, 세로는 음의 높이가 됩니다.</p>
-    </div>
-
-    <div class="tutorial-callout" data-target="#crank" data-placement="inside-right">
-      <span>04 / PLAY</span>
-      <strong>완성되면 손잡이를 돌려보세요</strong>
-      <p>손잡이를 돌리는 속도에 맞춰 곡이 재생됩니다.</p>
+    <div id="tutorial-callout" class="tutorial-callout">
+      <span id="tutorial-step-label">01 / INPUT</span>
+      <strong id="tutorial-callout-title">마우스 또는 카메라를 선택하세요</strong>
+      <p id="tutorial-callout-copy">현재 작업대에서는 마우스로, 카메라 모드에서는 손끝 움직임으로 그릴 수 있습니다.</p>
     </div>
 
     <div class="tutorial-actions">
+      <button id="tutorial-prev" type="button" hidden>이전 단계</button>
       <button id="tutorial-skip" type="button">안내 건너뛰기</button>
-      <button id="tutorial-next" class="tutorial-primary" type="button">바로 시작하기 <span aria-hidden="true">→</span></button>
+      <button id="tutorial-next" class="tutorial-primary" type="button">다음 단계</button>
     </div>
   </section>
 </body>
