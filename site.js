@@ -12,6 +12,33 @@
     "(prefers-reduced-motion: reduce)"
   );
 
+  const composePrimer = document.querySelector("[data-compose-primer-motion]");
+
+  if (
+    composePrimer &&
+    !reduceMotion.matches &&
+    "IntersectionObserver" in window
+  ) {
+    composePrimer.classList.add("is-motion-ready");
+
+    const composePrimerObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+
+        requestAnimationFrame(() => {
+          composePrimer.classList.add("is-visible");
+        });
+        composePrimerObserver.unobserve(composePrimer);
+      },
+      {
+        threshold: 0.18,
+        rootMargin: "0px 0px -6% 0px",
+      }
+    );
+
+    composePrimerObserver.observe(composePrimer);
+  }
+
   const reveals = document.querySelectorAll(".reveal");
 
   if (
