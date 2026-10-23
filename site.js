@@ -14,29 +14,69 @@
 
   const composePrimer = document.querySelector("[data-compose-primer-motion]");
 
-  if (
-    composePrimer &&
-    !reduceMotion.matches &&
-    "IntersectionObserver" in window
-  ) {
-    composePrimer.classList.add("is-motion-ready");
+  if (composePrimer && !reduceMotion.matches) {
+    const primerTitle = composePrimer.querySelector(".compose-primer-motion-title");
+    const primerSteps = [
+      ...composePrimer.querySelectorAll(".compose-primer-motion-step"),
+    ];
+    let primerTicking = false;
 
-    const composePrimerObserver = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return;
+    const clamp = (value) => Math.min(1, Math.max(0, value));
+    const easeOut = (value) => 1 - (1 - value) ** 3;
 
-        requestAnimationFrame(() => {
-          composePrimer.classList.add("is-visible");
-        });
-        composePrimerObserver.unobserve(composePrimer);
-      },
-      {
-        threshold: 0.18,
-        rootMargin: "0px 0px -6% 0px",
-      }
-    );
+    const updateComposePrimerMotion = () => {
+      const bounds = composePrimer.getBoundingClientRect();
+      const viewportHeight = Math.max(1, window.innerHeight);
+      const start = viewportHeight * 0.94;
+      const travel = Math.max(viewportHeight * 0.88, 520);
+      const progress = clamp((start - bounds.top) / travel);
+      const titleProgress = easeOut(clamp(progress / 0.64));
+      const titleDistance = Math.min(
+        520,
+        Math.max(260, window.innerWidth * 0.34)
+      );
 
-    composePrimerObserver.observe(composePrimer);
+      composePrimer.style.setProperty(
+        "--primer-title-x",
+        `${(-titleDistance * (1 - titleProgress)).toFixed(2)}px`
+      );
+      composePrimer.style.setProperty(
+        "--primer-title-opacity",
+        titleProgress.toFixed(4)
+      );
+      composePrimer.style.setProperty(
+        "--primer-title-clip",
+        `${(100 * (1 - titleProgress)).toFixed(2)}%`
+      );
+
+      const stepStarts = [0.14, 0.3, 0.46];
+      primerSteps.forEach((step, index) => {
+        const stepProgress = easeOut(
+          clamp((progress - stepStarts[index]) / 0.46)
+        );
+        step.style.setProperty(
+          "--primer-step-y",
+          `${(140 * (1 - stepProgress)).toFixed(2)}px`
+        );
+        step.style.setProperty(
+          "--primer-step-opacity",
+          stepProgress.toFixed(4)
+        );
+      });
+
+      primerTicking = false;
+    };
+
+    const requestComposePrimerMotion = () => {
+      if (primerTicking) return;
+      primerTicking = true;
+      requestAnimationFrame(updateComposePrimerMotion);
+    };
+
+    composePrimer.classList.add("is-scroll-motion");
+    updateComposePrimerMotion();
+    window.addEventListener("scroll", requestComposePrimerMotion, { passive: true });
+    window.addEventListener("resize", requestComposePrimerMotion);
   }
 
   const reveals = document.querySelectorAll(".reveal");
