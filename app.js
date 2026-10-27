@@ -94,6 +94,7 @@
   let bassBus = null;
   let beatBus = null;
   let backingNoiseBuffer = null;
+  const guitarStringCache = new Map();
   let activeBackingBeat = -1;
 
   // 한 페이지를 16박으로 나누고, 각 4박 구간의 손글씨 음을 분석해
@@ -101,43 +102,42 @@
   const BACKING_STEPS = 16;
   const harmonyChoices = [
     { name: "Cadd9", root: 65.41, tones: [0, 2, 4, 7], frequencies: [130.81, 164.81, 196, 293.66] },
-    { name: "Am7", root: 55, tones: [9, 0, 4, 7], frequencies: [110, 130.81, 164.81, 196] },
-    { name: "Fmaj7", root: 43.65, tones: [5, 9, 0, 4], frequencies: [87.31, 130.81, 164.81, 220] },
-    { name: "Gsus2", root: 49, tones: [7, 9, 2], frequencies: [98, 146.83, 196, 220] },
-    { name: "Dm7", root: 73.42, tones: [2, 5, 9, 0], frequencies: [146.83, 174.61, 220, 261.63] },
-    { name: "Em7", root: 82.41, tones: [4, 7, 11, 2], frequencies: [164.81, 196, 246.94, 293.66] },
+    { name: "Am7", root: 55, tones: [9, 0, 4, 7], frequencies: [110, 130.81, 164.81, 196, 220] },
+    { name: "Gsus6", root: 49, tones: [7, 9, 0, 2], frequencies: [98, 146.83, 196, 220, 261.63] },
+    { name: "Em11", root: 82.41, tones: [4, 7, 9, 2], frequencies: [164.81, 196, 220, 293.66] },
+    { name: "Dsus", root: 73.42, tones: [2, 4, 7, 9], frequencies: [146.83, 164.81, 196, 220] },
   ];
-  const fallbackHarmony = [0, 1, 2, 3];
+  const fallbackHarmony = [0, 1, 2, 0];
 
   // 멜로디 음색과 같은 방향으로 반주도 밝기와 어택을 바꿉니다.
   // 반주가 별개의 트랙처럼 튀지 않고 어떤 손글씨에서도 한 악기군처럼 들리게 합니다.
   const backingCharacters = {
     bright: {
-      guitarBrightness: 0.69,
-      guitarCutoff: 5000,
-      guitarLevel: 0.96,
+      guitarBrightness: 0.88,
+      guitarCutoff: 7600,
+      guitarLevel: 1.12,
       bassAttack: 1080,
-      bassLevel: 0.92,
+      bassLevel: 1.08,
       percussionTone: 4200,
-      percussionLevel: 0.9,
+      percussionLevel: 1.04,
     },
     warm: {
-      guitarBrightness: 0.57,
-      guitarCutoff: 4250,
-      guitarLevel: 1,
+      guitarBrightness: 0.78,
+      guitarCutoff: 6800,
+      guitarLevel: 1.16,
       bassAttack: 890,
-      bassLevel: 1,
+      bassLevel: 1.14,
       percussionTone: 3400,
-      percussionLevel: 0.82,
+      percussionLevel: 0.98,
     },
     soft: {
-      guitarBrightness: 0.45,
-      guitarCutoff: 3350,
-      guitarLevel: 0.92,
+      guitarBrightness: 0.66,
+      guitarCutoff: 5600,
+      guitarLevel: 1.08,
       bassAttack: 720,
-      bassLevel: 0.9,
+      bassLevel: 1.04,
       percussionTone: 2750,
-      percussionLevel: 0.68,
+      percussionLevel: 0.86,
     },
   };
 
@@ -238,7 +238,7 @@
           : 0;
 
         backingBus = audio.createGain();
-        backingBus.gain.value = 0.96;
+        backingBus.gain.value = 1.12;
         backingBus.connect(master);
 
         guitarBus = audio.createGain();
@@ -251,7 +251,7 @@
         const guitarDry = audio.createGain();
         const guitarWet = audio.createGain();
         const guitarCompressor = audio.createDynamicsCompressor();
-        guitarBus.gain.value = 1;
+        guitarBus.gain.value = 1.08;
         guitarHighpass.type = "highpass";
         guitarHighpass.frequency.value = 72;
         guitarWood.type = "peaking";
@@ -263,15 +263,15 @@
         guitarBody.Q.value = 0.82;
         guitarBody.gain.value = 4;
         guitarPresence.type = "peaking";
-        guitarPresence.frequency.value = 2850;
+        guitarPresence.frequency.value = 2550;
         guitarPresence.Q.value = 0.75;
-        guitarPresence.gain.value = -1.35;
+        guitarPresence.gain.value = 1.25;
         guitarAir.type = "lowpass";
-        guitarAir.frequency.value = 5250;
+        guitarAir.frequency.value = 6800;
         guitarAir.Q.value = 0.42;
         guitarBodySpace.buffer = acousticBodyImpulse(audio);
-        guitarDry.gain.value = 0.78;
-        guitarWet.gain.value = 0.34;
+        guitarDry.gain.value = 0.94;
+        guitarWet.gain.value = 0.18;
         guitarCompressor.threshold.value = -25;
         guitarCompressor.knee.value = 14;
         guitarCompressor.ratio.value = 3.2;
@@ -290,14 +290,19 @@
         bassBus = audio.createGain();
         const bassHighpass = audio.createBiquadFilter();
         const bassWeight = audio.createBiquadFilter();
+        const bassPresence = audio.createBiquadFilter();
         const bassSaturation = audio.createWaveShaper();
         const bassCompressor = audio.createDynamicsCompressor();
-        bassBus.gain.value = 1.04;
+        bassBus.gain.value = 1.12;
         bassHighpass.type = "highpass";
         bassHighpass.frequency.value = 31;
         bassWeight.type = "lowshelf";
         bassWeight.frequency.value = 116;
-        bassWeight.gain.value = 4.6;
+        bassWeight.gain.value = 3.2;
+        bassPresence.type = "peaking";
+        bassPresence.frequency.value = 520;
+        bassPresence.Q.value = 0.78;
+        bassPresence.gain.value = 4.1;
         bassSaturation.curve = saturationCurve(1.3);
         bassSaturation.oversample = "4x";
         bassCompressor.threshold.value = -29;
@@ -308,12 +313,13 @@
         bassBus
           .connect(bassHighpass)
           .connect(bassWeight)
+          .connect(bassPresence)
           .connect(bassSaturation)
           .connect(bassCompressor)
           .connect(backingBus);
 
         beatBus = audio.createGain();
-        beatBus.gain.value = 0.92;
+        beatBus.gain.value = 1.08;
         beatBus.connect(backingBus);
 
         const limiter = audio.createDynamicsCompressor();
@@ -923,29 +929,49 @@
   }
 
   function pluckedStringBuffer(frequency, duration = 1.25, brightness = 0.78) {
+    const cacheKey = `${frequency.toFixed(2)}:${duration.toFixed(2)}:${brightness.toFixed(2)}`;
+    if (guitarStringCache.has(cacheKey)) return guitarStringCache.get(cacheKey);
+
     const length = Math.floor(audio.sampleRate * duration);
     const buffer = audio.createBuffer(1, length, audio.sampleRate);
     const data = buffer.getChannelData(0);
-    const period = Math.max(2, Math.round(audio.sampleRate / frequency));
-    const damping = 0.992 + brightness * 0.0043;
-    let previousNoise = 0;
+    const harmonicCount = 10;
+    const phases = Array.from(
+      { length: harmonicCount },
+      (_, index) => (index * 0.37 + Math.random() * 0.18) * Math.PI
+    );
+    let peak = 0;
 
-    for (let index = 0; index < period && index < data.length; index++) {
-      const pickPosition = Math.sin((Math.PI * (index + 1)) / (period + 1));
-      const rawNoise = Math.random() * 2 - 1;
-      // 흰 노이즈를 그대로 쓰면 일렉 기타처럼 날카로워집니다.
-      // 앞 샘플과 섞어 나일론/브론즈 현을 손가락으로 튕긴 듯한 둥근 어택을 만듭니다.
-      previousNoise = previousNoise * (0.54 - brightness * 0.16) + rawNoise * (0.46 + brightness * 0.16);
-      data[index] = previousNoise * (0.58 + pickPosition * 0.42);
+    for (let index = 0; index < data.length; index++) {
+      const time = index / audio.sampleRate;
+      const attack = 1 - Math.exp(-time * 520);
+      let string = 0;
+
+      for (let harmonic = 1; harmonic <= harmonicCount; harmonic++) {
+        const stiffness = 1 + harmonic * harmonic * 0.00011;
+        const rolloff = 1 / (harmonic ** (1.62 - brightness * 0.38));
+        const decay = 2.35 + harmonic * (1.06 + (1 - brightness) * 0.72);
+        string +=
+          Math.sin(
+            Math.PI * 2 * frequency * harmonic * stiffness * time + phases[harmonic - 1]
+          ) *
+          rolloff *
+          Math.exp(-time * decay);
+      }
+
+      // 짧은 피크 마찰음은 남기되 지속적인 전기 기타식 버즈는 만들지 않습니다.
+      const pick = time < 0.032
+        ? (Math.random() * 2 - 1) * Math.exp(-time * 92) * (0.11 + brightness * 0.11)
+        : 0;
+      const sample = (string * 0.32 + pick) * attack;
+      data[index] = sample;
+      peak = Math.max(peak, Math.abs(sample));
     }
 
-    for (let index = period; index < data.length; index++) {
-      const first = data[index - period];
-      const second = data[index - period + 1] || first;
-      const bridgeLoss = index % period === 0 ? 0.997 : 1;
-      data[index] = (first + second) * 0.5 * damping * bridgeLoss;
-    }
+    const normalizer = peak > 0 ? 0.78 / peak : 1;
+    for (let index = 0; index < data.length; index++) data[index] *= normalizer;
 
+    guitarStringCache.set(cacheKey, buffer);
     return buffer;
   }
 
@@ -953,8 +979,12 @@
     const beatInChord = beatIndex % 4;
     const time = audio.currentTime;
     const character = backingCharacters[toneName] || backingCharacters.warm;
-    const accent = [1, 0.5, 0.74, 0.42][beatInChord];
-    const voicing = [...harmony.frequencies];
+    const accent = [1, 0.34, 0.66, 0.24][beatInChord];
+    // 기타는 저음을 담당하지 않습니다. 낮은 코드음은 한 옥타브 올려
+    // 열린 현처럼 맑고 가벼운 어쿠스틱 보이싱으로 만듭니다.
+    const voicing = harmony.frequencies.map((frequency) =>
+      frequency < 150 ? frequency * 2 : frequency
+    );
     const topRoot = harmony.root * 4;
     if (!voicing.some((frequency) => Math.abs(frequency - topRoot) < 2)) {
       voicing.push(topRoot);
@@ -976,7 +1006,7 @@
       const pickTone = audio.createBiquadFilter();
       const panner = audio.createStereoPanner ? audio.createStereoPanner() : null;
       const brightness = character.guitarBrightness + (beatInChord === 0 ? 0.06 : -0.035);
-      const duration = beatInChord === 0 ? 1.34 : 0.96;
+      const duration = beatInChord === 0 ? 1.08 : 0.76;
       const velocityHumanize = 0.94 + Math.random() * 0.1;
 
       source.buffer = pluckedStringBuffer(frequency, duration, brightness);
@@ -988,7 +1018,7 @@
 
       envelope.gain.setValueAtTime(0.0001, start);
       envelope.gain.exponentialRampToValueAtTime(
-        0.071 * accent * mix * character.guitarLevel * velocityHumanize * (1 - index * 0.04),
+        0.092 * accent * mix * character.guitarLevel * velocityHumanize * (1 - index * 0.04),
         start + 0.008
       );
       envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
@@ -1011,8 +1041,8 @@
     const beatInChord = beatIndex % 4;
     const time = audio.currentTime;
     const character = backingCharacters[toneName] || backingCharacters.warm;
-    const ratios = [1, 2, 1.5, 2];
-    const accents = [0.205, 0.085, 0.145, 0.07];
+    const ratios = [1, 1, 2, 1.5];
+    const accents = [0.27, 0.105, 0.19, 0.08];
     const frequency = harmony.root * ratios[beatInChord];
     const tone = audio.createBiquadFilter();
     const envelope = audio.createGain();
@@ -1038,7 +1068,7 @@
     const string = audio.createBufferSource();
     const stringGain = audio.createGain();
     string.buffer = pluckedStringBuffer(frequency, 0.94, 0.3);
-    stringGain.gain.value = 0.52;
+    stringGain.gain.value = 0.62;
     string.connect(stringGain).connect(envelope);
 
     const body = audio.createOscillator();
@@ -1046,15 +1076,15 @@
     body.type = "sine";
     body.frequency.setValueAtTime(frequency * 1.035, time);
     body.frequency.exponentialRampToValueAtTime(frequency, time + 0.045);
-    bodyGain.gain.value = 0.78;
+    bodyGain.gain.value = 0.72;
     body.connect(bodyGain).connect(envelope);
 
     const wood = audio.createOscillator();
     const woodGain = audio.createGain();
     wood.type = "triangle";
-    wood.frequency.value = frequency;
+    wood.frequency.value = frequency * 2;
     wood.detune.value = -2;
-    woodGain.gain.value = 0.14;
+    woodGain.gain.value = 0.26;
     wood.connect(woodGain).connect(envelope);
 
     envelope.connect(tone);
@@ -1095,7 +1125,7 @@
       hatFilter.frequency.value = character.percussionTone;
       hatFilter.Q.value = 0.78;
       hatEnvelope.gain.setValueAtTime(
-        (beatInChord % 2 === 0 ? 0.04 : 0.024) * mix * character.percussionLevel,
+        (beatInChord % 2 === 0 ? 0.052 : 0.032) * mix * character.percussionLevel,
         time
       );
       hatEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.09);
@@ -1116,7 +1146,7 @@
       kick.frequency.setValueAtTime(92, time);
       kick.frequency.exponentialRampToValueAtTime(48, time + 0.18);
       kickEnvelope.gain.setValueAtTime(
-        (beatInChord === 0 ? 0.255 : 0.19) * mix * character.percussionLevel,
+        (beatInChord === 0 ? 0.31 : 0.225) * mix * character.percussionLevel,
         time
       );
       kickEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.36);
@@ -1138,7 +1168,7 @@
       snareFilter.frequency.value = character.percussionTone * 0.43;
       snareFilter.Q.value = 0.68;
       snareEnvelope.gain.setValueAtTime(
-        (beatInChord === 1 ? 0.105 : 0.08) * mix * character.percussionLevel,
+        (beatInChord === 1 ? 0.145 : 0.112) * mix * character.percussionLevel,
         time
       );
       snareEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.21);
@@ -1172,7 +1202,7 @@
     );
     // 음표가 빽빽한 구간에서는 반주를 살짝 낮추고,
     // 비어 있는 구간에서는 반주가 리듬을 채우도록 자동 조절합니다.
-    const mix = Math.max(0.78, Math.min(1.12, 1.12 - noteDensity * 0.052));
+    const mix = Math.max(0.9, Math.min(1.24, 1.24 - noteDensity * 0.045));
 
     if (backingName === "guitar") playGuitarBacking(beatIndex, harmony, mix, noteDensity);
     else if (backingName === "bass") playBassBacking(beatIndex, harmony, mix, noteDensity);
@@ -1335,7 +1365,7 @@
 
     silencePencil();
 
-    $("autoplay").textContent = isKorean() ? "자동재생 · 한 페이지 반복" : "Autoplay · repeat page";
+    $("autoplay").textContent = isKorean() ? "자동 재생" : "Autoplay";
 
     $("autoplay").setAttribute("aria-pressed", "false");
 
@@ -1384,9 +1414,10 @@
     $("autoplay").hidden = mode !== "listen";
     $("save-archive").hidden = mode !== "listen" || Boolean(archivePlayback);
     $("open-archive").hidden = mode !== "listen" || !lastArchivedId;
+    $("next").hidden = mode === "listen";
 
     if (mode === "listen") {
-      $("save-archive").textContent = isKorean() ? "아카이브에 저장하기 +" : "Save to archive +";
+      $("save-archive").textContent = isKorean() ? "아카이브에 저장" : "Save to archive";
       $("open-archive").textContent = isKorean() ? "아카이브에서 보기" : "View in archive";
     }
 
@@ -1699,6 +1730,27 @@
 
     draw();
   };
+
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key.toLowerCase() !== "z" ||
+      (!event.ctrlKey && !event.metaKey) ||
+      event.altKey ||
+      event.shiftKey
+    ) return;
+
+    const target = event.target;
+    const isTextEntry =
+      target instanceof HTMLTextAreaElement ||
+      target?.isContentEditable ||
+      (target instanceof HTMLInputElement &&
+        /^(text|search|email|url|tel|password|number)$/i.test(target.type));
+
+    if (isTextEntry || $("undo").disabled) return;
+
+    event.preventDefault();
+    $("undo").click();
+  });
 
   $("clear").onclick = () => {
     stop();
@@ -2051,7 +2103,7 @@
     looping = true;
     const token = ++loopToken;
 
-    $("autoplay").textContent = "재생 정지 □";
+    $("autoplay").textContent = isKorean() ? "자동 재생 정지" : "Stop autoplay";
     $("autoplay").setAttribute("aria-pressed", "true");
 
     const ready = await audioReady();

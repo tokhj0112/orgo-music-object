@@ -15,30 +15,25 @@
   const composePrimer = document.querySelector("[data-compose-primer-motion]");
 
   if (composePrimer && !reduceMotion.matches) {
-    const primerTitle = composePrimer.querySelector(".compose-primer-motion-title");
     const primerSteps = [
       ...composePrimer.querySelectorAll(".compose-primer-motion-step"),
     ];
     let primerTicking = false;
 
     const clamp = (value) => Math.min(1, Math.max(0, value));
-    const easeOut = (value) => 1 - (1 - value) ** 3;
+    const smoothstep = (value) => value * value * (3 - 2 * value);
 
     const updateComposePrimerMotion = () => {
       const bounds = composePrimer.getBoundingClientRect();
       const viewportHeight = Math.max(1, window.innerHeight);
-      const start = viewportHeight * 0.94;
-      const travel = Math.max(viewportHeight * 0.88, 520);
+      const start = viewportHeight * .78;
+      const travel = Math.max(420, viewportHeight * .56);
       const progress = clamp((start - bounds.top) / travel);
-      const titleProgress = easeOut(clamp(progress / 0.64));
-      const titleDistance = Math.min(
-        520,
-        Math.max(260, window.innerWidth * 0.34)
-      );
+      const titleProgress = smoothstep(clamp(progress / .74));
 
       composePrimer.style.setProperty(
         "--primer-title-x",
-        `${(-titleDistance * (1 - titleProgress)).toFixed(2)}px`
+        `${(-190 * (1 - titleProgress)).toFixed(2)}px`
       );
       composePrimer.style.setProperty(
         "--primer-title-opacity",
@@ -48,19 +43,27 @@
         "--primer-title-clip",
         `${(100 * (1 - titleProgress)).toFixed(2)}%`
       );
+      composePrimer.style.setProperty(
+        "--primer-title-blur",
+        `${(7 * (1 - titleProgress)).toFixed(2)}px`
+      );
 
-      const stepStarts = [0.14, 0.3, 0.46];
+      const stepStarts = [.16, .3, .44];
       primerSteps.forEach((step, index) => {
-        const stepProgress = easeOut(
-          clamp((progress - stepStarts[index]) / 0.46)
+        const stepProgress = smoothstep(
+          clamp((progress - stepStarts[index]) / .42)
         );
         step.style.setProperty(
           "--primer-step-y",
-          `${(140 * (1 - stepProgress)).toFixed(2)}px`
+          `${(76 * (1 - stepProgress)).toFixed(2)}px`
         );
         step.style.setProperty(
           "--primer-step-opacity",
           stepProgress.toFixed(4)
+        );
+        step.style.setProperty(
+          "--primer-step-blur",
+          `${(4 * (1 - stepProgress)).toFixed(2)}px`
         );
       });
 
@@ -73,10 +76,74 @@
       requestAnimationFrame(updateComposePrimerMotion);
     };
 
-    composePrimer.classList.add("is-scroll-motion");
+    composePrimer.classList.add("is-scroll-responsive");
     updateComposePrimerMotion();
     window.addEventListener("scroll", requestComposePrimerMotion, { passive: true });
     window.addEventListener("resize", requestComposePrimerMotion);
+  }
+
+  const storyNarrative = document.querySelector("[data-story-narrative]");
+
+  if (storyNarrative && !reduceMotion.matches) {
+    const storyChapters = [
+      ...storyNarrative.querySelectorAll("[data-story-chapter]"),
+    ];
+    const storyTrack = storyNarrative.querySelector("[data-story-track]");
+    const storySticky = storyNarrative.querySelector(".story-sticky");
+    const storyCurrent = storyNarrative.querySelector("[data-story-current]");
+    let storyTicking = false;
+
+    const clampStory = (value) => Math.min(1, Math.max(0, value));
+    const easeStory = (value) => value * value * (3 - 2 * value);
+
+    const updateStoryNarrative = () => {
+      if (!storyTrack || !storySticky || storyChapters.length === 0) return;
+
+      const bounds = storyTrack.getBoundingClientRect();
+      const travel = Math.max(1, storyTrack.offsetHeight - storySticky.offsetHeight);
+      const progress = clampStory(-bounds.top / travel);
+      const scenePosition = progress * (storyChapters.length - 1);
+      const activeIndex = Math.min(
+        storyChapters.length - 1,
+        Math.max(0, Math.round(scenePosition))
+      );
+
+      storyNarrative.style.setProperty("--story-sequence-progress", progress.toFixed(4));
+      if (storyCurrent) {
+        storyCurrent.textContent = String(activeIndex + 1).padStart(2, "0");
+      }
+
+      storyChapters.forEach((chapter, index) => {
+        const distance = index - scenePosition;
+        const visibility = easeStory(clampStory(1 - Math.abs(distance)));
+        const direction = Math.min(1, Math.max(-1, distance));
+
+        chapter.style.setProperty("--story-chapter-opacity", visibility.toFixed(4));
+        chapter.style.setProperty("--story-chapter-blur", `${(4 * (1 - visibility)).toFixed(2)}px`);
+        chapter.style.setProperty("--story-heading-x", `${(-72 * direction).toFixed(2)}px`);
+        chapter.style.setProperty("--story-copy-x", `${(72 * direction).toFixed(2)}px`);
+        chapter.style.setProperty("--story-media-y", `${(52 * direction).toFixed(2)}px`);
+        chapter.style.setProperty("--story-media-scale", (.955 + visibility * .045).toFixed(4));
+        chapter.style.setProperty("--story-draw-offset", `${(760 * (1 - visibility)).toFixed(1)}px`);
+        chapter.style.setProperty("--story-object-rotate", `${(direction * 2.4).toFixed(2)}deg`);
+        chapter.style.zIndex = String(Math.max(0, Math.round(visibility * 100)));
+        chapter.style.pointerEvents = index === activeIndex ? "auto" : "none";
+        chapter.setAttribute("aria-hidden", index === activeIndex ? "false" : "true");
+      });
+
+      storyTicking = false;
+    };
+
+    const requestStoryNarrative = () => {
+      if (storyTicking) return;
+      storyTicking = true;
+      requestAnimationFrame(updateStoryNarrative);
+    };
+
+    storyNarrative.classList.add("is-scroll-reactive");
+    updateStoryNarrative();
+    window.addEventListener("scroll", requestStoryNarrative, { passive: true });
+    window.addEventListener("resize", requestStoryNarrative);
   }
 
   const reveals = document.querySelectorAll(".reveal");
@@ -151,6 +218,7 @@
   const recorderControls = [...(signalBridge?.querySelectorAll("[data-recorder-action]") || [])];
   const bridgeStage = signalBridge?.querySelector(".signal-bridge-stage");
   let recorderIsFront = false;
+  let recorderDeactivate = () => {};
 
   const setRecorderStatus = (key) => {
     if (!recorderStatus) return;
@@ -165,6 +233,7 @@
     recorderRoot.classList.toggle("is-front-view", isFront);
     recorderControls.forEach((control) => { control.disabled = !isFront; });
     if (changed && !isFront) {
+      recorderDeactivate();
       recorderRoot.classList.remove("is-recording", "is-playing");
       bridgeStage?.classList.remove("is-capturing");
       setRecorderStatus("bridgeRecorderWaiting");
@@ -238,119 +307,146 @@
   }
 
   if (signalBridge && recorderRoot) {
-    let recorderAudioContext = null;
-    let playbackTimer = 0;
-    const activeRecorderVoices = new Set();
-    const activeRecorderOutputs = new Set();
+    const recordingLimit = 6000;
+    let recordingTimer = 0;
+    let recorderMedia = null;
+    let recorderStream = null;
+    let recorderChunks = [];
+    let recorderClipUrl = "";
+    let recorderPlayer = null;
 
-    const silenceRecorderVoices = () => {
-      const now = recorderAudioContext?.currentTime || 0;
-      activeRecorderOutputs.forEach((output) => {
-        try {
-          output.gain.cancelScheduledValues(now);
-          output.gain.setTargetAtTime(.0001, now, .018);
-        } catch (_) { /* already disconnected */ }
-      });
-      activeRecorderOutputs.clear();
-      activeRecorderVoices.forEach((oscillator) => {
-        try { oscillator.stop(); } catch (_) { /* already stopped */ }
-      });
-      activeRecorderVoices.clear();
+    const releaseRecorderStream = () => {
+      recorderStream?.getTracks?.().forEach((track) => track.stop());
+      recorderStream = null;
+    };
+
+    const stopRecorderPlayback = () => {
+      if (recorderPlayer) {
+        recorderPlayer.pause();
+        recorderPlayer.currentTime = 0;
+        recorderPlayer = null;
+      }
+      recorderRoot.classList.remove("is-playing");
+      if (!recorderRoot.classList.contains("is-recording")) {
+        bridgeStage?.classList.remove("is-capturing");
+      }
+    };
+
+    const stopVoiceRecording = () => {
+      window.clearTimeout(recordingTimer);
+      if (recorderMedia?.state === "recording") recorderMedia.stop();
+      else releaseRecorderStream();
+    };
+
+    const preferredRecordingType = () => {
+      if (!window.MediaRecorder?.isTypeSupported) return "";
+      return ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"]
+        .find((type) => window.MediaRecorder.isTypeSupported(type)) || "";
+    };
+
+    const playVoiceRecording = async () => {
+      if (!recorderClipUrl) {
+        setRecorderStatus("bridgeRecorderNoClip");
+        return;
+      }
+      stopRecorderPlayback();
+      recorderPlayer = new Audio(recorderClipUrl);
+      recorderPlayer.preload = "auto";
+      recorderPlayer.addEventListener("ended", () => {
+        recorderRoot.classList.remove("is-playing");
+        bridgeStage?.classList.remove("is-capturing");
+        setRecorderStatus("bridgeRecorderSaved");
+        recorderPlayer = null;
+      }, { once: true });
+      recorderRoot.classList.add("is-playing");
+      bridgeStage?.classList.add("is-capturing");
+      setRecorderStatus("bridgeRecorderPlaying");
+      try {
+        await recorderPlayer.play();
+      } catch (error) {
+        console.error(error);
+        stopRecorderPlayback();
+        setRecorderStatus("bridgeRecorderPlaybackError");
+      }
+    };
+
+    const startVoiceRecording = async () => {
+      if (recorderMedia?.state === "recording") {
+        stopVoiceRecording();
+        return;
+      }
+      stopRecorderPlayback();
+      if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+        setRecorderStatus("bridgeRecorderMicError");
+        return;
+      }
+      setRecorderStatus("bridgeRecorderRequesting");
+      try {
+        recorderStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+          },
+          video: false,
+        });
+        recorderChunks = [];
+        const mimeType = preferredRecordingType();
+        recorderMedia = mimeType
+          ? new MediaRecorder(recorderStream, { mimeType })
+          : new MediaRecorder(recorderStream);
+        recorderMedia.addEventListener("dataavailable", (event) => {
+          if (event.data?.size) recorderChunks.push(event.data);
+        });
+        recorderMedia.addEventListener("stop", () => {
+          window.clearTimeout(recordingTimer);
+          releaseRecorderStream();
+          recorderRoot.classList.remove("is-recording");
+          bridgeStage?.classList.remove("is-capturing");
+          const blob = new Blob(recorderChunks, { type: recorderMedia?.mimeType || mimeType || "audio/webm" });
+          recorderMedia = null;
+          if (blob.size) {
+            if (recorderClipUrl) URL.revokeObjectURL(recorderClipUrl);
+            recorderClipUrl = URL.createObjectURL(blob);
+            setRecorderStatus(recorderIsFront ? "bridgeRecorderSaved" : "bridgeRecorderWaiting");
+          } else {
+            setRecorderStatus(recorderIsFront ? "bridgeRecorderMicError" : "bridgeRecorderWaiting");
+          }
+        }, { once: true });
+        recorderMedia.start(120);
+        recorderRoot.classList.add("is-recording");
+        bridgeStage?.classList.add("is-capturing");
+        setRecorderStatus("bridgeRecorderActive");
+        recordingTimer = window.setTimeout(stopVoiceRecording, recordingLimit);
+      } catch (error) {
+        console.error(error);
+        recorderMedia = null;
+        releaseRecorderStream();
+        recorderRoot.classList.remove("is-recording");
+        bridgeStage?.classList.remove("is-capturing");
+        setRecorderStatus("bridgeRecorderMicError");
+      }
     };
 
     const stopRecorder = () => {
-      window.clearTimeout(playbackTimer);
-      silenceRecorderVoices();
-      recorderRoot.classList.remove("is-recording", "is-playing");
-      bridgeStage?.classList.remove("is-capturing");
-      setRecorderStatus(recorderIsFront ? "bridgeRecorderIdle" : "bridgeRecorderWaiting");
+      stopRecorderPlayback();
+      if (recorderMedia?.state === "recording") stopVoiceRecording();
+      else {
+        recorderRoot.classList.remove("is-recording");
+        bridgeStage?.classList.remove("is-capturing");
+        setRecorderStatus(recorderClipUrl ? "bridgeRecorderSaved" : "bridgeRecorderIdle");
+      }
     };
 
-    const playRecorderSignal = (transpose = 0) => {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (!AudioContextClass) return;
-      recorderAudioContext ||= new AudioContextClass();
-      recorderAudioContext.resume?.();
-      const start = recorderAudioContext.currentTime + .04;
-      const ratio = 2 ** (transpose / 12);
-      const notes = [220, 277.18, 329.63, 369.99, 493.88, 329.63].map((note) => note * ratio);
-      const signalBus = recorderAudioContext.createGain();
-      const toneFilter = recorderAudioContext.createBiquadFilter();
-      const compressor = recorderAudioContext.createDynamicsCompressor();
-      const output = recorderAudioContext.createGain();
-      const delay = recorderAudioContext.createDelay(.8);
-      const feedback = recorderAudioContext.createGain();
-      const wet = recorderAudioContext.createGain();
-      const real = new Float32Array([0, 0, 0, 0, 0]);
-      const imag = new Float32Array([0, 1, .24, .065, .025]);
-      const warmWave = recorderAudioContext.createPeriodicWave(real, imag);
-
-      toneFilter.type = "lowpass";
-      toneFilter.frequency.value = 3200;
-      toneFilter.Q.value = .38;
-      compressor.threshold.value = -21;
-      compressor.knee.value = 22;
-      compressor.ratio.value = 3;
-      compressor.attack.value = .012;
-      compressor.release.value = .3;
-      output.gain.value = .86;
-      delay.delayTime.value = .27;
-      feedback.gain.value = .16;
-      wet.gain.value = .15;
-
-      signalBus.connect(toneFilter).connect(compressor);
-      signalBus.connect(delay);
-      delay.connect(feedback).connect(delay);
-      delay.connect(wet).connect(compressor);
-      compressor.connect(output).connect(recorderAudioContext.destination);
-      activeRecorderOutputs.add(output);
-
-      notes.forEach((frequency, index) => {
-        const oscillator = recorderAudioContext.createOscillator();
-        const companion = recorderAudioContext.createOscillator();
-        const companionGain = recorderAudioContext.createGain();
-        const noteFilter = recorderAudioContext.createBiquadFilter();
-        const gain = recorderAudioContext.createGain();
-        const begins = start + index * .22;
-        const ends = begins + 1.24;
-
-        oscillator.setPeriodicWave(warmWave);
-        oscillator.frequency.setValueAtTime(frequency, begins);
-        oscillator.detune.value = -2;
-        companion.type = "sine";
-        companion.frequency.setValueAtTime(frequency, begins);
-        companion.detune.value = 3;
-        companionGain.gain.value = .18;
-        noteFilter.type = "lowpass";
-        noteFilter.Q.value = .55;
-        noteFilter.frequency.setValueAtTime(2450, begins);
-        noteFilter.frequency.exponentialRampToValueAtTime(820, ends);
-        gain.gain.setValueAtTime(.0001, begins);
-        gain.gain.exponentialRampToValueAtTime(.075, begins + .032);
-        gain.gain.exponentialRampToValueAtTime(.043, begins + .2);
-        gain.gain.exponentialRampToValueAtTime(.0001, ends);
-
-        oscillator.connect(noteFilter);
-        companion.connect(companionGain).connect(noteFilter);
-        noteFilter.connect(gain).connect(signalBus);
-        activeRecorderVoices.add(oscillator);
-        activeRecorderVoices.add(companion);
-        oscillator.addEventListener("ended", () => activeRecorderVoices.delete(oscillator), { once: true });
-        companion.addEventListener("ended", () => activeRecorderVoices.delete(companion), { once: true });
-        oscillator.start(begins);
-        companion.start(begins);
-        oscillator.stop(ends + .03);
-        companion.stop(ends + .03);
-      });
-
-      window.setTimeout(() => {
-        activeRecorderOutputs.delete(output);
-        try { output.disconnect(); } catch (_) { /* already disconnected */ }
-      }, 3600);
+    recorderDeactivate = () => {
+      stopRecorderPlayback();
+      if (recorderMedia?.state === "recording") stopVoiceRecording();
+      else releaseRecorderStream();
     };
 
     recorderControls.forEach((control) => {
-      control.addEventListener("click", () => {
+      control.addEventListener("click", async () => {
         if (!recorderIsFront) return;
         const action = control.dataset.recorderAction;
 
@@ -360,34 +456,24 @@
         }
 
         if (action === "record") {
-          const willRecord = !recorderRoot.classList.contains("is-recording");
-          stopRecorder();
-          recorderRoot.classList.toggle("is-recording", willRecord);
-          bridgeStage?.classList.toggle("is-capturing", willRecord);
-          setRecorderStatus(willRecord ? "bridgeRecorderActive" : "bridgeRecorderIdle");
+          await startVoiceRecording();
           return;
         }
 
         if (action === "play") {
-          stopRecorder();
-          recorderRoot.classList.add("is-playing");
-          bridgeStage?.classList.add("is-capturing");
-          setRecorderStatus("bridgeRecorderPlaying");
-          playRecorderSignal();
-          playbackTimer = window.setTimeout(stopRecorder, 3000);
-          return;
-        }
-
-        if (action === "tone") {
-          stopRecorder();
-          recorderRoot.classList.add("is-playing");
-          bridgeStage?.classList.add("is-capturing");
-          setRecorderStatus("bridgeRecorderPlaying");
-          playRecorderSignal(Number(control.dataset.recorderShift || 0));
-          playbackTimer = window.setTimeout(stopRecorder, 1050);
+          if (recorderMedia?.state === "recording") {
+            stopVoiceRecording();
+            return;
+          }
+          await playVoiceRecording();
         }
       });
     });
+
+    window.addEventListener("beforeunload", () => {
+      recorderDeactivate();
+      if (recorderClipUrl) URL.revokeObjectURL(recorderClipUrl);
+    }, { once: true });
 
     if (reduceMotion.matches) setRecorderFront(true);
   }
@@ -407,6 +493,10 @@
     const bpmInput = soundLab.querySelector("[data-lab-bpm]");
     const bpmOutput = soundLab.querySelector("[data-lab-bpm-output]");
     const labStatus = soundLab.querySelector("[data-lab-status]");
+    const wrapStage = soundLab.querySelector("[data-wrap-stage]");
+    const wrapObject = soundLab.querySelector("[data-wrap-object]");
+    const wrapDents = soundLab.querySelector("[data-wrap-dents]");
+    const wrapCount = soundLab.querySelector("[data-wrap-count]");
     const bassStage = soundLab.querySelector("[data-bass-stage]");
     const bassStringControls = [...soundLab.querySelectorAll("[data-bass-string]")];
     const drumStage = soundLab.querySelector("[data-drum-stage]");
@@ -416,6 +506,16 @@
         .map((piece) => [piece.dataset.drumPiece, piece])
     );
     const drumCursor = soundLab.querySelector(".drum-stick-cursor");
+    const pianoStage = soundLab.querySelector("[data-piano-stage]");
+    const pianoVideo = soundLab.querySelector("[data-piano-video]");
+    const pianoOverlay = soundLab.querySelector("[data-piano-overlay]");
+    const pianoOverlayContext = pianoOverlay?.getContext("2d");
+    const pianoStartButton = soundLab.querySelector("[data-piano-start]");
+    const pianoPlaceholder = soundLab.querySelector("[data-piano-placeholder]");
+    const pianoStatus = soundLab.querySelector("[data-piano-status]");
+    const pianoKeys = [...soundLab.querySelectorAll("[data-piano-key]")];
+    const pianoWhiteKeys = [...soundLab.querySelectorAll(".piano-white-key")];
+    const pianoBlackKeys = [...soundLab.querySelectorAll(".piano-black-key")];
 
     let audioContext = null;
     let masterGain = null;
@@ -427,15 +527,32 @@
     let loopTimer = null;
     let loopStep = 0;
     let pointerPlaying = false;
+    let wrapDrag = null;
+    let wrapDentCount = 0;
+    let wrapLastSoundAt = 0;
     let bassPulseTimer = null;
     let drumNoiseBuffer = null;
     let drumCursorTimer = null;
+    let pianoHands = null;
+    let pianoCamera = null;
+    let pianoStream = null;
+    let pianoStarting = false;
+    let pianoLastNoteAt = 0;
+    let pianoFrameBusy = false;
+    let pianoLastInferenceAt = 0;
     const drumPieceTimers = new Map();
     const bassStringAnimations = new Map();
+    const pianoKeyTimers = new Map();
+    const pianoFingerStates = new Map();
+    const pianoHandHistory = new Map();
 
     const scale = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29];
     const sequence = [0, 3, 5, 7, 10, 7, 5, 3];
     const drumSequence = ["kick", "hihat", "snare", "hihat", "kick", "tom1", "snare", "crash"];
+    const pianoTipIndices = [4, 8, 12, 16, 20];
+    const pianoPipIndices = [3, 6, 10, 14, 18];
+    const pianoFingerNames = ["THUMB", "INDEX", "MIDDLE", "RING", "PINKY"];
+    const pianoBlackCenters = [1, 2, 4, 5, 6, 8, 9, 11, 12, 13].map((gap) => gap / 14);
 
     function ensureAudio() {
       if (!audioContext) {
@@ -572,6 +689,375 @@
       connectVoice(filter, gain);
       oscillator.start(now);
       oscillator.stop(now + .38);
+    }
+
+    function playWrapCrinkle(intensity = .66, position = .5) {
+      const context = ensureAudio();
+      if (!context) return;
+
+      const level = Math.max(.22, Math.min(1, intensity));
+      const horizontal = Math.max(0, Math.min(1, position));
+      const now = context.currentTime;
+      const burstCount = 2 + Math.round(level * 3);
+
+      for (let index = 0; index < burstCount; index += 1) {
+        const source = context.createBufferSource();
+        const highpass = context.createBiquadFilter();
+        const bandpass = context.createBiquadFilter();
+        const envelope = context.createGain();
+        const startAt = now + index * (.009 + Math.random() * .012);
+        const duration = .035 + Math.random() * .065;
+
+        source.buffer = getDrumNoise();
+        source.playbackRate.value = 1.25 + Math.random() * 1.15;
+        highpass.type = "highpass";
+        highpass.frequency.value = 620 + level * 580;
+        highpass.Q.value = .6;
+        bandpass.type = "bandpass";
+        bandpass.frequency.value = 1450 + horizontal * 3300 + Math.random() * 900;
+        bandpass.Q.value = .65 + Math.random() * 1.1;
+        envelope.gain.setValueAtTime(.0001, startAt);
+        envelope.gain.linearRampToValueAtTime((.045 + Math.random() * .055) * level, startAt + .004);
+        envelope.gain.exponentialRampToValueAtTime(.0001, startAt + duration);
+
+        source.connect(highpass).connect(bandpass).connect(envelope).connect(masterGain);
+        source.start(startAt, Math.random() * 1.35, duration + .02);
+        source.stop(startAt + duration + .035);
+      }
+    }
+
+    function wrapPoint(event) {
+      const bounds = wrapObject.getBoundingClientRect();
+      return {
+        x: Math.max(.04, Math.min(.96, (event.clientX - bounds.left) / bounds.width)),
+        y: Math.max(.05, Math.min(.95, (event.clientY - bounds.top) / bounds.height)),
+      };
+    }
+
+    function setWrapPose(x, y, intensity = .55) {
+      if (!wrapObject) return;
+      const pressure = Math.max(.15, Math.min(1, intensity));
+      wrapObject.style.setProperty("--wrap-x", `${(x * 100).toFixed(2)}%`);
+      wrapObject.style.setProperty("--wrap-y", `${(y * 100).toFixed(2)}%`);
+      wrapObject.style.setProperty("--wrap-rx", `${((.5 - y) * 6.5 * pressure).toFixed(2)}deg`);
+      wrapObject.style.setProperty("--wrap-ry", `${((x - .5) * 7.5 * pressure).toFixed(2)}deg`);
+      wrapObject.style.setProperty("--wrap-scale", (1 - pressure * .016).toFixed(4));
+    }
+
+    function relaxWrapPose() {
+      if (!wrapObject) return;
+      wrapObject.classList.remove("is-pressed");
+      wrapObject.style.setProperty("--wrap-rx", "0deg");
+      wrapObject.style.setProperty("--wrap-ry", "0deg");
+      wrapObject.style.setProperty("--wrap-scale", "1");
+    }
+
+    function addWrapDent(x, y, intensity = .55) {
+      if (!wrapDents) return;
+      const dent = document.createElement("span");
+      const size = 96 + intensity * 116 + Math.random() * 34;
+      dent.className = "wrap-dent";
+      dent.style.setProperty("--dent-x", `${(x * 100).toFixed(2)}%`);
+      dent.style.setProperty("--dent-y", `${(y * 100).toFixed(2)}%`);
+      dent.style.setProperty("--dent-size", `${size.toFixed(1)}px`);
+      dent.style.setProperty("--dent-rotate", `${(-38 + Math.random() * 76).toFixed(1)}deg`);
+      dent.style.setProperty("--dent-opacity", (.1 + intensity * .17).toFixed(2));
+      wrapDents.appendChild(dent);
+      while (wrapDents.children.length > 12) wrapDents.firstElementChild.remove();
+      wrapDentCount += 1;
+      if (wrapCount) wrapCount.value = String(Math.min(99, wrapDentCount)).padStart(2, "0");
+    }
+
+    function resetWrapSurface() {
+      if (wrapDents) wrapDents.replaceChildren();
+      wrapDentCount = 0;
+      if (wrapCount) wrapCount.value = "00";
+      relaxWrapPose();
+    }
+
+    function pulseWrap(x, y, intensity = .58, leaveDent = true) {
+      if (!wrapObject) return;
+      wrapObject.classList.add("is-pressed");
+      setWrapPose(x, y, intensity);
+      if (leaveDent) addWrapDent(x, y, intensity);
+      playWrapCrinkle(intensity, x);
+      window.setTimeout(relaxWrapPose, 190);
+    }
+
+    function playPianoNote(frequency, velocity = .78) {
+      const context = ensureAudio();
+      if (!context) return;
+
+      const now = context.currentTime;
+      const level = Math.max(.35, Math.min(1, velocity));
+      const filter = context.createBiquadFilter();
+      const envelope = context.createGain();
+      const roomSend = context.createGain();
+      const partials = [
+        { ratio: 1, gain: .72, duration: 2.4 },
+        { ratio: 2.006, gain: .23, duration: 1.65 },
+        { ratio: 3.018, gain: .085, duration: 1.05 },
+        { ratio: 4.03, gain: .035, duration: .72 },
+      ];
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(5400 - (frequency / 1000) * 1250, now);
+      filter.Q.value = .42;
+      envelope.gain.setValueAtTime(.0001, now);
+      envelope.gain.exponentialRampToValueAtTime(.17 * level, now + .006);
+      envelope.gain.exponentialRampToValueAtTime(.085 * level, now + .095);
+      envelope.gain.exponentialRampToValueAtTime(.0001, now + 2.15);
+      filter.connect(envelope);
+      envelope.connect(masterGain);
+      roomSend.gain.value = .075;
+      envelope.connect(roomSend);
+      roomSend.connect(delayNode);
+
+      partials.forEach((partial, index) => {
+        const oscillator = context.createOscillator();
+        const partialGain = context.createGain();
+        oscillator.type = index === 0 ? "triangle" : "sine";
+        oscillator.frequency.setValueAtTime(frequency * partial.ratio, now);
+        oscillator.detune.value = index % 2 ? 1.8 : -1.2;
+        partialGain.gain.setValueAtTime(partial.gain, now);
+        partialGain.gain.exponentialRampToValueAtTime(.0001, now + partial.duration);
+        oscillator.connect(partialGain);
+        partialGain.connect(filter);
+        oscillator.start(now);
+        oscillator.stop(now + partial.duration + .08);
+      });
+
+      const hammer = context.createBufferSource();
+      const hammerFilter = context.createBiquadFilter();
+      const hammerGain = context.createGain();
+      hammer.buffer = getDrumNoise();
+      hammerFilter.type = "bandpass";
+      hammerFilter.frequency.value = Math.min(4800, 1750 + frequency * 2.25);
+      hammerFilter.Q.value = 1.15;
+      hammerGain.gain.setValueAtTime(.022 * level, now);
+      hammerGain.gain.exponentialRampToValueAtTime(.0001, now + .028);
+      hammer.connect(hammerFilter);
+      hammerFilter.connect(hammerGain);
+      hammerGain.connect(masterGain);
+      hammer.start(now);
+      hammer.stop(now + .035);
+    }
+
+    function triggerPianoKey(key, velocity = .78, fingerLabel = "") {
+      if (!key) return;
+      playPianoNote(Number(key.dataset.frequency), velocity);
+      window.clearTimeout(pianoKeyTimers.get(key));
+      key.classList.remove("is-pressed");
+      void key.offsetWidth;
+      key.classList.add("is-pressed");
+      pianoKeyTimers.set(key, window.setTimeout(() => {
+        key.classList.remove("is-pressed");
+        pianoKeyTimers.delete(key);
+      }, 190));
+      pianoLastNoteAt = performance.now();
+      pianoStatus.textContent = `${key.dataset.note}${fingerLabel ? ` / ${fingerLabel}` : ""}`;
+      labStatus.textContent = `PIANO / ${key.dataset.note}`;
+    }
+
+    function pianoKeyAtPoint(x, y) {
+      if (y < .82) {
+        let closestIndex = -1;
+        let closestDistance = Infinity;
+        pianoBlackCenters.forEach((center, index) => {
+          const distance = Math.abs(x - center);
+          if (distance < closestDistance) {
+            closestIndex = index;
+            closestDistance = distance;
+          }
+        });
+        if (closestDistance <= .024) return pianoBlackKeys[closestIndex];
+      }
+      const whiteIndex = Math.max(0, Math.min(pianoWhiteKeys.length - 1, Math.floor(x * pianoWhiteKeys.length)));
+      return pianoWhiteKeys[whiteIndex];
+    }
+
+    function sizePianoOverlay() {
+      if (!pianoOverlay || !pianoVideo) return;
+      const width = pianoVideo.videoWidth || 1280;
+      const height = pianoVideo.videoHeight || 720;
+      if (pianoOverlay.width !== width) pianoOverlay.width = width;
+      if (pianoOverlay.height !== height) pianoOverlay.height = height;
+    }
+
+    function clearPianoTracking() {
+      pianoFingerStates.clear();
+      pianoHandHistory.clear();
+      if (pianoOverlayContext && pianoOverlay) {
+        pianoOverlayContext.clearRect(0, 0, pianoOverlay.width, pianoOverlay.height);
+      }
+    }
+
+    function smoothPianoLandmarks(handedness, landmarks) {
+      const previous = pianoHandHistory.get(handedness);
+      const smoothed = landmarks.map((point, index) => {
+        const oldPoint = previous?.[index];
+        if (!oldPoint) return { ...point };
+
+        const distance = Math.hypot(point.x - oldPoint.x, point.y - oldPoint.y);
+        const alpha = distance > .035 ? .74 : distance > .012 ? .56 : .42;
+        return {
+          x: oldPoint.x + (point.x - oldPoint.x) * alpha,
+          y: oldPoint.y + (point.y - oldPoint.y) * alpha,
+          z: oldPoint.z + (point.z - oldPoint.z) * alpha,
+        };
+      });
+      pianoHandHistory.set(handedness, smoothed);
+      return smoothed;
+    }
+
+    function onPianoHands(results) {
+      if (!pianoOverlayContext || !pianoOverlay) return;
+      sizePianoOverlay();
+      pianoOverlayContext.clearRect(0, 0, pianoOverlay.width, pianoOverlay.height);
+
+      const hands = results.multiHandLandmarks || [];
+      const seenFingers = new Set();
+
+      hands.forEach((rawLandmarks, handIndex) => {
+        const handedness = results.multiHandedness?.[handIndex]?.label || `HAND ${handIndex + 1}`;
+        const landmarks = smoothPianoLandmarks(handedness, rawLandmarks);
+        if (window.drawConnectors && window.HAND_CONNECTIONS) {
+          window.drawConnectors(pianoOverlayContext, landmarks, window.HAND_CONNECTIONS, {
+            color: "rgba(220, 220, 222, .54)",
+            lineWidth: 2,
+          });
+        }
+        if (window.drawLandmarks) {
+          window.drawLandmarks(pianoOverlayContext, landmarks, {
+            color: "rgba(248, 248, 250, .9)",
+            fillColor: "rgba(30, 30, 32, .8)",
+            lineWidth: 1,
+            radius: 2.2,
+          });
+        }
+
+        pianoTipIndices.forEach((tipIndex, fingerIndex) => {
+          const tip = landmarks[tipIndex];
+          const pip = landmarks[pianoPipIndices[fingerIndex]];
+          const fingerId = `${handedness}-${tipIndex}`;
+          const previous = pianoFingerStates.get(fingerId);
+          const screenX = Math.max(0, Math.min(1, 1 - tip.x));
+          const y = Math.max(0, Math.min(1, tip.y));
+          const relativeY = y - Math.max(0, Math.min(1, pip.y));
+          const deltaY = previous ? y - previous.y : 0;
+          const relativeDelta = previous ? relativeY - previous.relativeY : 0;
+          const inPressZone = y >= .56;
+          const crossedPressLine = previous?.y < .56 && inPressZone;
+          const pressed = previous && !previous.down && inPressZone && (
+            crossedPressLine || deltaY > .0065 || relativeDelta > .0075
+          );
+          let down = previous?.down || false;
+
+          if (pressed) {
+            const key = pianoKeyAtPoint(screenX, y);
+            const pressSpeed = Math.max(deltaY, relativeDelta, .004);
+            const velocity = Math.max(.5, Math.min(1, .56 + pressSpeed * 20));
+            triggerPianoKey(key, velocity, `${handedness.toUpperCase()} ${pianoFingerNames[fingerIndex]}`);
+            down = true;
+          }
+          if (y < .515 || relativeDelta < -.01 || deltaY < -.012) down = false;
+
+          pianoFingerStates.set(fingerId, { y, x: screenX, relativeY, down });
+          seenFingers.add(fingerId);
+
+          pianoOverlayContext.save();
+          pianoOverlayContext.beginPath();
+          pianoOverlayContext.arc(
+            tip.x * pianoOverlay.width,
+            tip.y * pianoOverlay.height,
+            down ? 11 : 7,
+            0,
+            Math.PI * 2
+          );
+          pianoOverlayContext.fillStyle = down ? "rgba(255,255,255,.92)" : "rgba(210,210,212,.72)";
+          pianoOverlayContext.fill();
+          pianoOverlayContext.restore();
+        });
+      });
+
+      [...pianoFingerStates.keys()].forEach((fingerId) => {
+        if (!seenFingers.has(fingerId)) pianoFingerStates.delete(fingerId);
+      });
+
+      const seenHands = new Set(hands.map((_, index) => results.multiHandedness?.[index]?.label || `HAND ${index + 1}`));
+      [...pianoHandHistory.keys()].forEach((handedness) => {
+        if (!seenHands.has(handedness)) pianoHandHistory.delete(handedness);
+      });
+
+      if (!hands.length) pianoStatus.textContent = t("labPianoNoHands");
+      else if (performance.now() - pianoLastNoteAt > 650) {
+        pianoStatus.textContent = hands.length > 1 ? t("labPianoTrackingBoth") : t("labPianoTrackingOne");
+      }
+    }
+
+    async function startPianoCamera() {
+      if (pianoStarting || pianoStream) return;
+      ensureAudio();
+      pianoStarting = true;
+      pianoStartButton.disabled = true;
+      pianoStatus.textContent = t("labPianoStarting");
+
+      try {
+        if (!navigator.mediaDevices?.getUserMedia || !window.Hands || !window.Camera) {
+          throw new Error("Camera hand tracking is unavailable");
+        }
+        pianoHands = new window.Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+        });
+        pianoHands.setOptions({
+          maxNumHands: 2,
+          modelComplexity: 0,
+          minDetectionConfidence: .55,
+          minTrackingConfidence: .5,
+        });
+        pianoHands.onResults(onPianoHands);
+        pianoCamera = new window.Camera(pianoVideo, {
+          onFrame: async () => {
+            const now = performance.now();
+            if (!pianoHands || pianoFrameBusy || now - pianoLastInferenceAt < 30) return;
+            pianoFrameBusy = true;
+            pianoLastInferenceAt = now;
+            try {
+              await pianoHands.send({ image: pianoVideo });
+            } finally {
+              pianoFrameBusy = false;
+            }
+          },
+          width: 960,
+          height: 540,
+        });
+        await pianoCamera.start();
+        pianoStream = pianoVideo.srcObject;
+        pianoPlaceholder.hidden = true;
+        pianoStatus.textContent = t("labPianoNoHands");
+      } catch (error) {
+        console.error(error);
+        pianoStatus.textContent = t("labPianoError");
+        stopPianoCamera();
+      } finally {
+        pianoStarting = false;
+        pianoStartButton.disabled = false;
+        pianoStartButton.textContent = t("labPianoStart");
+      }
+    }
+
+    function stopPianoCamera() {
+      if (pianoCamera?.stop) pianoCamera.stop();
+      if (pianoStream?.getTracks) pianoStream.getTracks().forEach((track) => track.stop());
+      if (pianoVideo?.srcObject?.getTracks) pianoVideo.srcObject.getTracks().forEach((track) => track.stop());
+      if (pianoHands?.close) Promise.resolve(pianoHands.close()).catch(() => {});
+      pianoCamera = null;
+      pianoStream = null;
+      pianoHands = null;
+      pianoFrameBusy = false;
+      pianoLastInferenceAt = 0;
+      clearPianoTracking();
+      if (pianoPlaceholder) pianoPlaceholder.hidden = false;
     }
 
     function pluckBass(frequency, intensity = .72) {
@@ -994,8 +1480,10 @@
     }
 
     function readyText() {
+      if (waveform === "piano") return t("labPianoReady");
       if (waveform === "drum") return t("labDrumReady");
       if (waveform === "sawtooth") return t("labBassReady");
+      if (waveform === "wrap") return t("labWrapReady");
       return t("labReady");
     }
 
@@ -1050,7 +1538,9 @@
           const drumPart = drumSequence[loopStep];
           const drumPad = drumPads.find((item) => item.dataset.drumPart === drumPart);
           strikeDrumPad(drumPad, .65);
-        } else if (waveform === "sawtooth") pluckBass(frequency / 2, .48);
+        } else if (waveform === "piano") playPianoNote(frequency * 2, .62);
+        else if (waveform === "sawtooth") pluckBass(frequency / 2, .48);
+        else if (waveform === "wrap") pulseWrap(.16 + loopStep * .095, .34 + (loopStep % 3) * .16, .48 + (loopStep % 2) * .16);
         else pluck(frequency);
       }
       loopStep = (loopStep + 1) % stepButtons.length;
@@ -1077,21 +1567,30 @@
         waveform = button.dataset.wave || "sine";
         const bassMode = waveform === "sawtooth";
         const drumMode = waveform === "drum";
+        const pianoMode = waveform === "piano";
+        const wrapMode = waveform === "wrap";
         voiceButtons.forEach((item) => {
           const active = item === button;
           item.classList.toggle("is-active", active);
           item.setAttribute("aria-pressed", String(active));
         });
         if (pointerPlaying) stopPadVoice();
+        if (!pianoMode) stopPianoCamera();
         soundLab.classList.toggle("is-bass-mode", bassMode);
         soundLab.classList.toggle("is-drum-mode", drumMode);
+        soundLab.classList.toggle("is-piano-mode", pianoMode);
+        soundLab.classList.toggle("is-wrap-mode", wrapMode);
         pad.setAttribute(
           "aria-label",
           bassMode
             ? "Pull and release a bass string"
             : drumMode
               ? "Strike the acoustic drum kit"
-              : "Drag to play pitch and texture"
+              : pianoMode
+                ? "Play piano with both hands on camera"
+                : wrapMode
+                  ? "Touch and crumple the package"
+                  : "Drag to play pitch and texture"
         );
 
         if (bassMode) {
@@ -1105,6 +1604,22 @@
           labStatus.textContent = t("labDrumReady");
           const kick = drumPads.find((item) => item.dataset.drumPart === "kick");
           strikeDrumPad(kick, .52);
+        } else if (pianoMode) {
+          bassStringControls.forEach((control) => {
+            stopBassAnimation(control);
+            setBassPath(control);
+          });
+          labStatus.textContent = t("labPianoReady");
+          pianoStatus.textContent = t("labPianoReady");
+          playPianoNote(261.63, .5);
+        } else if (wrapMode) {
+          bassStringControls.forEach((control) => {
+            stopBassAnimation(control);
+            setBassPath(control);
+          });
+          resetWrapSurface();
+          labStatus.textContent = t("labWrapReady");
+          playWrapCrinkle(.4, .5);
         } else {
           bassStringControls.forEach((control) => {
             stopBassAnimation(control);
@@ -1115,6 +1630,75 @@
         }
       });
     });
+
+    if (wrapStage && wrapObject) {
+      wrapStage.addEventListener("pointerdown", (event) => {
+        if (waveform !== "wrap") return;
+        event.preventDefault();
+        event.stopPropagation();
+        wrapStage.setPointerCapture(event.pointerId);
+        const point = wrapPoint(event);
+        const pressure = event.pressure ? .48 + event.pressure * .52 : .68;
+        wrapDrag = {
+          pointerId: event.pointerId,
+          x: point.x,
+          y: point.y,
+          dentAt: performance.now(),
+        };
+        wrapObject.classList.add("is-pressed");
+        setWrapPose(point.x, point.y, pressure);
+        addWrapDent(point.x, point.y, pressure);
+        playWrapCrinkle(pressure, point.x);
+        wrapLastSoundAt = performance.now();
+        labStatus.textContent = `WRAP / ${String(wrapDentCount).padStart(2, "0")} TOUCHES`;
+      });
+
+      wrapStage.addEventListener("pointermove", (event) => {
+        if (!wrapDrag || wrapDrag.pointerId !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const point = wrapPoint(event);
+        const distance = Math.hypot(point.x - wrapDrag.x, point.y - wrapDrag.y);
+        const now = performance.now();
+        const pressure = Math.max(.38, Math.min(1, (event.pressure || .48) + distance * 4.6));
+        setWrapPose(point.x, point.y, pressure);
+
+        if (distance > .012 && now - wrapDrag.dentAt > 58) {
+          addWrapDent(point.x, point.y, pressure);
+          wrapDrag.dentAt = now;
+          labStatus.textContent = `WRAP / ${String(wrapDentCount).padStart(2, "0")} TOUCHES`;
+        }
+        if (distance > .007 && now - wrapLastSoundAt > 42) {
+          playWrapCrinkle(pressure, point.x);
+          wrapLastSoundAt = now;
+        }
+        wrapDrag.x = point.x;
+        wrapDrag.y = point.y;
+      });
+
+      const finishWrapGesture = (event) => {
+        if (!wrapDrag || (event.pointerId != null && wrapDrag.pointerId !== event.pointerId)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        wrapDrag = null;
+        relaxWrapPose();
+        labStatus.textContent = `WRAP / ${String(wrapDentCount).padStart(2, "0")} TOUCHES`;
+      };
+
+      ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => {
+        wrapStage.addEventListener(eventName, finishWrapGesture);
+      });
+
+      wrapStage.addEventListener("keydown", (event) => {
+        if (!['Enter', ' '].includes(event.key) || event.repeat || waveform !== "wrap") return;
+        event.preventDefault();
+        event.stopPropagation();
+        const x = .32 + Math.random() * .36;
+        const y = .3 + Math.random() * .42;
+        pulseWrap(x, y, .68);
+        labStatus.textContent = `WRAP / ${String(wrapDentCount).padStart(2, "0")} TOUCHES`;
+      });
+    }
 
     bassStringControls.forEach((control) => {
       let dragState = null;
@@ -1204,8 +1788,26 @@
       });
     }
 
+    if (pianoStage) {
+      pianoStartButton.addEventListener("click", startPianoCamera);
+      pianoKeys.forEach((key) => {
+        key.setAttribute("aria-label", key.dataset.note);
+        key.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          triggerPianoKey(key, event.pressure ? .55 + event.pressure * .45 : .8);
+        });
+        key.addEventListener("keydown", (event) => {
+          if (!["Enter", " "].includes(event.key) || event.repeat) return;
+          event.preventDefault();
+          event.stopPropagation();
+          triggerPianoKey(key, .78);
+        });
+      });
+    }
+
     pad.addEventListener("pointerdown", (event) => {
-      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode") || soundLab.classList.contains("is-wrap-mode")) return;
       event.preventDefault();
       pad.setPointerCapture(event.pointerId);
       const position = pointerPosition(event);
@@ -1213,7 +1815,7 @@
     });
 
     pad.addEventListener("pointermove", (event) => {
-      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode") || soundLab.classList.contains("is-wrap-mode")) return;
       const position = pointerPosition(event);
       if (pointerPlaying) updatePadVoice(position.x, position.y);
       else {
@@ -1227,7 +1829,7 @@
     });
 
     pad.addEventListener("keydown", (event) => {
-      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode") || soundLab.classList.contains("is-wrap-mode")) return;
       if (!["Enter", " "].includes(event.key) || pointerPlaying) return;
       event.preventDefault();
       startPadVoice(.5, .5);
@@ -1250,7 +1852,9 @@
           if (waveform === "drum") {
             const drumPart = drumSequence[index];
             strikeDrumPad(drumPads.find((item) => item.dataset.drumPart === drumPart), .68);
-          } else if (waveform === "sawtooth") pluckBass(frequency / 2, .5);
+          } else if (waveform === "piano") playPianoNote(frequency * 2, .68);
+          else if (waveform === "sawtooth") pluckBass(frequency / 2, .5);
+          else if (waveform === "wrap") pulseWrap(.16 + index * .095, .34 + (index % 3) * .16, .58);
           else pluck(frequency);
         }
       });
@@ -1280,6 +1884,7 @@
           ? t("labPlaying")
           : readyText();
       }
+      if (!pianoStream && pianoStatus) pianoStatus.textContent = t("labPianoReady");
     });
 
     [
@@ -1294,12 +1899,14 @@
       if (document.hidden) {
         stopPadVoice();
         stopLoop();
+        stopPianoCamera();
         bassStringControls.forEach((control) => {
           stopBassAnimation(control);
           setBassPath(control);
         });
       }
     });
+    window.addEventListener("pagehide", stopPianoCamera);
   }
 
   /* ------------------------------
@@ -1341,7 +1948,7 @@
       localStorage.setItem(archiveKey, JSON.stringify(items));
     }
 
-    function renderHandwritingPreview(preview, item, height) {
+    function renderHandwritingPreview(preview, item, height, cropToInk = false) {
       const strokes = Array.isArray(item.strokes) ? item.strokes : [];
       const validStrokes = strokes.filter(
         (stroke) => Array.isArray(stroke.points) && stroke.points.length > 0
@@ -1349,9 +1956,33 @@
 
       if (!validStrokes.length) return false;
 
+      const allPoints = validStrokes.flatMap((stroke) =>
+        stroke.points.filter(
+          (point) => Number.isFinite(point.x) && Number.isFinite(point.y)
+        )
+      );
+      if (!allPoints.length) return false;
+
+      const sourceWidth = Number(item.width) || 1200;
+      const sourceHeight = Number(height) || Number(item.height) || 760;
+      let viewBox = `0 0 ${sourceWidth} ${sourceHeight}`;
+      if (cropToInk) {
+        const xs = allPoints.map((point) => point.x);
+        const ys = allPoints.map((point) => point.y);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        const inkWidth = Math.max(24, maxX - minX);
+        const inkHeight = Math.max(24, maxY - minY);
+        const padding = Math.max(18, Math.min(70, Math.max(inkWidth, inkHeight) * .1));
+        viewBox = `${minX - padding} ${minY - padding} ${inkWidth + padding * 2} ${inkHeight + padding * 2}`;
+      }
+
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       svg.classList.add("archive-handwriting");
-      svg.setAttribute("viewBox", `0 0 ${item.width || 1200} ${height}`);
+      if (cropToInk) svg.classList.add("archive-handwriting--cutout");
+      svg.setAttribute("viewBox", viewBox);
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
       svg.setAttribute("aria-hidden", "true");
 
@@ -1453,6 +2084,50 @@
     let archivePreviewTimer = 0;
     let archiveAudioContext = null;
     let archivePreviewVoices = [];
+    let archivePreviewStage = null;
+    let archivePreviewButton = null;
+    let archiveCollisionFrame = 0;
+
+    // Keep archive playback in the same music-box family as COMPOSE.
+    // Older archive previews used a soft two-oscillator synth, which made a
+    // saved handwriting piece sound unrelated to the melody that was made.
+    const archiveMusicBoxPitches = [
+      523.25, 587.33, 659.25, 783.99, 880,
+      1046.5, 1174.66, 1318.51, 1567.98,
+    ];
+    const archiveMusicBoxProfiles = {
+      bright: {
+        filter: 8800,
+        detune: 8,
+        partials: [
+          { ratio: 1, gain: .165, decay: 1.85 },
+          { ratio: 2.02, gain: .115, decay: 1.2 },
+          { ratio: 2.78, gain: .075, decay: .9 },
+          { ratio: 5.42, gain: .035, decay: .55 },
+        ],
+      },
+      warm: {
+        filter: 5600,
+        detune: 5,
+        partials: [
+          { ratio: .5, gain: .035, decay: 1.45 },
+          { ratio: 1, gain: .18, decay: 2.5 },
+          { ratio: 2.01, gain: .072, decay: 1.55 },
+          { ratio: 2.76, gain: .035, decay: 1.1 },
+          { ratio: 5.4, gain: .009, decay: .62 },
+        ],
+      },
+      soft: {
+        filter: 4100,
+        detune: 3,
+        partials: [
+          { ratio: .5, gain: .052, decay: 1.7 },
+          { ratio: 1, gain: .16, decay: 2.8 },
+          { ratio: 2, gain: .045, decay: 1.7 },
+          { ratio: 2.72, gain: .016, decay: 1.12 },
+        ],
+      },
+    };
 
     function stopArchivePreview(stage, button) {
       window.clearTimeout(archivePreviewTimer);
@@ -1466,16 +2141,24 @@
         } catch {}
       });
       archivePreviewVoices = [];
-      stage?.classList.remove("is-playing");
-      if (button) {
-        button.classList.remove("is-playing");
-        button.textContent = "FEED + LISTEN";
-        button.setAttribute("aria-pressed", "false");
+      const activeStage = stage || archivePreviewStage;
+      const activeButton = button || archivePreviewButton;
+      activeStage?.classList.remove("is-playing");
+      if (activeButton) {
+        activeButton.classList.remove("is-playing");
+        if (!activeButton.classList.contains("archive-float-piece")) {
+          activeButton.textContent = "FEED + LISTEN";
+        }
+        activeButton.setAttribute("aria-pressed", "false");
       }
+      archivePreviewStage = null;
+      archivePreviewButton = null;
     }
 
     function playArchivePreview(item, stage, button) {
-      stopArchivePreview(stage, button);
+      stopArchivePreview();
+      archivePreviewStage = stage;
+      archivePreviewButton = button;
       const sourceNotes = Array.isArray(item.notes)
         ? [...item.notes].sort((a, b) => (Number(a.x) || 0) - (Number(b.x) || 0))
         : [];
@@ -1483,7 +2166,9 @@
       const notes = sourceNotes.filter((_, index) => index % noteStride === 0).slice(0, 18);
       stage.classList.add("is-playing");
       button.classList.add("is-playing");
-      button.textContent = "STOP FEED ■";
+      if (!button.classList.contains("archive-float-piece")) {
+        button.textContent = "STOP FEED ■";
+      }
       button.setAttribute("aria-pressed", "true");
 
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
@@ -1496,16 +2181,16 @@
         const maxX = xs.length ? Math.max(...xs) : 1;
         const rangeX = Math.max(1, maxX - minX);
         const sourceHeight = Number(item.height) || 760;
-        const gentleScale = [329.63, 392, 440, 523.25, 587.33, 659.25];
+        const profile = archiveMusicBoxProfiles[item.tone] || archiveMusicBoxProfiles.warm;
         const dryBus = archiveAudioContext.createGain();
         const echo = archiveAudioContext.createDelay(.4);
         const echoGain = archiveAudioContext.createGain();
         const toneFilter = archiveAudioContext.createBiquadFilter();
-        dryBus.gain.value = .82;
-        echo.delayTime.value = .16;
-        echoGain.gain.value = .12;
+        dryBus.gain.value = .72;
+        echo.delayTime.value = .14;
+        echoGain.gain.value = .1;
         toneFilter.type = "lowpass";
-        toneFilter.frequency.value = 2900;
+        toneFilter.frequency.value = profile.filter;
         toneFilter.Q.value = .35;
         dryBus.connect(toneFilter).connect(archiveAudioContext.destination);
         dryBus.connect(echo).connect(echoGain).connect(toneFilter);
@@ -1519,34 +2204,230 @@
           if (usedSteps.has(step)) return;
           usedSteps.add(step);
           const when = start + (step / 18) * 4.8;
-          const scaleIndex = Math.max(0, Math.min(gentleScale.length - 1, Math.round((1 - y / sourceHeight) * (gentleScale.length - 1))));
-          const frequency = gentleScale[scaleIndex];
-          const oscillator = archiveAudioContext.createOscillator();
-          const gain = archiveAudioContext.createGain();
-          const shimmer = archiveAudioContext.createOscillator();
-          const shimmerGain = archiveAudioContext.createGain();
-          oscillator.type = "sine";
-          oscillator.frequency.setValueAtTime(frequency, when);
-          gain.gain.setValueAtTime(.0001, when);
-          gain.gain.exponentialRampToValueAtTime(.016, when + .014);
-          gain.gain.exponentialRampToValueAtTime(.0001, when + 1.05);
-          oscillator.connect(gain).connect(dryBus);
-          shimmer.type = "sine";
-          shimmer.frequency.setValueAtTime(frequency * 2.005, when);
-          shimmerGain.gain.setValueAtTime(.0001, when);
-          shimmerGain.gain.exponentialRampToValueAtTime(.0032, when + .01);
-          shimmerGain.gain.exponentialRampToValueAtTime(.0001, when + .58);
-          shimmer.connect(shimmerGain).connect(dryBus);
-          oscillator.start(when);
-          shimmer.start(when);
-          oscillator.stop(when + 1.12);
-          shimmer.stop(when + .64);
-          archivePreviewVoices.push({ oscillator, gain });
-          archivePreviewVoices.push({ oscillator: shimmer, gain: shimmerGain });
+          const pitchIndex = Math.max(
+            0,
+            Math.min(
+              archiveMusicBoxPitches.length - 1,
+              8 - Math.round((y / sourceHeight) * 8)
+            )
+          );
+          const frequency = archiveMusicBoxPitches[pitchIndex];
+          const pitchDecay = Math.max(.78, Math.min(1.2, 920 / frequency));
+
+          profile.partials.forEach((partial) => {
+            const oscillator = archiveAudioContext.createOscillator();
+            const gain = archiveAudioContext.createGain();
+            const partialTone = archiveAudioContext.createBiquadFilter();
+            const panner = archiveAudioContext.createStereoPanner
+              ? archiveAudioContext.createStereoPanner()
+              : null;
+            const decay = partial.decay * pitchDecay;
+
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(frequency * partial.ratio, when);
+            oscillator.detune.setValueAtTime(
+              (Math.random() - .5) * profile.detune,
+              when
+            );
+            partialTone.type = "lowpass";
+            partialTone.frequency.value = profile.filter;
+            partialTone.Q.value = .35;
+            gain.gain.setValueAtTime(.0001, when);
+            gain.gain.exponentialRampToValueAtTime(partial.gain * .82, when + .005);
+            gain.gain.exponentialRampToValueAtTime(.0001, when + decay);
+            oscillator.connect(gain).connect(partialTone);
+
+            if (panner) {
+              panner.pan.value = ((pitchIndex / 8) * 2 - 1) * .12;
+              partialTone.connect(panner).connect(dryBus);
+            } else {
+              partialTone.connect(dryBus);
+            }
+
+            oscillator.start(when);
+            oscillator.stop(when + decay + .05);
+            archivePreviewVoices.push({ oscillator, gain });
+          });
         });
       }
 
-      archivePreviewTimer = window.setTimeout(() => stopArchivePreview(stage, button), 6100);
+      archivePreviewTimer = window.setTimeout(() => stopArchivePreview(), 6100);
+    }
+
+    function unlockArchiveCollisionAudio() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      archiveAudioContext ||= new AudioContextClass();
+      archiveAudioContext.resume?.();
+    }
+
+    function playArchiveCollisionChime(pairIndex) {
+      if (!archiveAudioContext || archiveAudioContext.state !== "running") return;
+      const now = archiveAudioContext.currentTime;
+      const master = archiveAudioContext.createGain();
+      const filter = archiveAudioContext.createBiquadFilter();
+      const delay = archiveAudioContext.createDelay(.35);
+      const echo = archiveAudioContext.createGain();
+      master.gain.setValueAtTime(.0001, now);
+      master.gain.exponentialRampToValueAtTime(.1, now + .018);
+      master.gain.exponentialRampToValueAtTime(.0001, now + .58);
+      filter.type = "highpass";
+      filter.frequency.value = 640;
+      filter.Q.value = .35;
+      delay.delayTime.value = .11;
+      echo.gain.value = .18;
+      master.connect(filter).connect(archiveAudioContext.destination);
+      filter.connect(delay).connect(echo).connect(archiveAudioContext.destination);
+
+      const roots = [659.25, 739.99, 783.99, 880];
+      const root = roots[pairIndex % roots.length];
+      [1, 1.5, 2, 2.5].forEach((ratio, noteIndex) => {
+        const oscillator = archiveAudioContext.createOscillator();
+        const gain = archiveAudioContext.createGain();
+        const start = now + noteIndex * .055;
+        oscillator.type = noteIndex % 2 ? "triangle" : "sine";
+        oscillator.frequency.setValueAtTime(root * ratio, start);
+        oscillator.detune.setValueAtTime((noteIndex - 1.5) * 3, start);
+        gain.gain.setValueAtTime(.0001, start);
+        gain.gain.exponentialRampToValueAtTime(.028 - noteIndex * .0035, start + .012);
+        gain.gain.exponentialRampToValueAtTime(.0001, start + .42 + noteIndex * .045);
+        oscillator.connect(gain).connect(master);
+        oscillator.start(start);
+        oscillator.stop(start + .54 + noteIndex * .05);
+      });
+
+      window.setTimeout(() => {
+        try { master.disconnect(); filter.disconnect(); delay.disconnect(); echo.disconnect(); } catch {}
+      }, 1100);
+    }
+
+    function showArchiveCollision(stage, first, second, pairIndex) {
+      const stageBox = stage.getBoundingClientRect();
+      const firstBox = first.getBoundingClientRect();
+      const secondBox = second.getBoundingClientRect();
+      const spark = document.createElement("span");
+      spark.className = "archive-collision-spark";
+      spark.style.left = `${((firstBox.left + firstBox.right + secondBox.left + secondBox.right) / 4) - stageBox.left}px`;
+      spark.style.top = `${((firstBox.top + firstBox.bottom + secondBox.top + secondBox.bottom) / 4) - stageBox.top}px`;
+      for (let sparkIndex = 0; sparkIndex < 9; sparkIndex++) {
+        const ray = document.createElement("i");
+        ray.style.setProperty("--spark-angle", `${sparkIndex * 40 + (pairIndex % 3) * 7}deg`);
+        ray.style.setProperty("--spark-distance", `${16 + (sparkIndex % 4) * 7}px`);
+        ray.style.setProperty("--spark-delay", `${(sparkIndex % 3) * 22}ms`);
+        spark.appendChild(ray);
+      }
+      stage.appendChild(spark);
+      window.setTimeout(() => spark.remove(), 760);
+      playArchiveCollisionChime(pairIndex);
+    }
+
+    function startArchivePhysics(stage) {
+      if (archiveCollisionFrame) cancelAnimationFrame(archiveCollisionFrame);
+      archiveCollisionFrame = 0;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      const anchors = [...stage.querySelectorAll(".archive-float-anchor")];
+      if (anchors.length < 1) return;
+      const bounds = stage.getBoundingClientRect();
+      const centerX = bounds.width / 2;
+      const centerY = bounds.height / 2;
+      const states = anchors.map((anchor, index) => {
+        const piece = anchor.querySelector(".archive-float-piece");
+        const pieceBox = piece.getBoundingClientRect();
+        const x = (Number.parseFloat(anchor.style.left) / 100) * bounds.width;
+        const y = (Number.parseFloat(anchor.style.top) / 100) * bounds.height;
+        const towardCenter = Math.atan2(centerY - y, centerX - x);
+        const spread = ((index % 3) - 1) * .28;
+        const speed = (28 + (index % 5) * 5.5) * (window.innerWidth <= 650 ? .72 : 1);
+        anchor.classList.add("is-physics");
+        anchor.style.left = "0px";
+        anchor.style.top = "0px";
+        const state = {
+          anchor,
+          piece,
+          x,
+          y,
+          width: pieceBox.width,
+          height: pieceBox.height,
+          vx: Math.cos(towardCenter + spread) * speed,
+          vy: Math.sin(towardCenter + spread) * speed,
+          rotation: (index % 2 ? -1 : 1) * (index % 4),
+          rotationSpeed: (index % 2 ? -1 : 1) * (.55 + (index % 3) * .18),
+          held: false,
+        };
+        piece.addEventListener("pointerenter", () => { state.held = true; });
+        piece.addEventListener("pointerleave", () => { state.held = false; });
+        return state;
+      });
+
+      const activePairs = new Set();
+      let previousTime = performance.now();
+
+      function frame(now) {
+        const delta = Math.min(.032, Math.max(.001, (now - previousTime) / 1000));
+        previousTime = now;
+        const stageWidth = stage.clientWidth;
+        const stageHeight = stage.clientHeight;
+
+        states.forEach((state) => {
+          if (!state.held) {
+            state.x += state.vx * delta;
+            state.y += state.vy * delta;
+            state.rotation += state.rotationSpeed * delta;
+          }
+          const halfWidth = state.width * .45;
+          const halfHeight = state.height * .45;
+          if (state.x < halfWidth) { state.x = halfWidth; state.vx = Math.abs(state.vx); }
+          if (state.x > stageWidth - halfWidth) { state.x = stageWidth - halfWidth; state.vx = -Math.abs(state.vx); }
+          if (state.y < halfHeight) { state.y = halfHeight; state.vy = Math.abs(state.vy); }
+          if (state.y > stageHeight - halfHeight) { state.y = stageHeight - halfHeight; state.vy = -Math.abs(state.vy); }
+        });
+
+        const touchingNow = new Set();
+        for (let firstIndex = 0; firstIndex < states.length; firstIndex++) {
+          for (let secondIndex = firstIndex + 1; secondIndex < states.length; secondIndex++) {
+            const first = states[firstIndex];
+            const second = states[secondIndex];
+            const pairKey = `${firstIndex}:${secondIndex}`;
+            const dx = second.x - first.x;
+            const dy = second.y - first.y;
+            const overlapX = (first.width + second.width) * .39 - Math.abs(dx);
+            const overlapY = (first.height + second.height) * .39 - Math.abs(dy);
+            if (overlapX <= 0 || overlapY <= 0) continue;
+            touchingNow.add(pairKey);
+
+            if (overlapX < overlapY) {
+              const direction = dx >= 0 ? 1 : -1;
+              if (!first.held) first.x -= overlapX * .5 * direction;
+              if (!second.held) second.x += overlapX * .5 * direction;
+              if (first.held) second.vx = Math.abs(second.vx) * direction;
+              else if (second.held) first.vx = -Math.abs(first.vx) * direction;
+              else [first.vx, second.vx] = [second.vx, first.vx];
+            } else {
+              const direction = dy >= 0 ? 1 : -1;
+              if (!first.held) first.y -= overlapY * .5 * direction;
+              if (!second.held) second.y += overlapY * .5 * direction;
+              if (first.held) second.vy = Math.abs(second.vy) * direction;
+              else if (second.held) first.vy = -Math.abs(first.vy) * direction;
+              else [first.vy, second.vy] = [second.vy, first.vy];
+            }
+
+            if (!activePairs.has(pairKey)) {
+              showArchiveCollision(stage, first.piece, second.piece, firstIndex + secondIndex);
+            }
+          }
+        }
+        activePairs.clear();
+        touchingNow.forEach((key) => activePairs.add(key));
+
+        states.forEach((state) => {
+          state.anchor.style.transform = `translate3d(${state.x.toFixed(2)}px, ${state.y.toFixed(2)}px, 0) translate(-50%, -50%) rotate(${state.rotation.toFixed(2)}deg)`;
+        });
+        archiveCollisionFrame = requestAnimationFrame(frame);
+      }
+
+      stage.addEventListener("pointerdown", unlockArchiveCollisionAudio, { once: true });
+      archiveCollisionFrame = requestAnimationFrame(frame);
     }
 
     function renderFeedNotes(container, item) {
@@ -1577,6 +2458,9 @@
     }
 
     function renderArchive() {
+      stopArchivePreview();
+      if (archiveCollisionFrame) cancelAnimationFrame(archiveCollisionFrame);
+      archiveCollisionFrame = 0;
       const items = readArchive();
       if (archiveScrollHandler) window.removeEventListener("scroll", archiveScrollHandler);
       archiveScrollHandler = null;
@@ -1586,83 +2470,179 @@
       if (!items.length) return;
 
       const library = document.createElement("div");
-      library.className = "archive-library";
+      library.className = "archive-library archive-floating-library";
 
-      const libraryBar = document.createElement("div");
-      libraryBar.className = "archive-library-bar";
-      const libraryLabel = document.createElement("span");
-      libraryLabel.textContent = "ORGO / LIVE PAPER ARCHIVE";
-      const libraryCount = document.createElement("span");
-      libraryCount.textContent = `${String(items.length).padStart(2, "0")} SAVED COMPOSITION${items.length === 1 ? "" : "S"}`;
-      const createLink = document.createElement("a");
-      createLink.href = "compose.html";
-      createLink.textContent = "+ NEW MELODY";
-      libraryBar.append(libraryLabel, libraryCount, createLink);
+      const stage = document.createElement("div");
+      stage.className = "archive-float-stage";
+      stage.setAttribute("aria-label", document.documentElement.lang === "ko" ? "떠다니는 손글씨 음악" : "Floating handwriting melodies");
 
-      const tracks = document.createElement("div");
-      tracks.className = "archive-track-list";
+      const intro = document.createElement("div");
+      intro.className = "archive-float-intro";
+      const introTitle = document.createElement("h1");
+      introTitle.innerHTML = t("archiveExploreTitle");
+      intro.appendChild(introTitle);
+      stage.appendChild(intro);
+
+      const dock = document.createElement("div");
+      dock.className = "archive-float-dock";
+      dock.hidden = true;
+      const dockIndex = document.createElement("span");
+      dockIndex.className = "archive-float-dock-index";
+      const dockTitle = document.createElement("input");
+      dockTitle.className = "archive-float-title";
+      dockTitle.type = "text";
+      dockTitle.maxLength = 32;
+      dockTitle.setAttribute("aria-label", t("archiveName"));
+      const dockStatus = document.createElement("span");
+      dockStatus.className = "archive-float-status";
+      const dockPlayer = document.createElement("a");
+      dockPlayer.className = "archive-float-link";
+      dockPlayer.textContent = t("archiveOpenPlayer");
+      const dockObject = document.createElement("a");
+      dockObject.className = "archive-float-link";
+      dockObject.textContent = t("archiveMakeObject");
+      const dockDelete = document.createElement("button");
+      dockDelete.className = "archive-float-delete";
+      dockDelete.type = "button";
+      dockDelete.textContent = t("archiveDelete");
+      dock.append(dockIndex, dockTitle, dockStatus, dockPlayer, dockObject, dockDelete);
+
+      const compactArchive = window.matchMedia("(max-width: 650px)").matches;
+      const slots = compactArchive
+        ? [[28, 34], [72, 44], [30, 57], [70, 67], [28, 78], [68, 84]]
+        : [[66, 20], [38, 34], [77, 48], [14, 55], [53, 63], [27, 76], [80, 74], [8, 35], [57, 43], [37, 57], [86, 31], [44, 82]];
+      const archiveGroups = Math.max(1, Math.ceil(items.length / slots.length));
+      const archiveViewportHeight = Math.max(compactArchive ? 620 : 680, window.innerHeight - (compactArchive ? 64 : 68));
+      stage.style.minHeight = `${archiveGroups * archiveViewportHeight}px`;
+      let selectedItem = null;
+
+      function selectItem(item, index, piece) {
+        selectedItem = item;
+        stage.querySelectorAll(".archive-float-piece.is-selected").forEach((node) => node.classList.remove("is-selected"));
+        piece.classList.add("is-selected");
+        dock.hidden = false;
+        dockIndex.textContent = `${String(index + 1).padStart(2, "0")} / ${item.kind === "HAND" ? "HAND" : "MOUSE"} / ${(item.notes || []).length} NOTES`;
+        dockTitle.value = item.title || `${t("archiveUntitled")} ${String(index + 1).padStart(2, "0")}`;
+        dockStatus.textContent = t("archivePlaying");
+        dockPlayer.href = `player.html?archive=${encodeURIComponent(item.id)}`;
+        dockObject.href = `object.html?melody=${encodeURIComponent(item.id)}`;
+      }
 
       items.forEach((item, index) => {
-        const card = document.createElement("article");
-        card.className = "archive-track";
-        card.dataset.index = String(index);
+        const slot = slots[index % slots.length];
+        const round = Math.floor(index / slots.length);
+        const anchor = document.createElement("div");
+        anchor.className = "archive-float-anchor";
+        anchor.style.left = `${slot[0]}%`;
+        anchor.style.top = `${((round * 100 + slot[1]) / archiveGroups).toFixed(3)}%`;
+        const motionScale = compactArchive ? .68 : 1;
+        const horizontalRange = (34 + (index % 5) * 9) * motionScale;
+        const verticalRange = (26 + (index % 4) * 8) * motionScale;
+        const direction = index % 2 ? -1 : 1;
+        const xPath = slot[0] <= 10
+          ? [.42, .92, .58, 1]
+          : slot[0] >= 80
+            ? [-.42, -.92, -.58, -1]
+            : [.82 * direction, -.58 * direction, .44 * direction, -.9 * direction];
+        const yPath = slot[1] <= 18
+          ? [.35, .82, 1, .55]
+          : slot[1] >= 72
+            ? [-.35, -.82, -1, -.55]
+            : [-.72 * direction, .92 * direction, .48 * direction, -.86 * direction];
+        anchor.style.setProperty("--float-duration", `${14 + (index % 5) * 2.15}s`);
+        anchor.style.setProperty("--float-delay", `${-(index % 8) * 1.9}s`);
+        xPath.forEach((amount, pathIndex) => {
+          anchor.style.setProperty(`--float-x${pathIndex + 1}`, `${(horizontalRange * amount).toFixed(1)}px`);
+        });
+        yPath.forEach((amount, pathIndex) => {
+          anchor.style.setProperty(`--float-y${pathIndex + 1}`, `${(verticalRange * amount).toFixed(1)}px`);
+        });
+        const rotation = (1.8 + (index % 4) * .7) * direction;
+        anchor.style.setProperty("--float-r1", `${(-rotation * .55).toFixed(2)}deg`);
+        anchor.style.setProperty("--float-r2", `${(rotation * .9).toFixed(2)}deg`);
+        anchor.style.setProperty("--float-r3", `${(-rotation).toFixed(2)}deg`);
+        anchor.style.setProperty("--float-r4", `${(rotation * .6).toFixed(2)}deg`);
 
-        const preview = document.createElement("div");
-        preview.className = "archive-score-preview";
-        const hasHandwriting = renderHandwritingPreview(preview, item, item.height || 420);
+        const piece = document.createElement("button");
+        piece.className = "archive-float-piece";
+        piece.type = "button";
+        piece.dataset.index = String(index);
+        piece.setAttribute("aria-pressed", "false");
+        const itemTitle = item.title || `${t("archiveUntitled")} ${String(index + 1).padStart(2, "0")}`;
+        piece.setAttribute("aria-label", `${itemTitle} · ${t("archivePlay")}`);
+        piece.style.setProperty("--piece-size", `${150 + (index % 4) * 28}px`);
+        piece.style.setProperty("--piece-tilt", `${(index % 2 ? -1 : 1) * (index % 3) * .8}deg`);
+
+        const ink = document.createElement("span");
+        ink.className = "archive-float-ink";
+        const hasHandwriting = renderHandwritingPreview(ink, item, item.height || 420, true);
         if (!hasHandwriting) {
-          preview.classList.add("archive-score-preview--legacy");
-          const legacy = document.createElement("span");
-          legacy.className = "archive-score-preview-legacy";
-          legacy.textContent = "SCORE";
-          preview.appendChild(legacy);
+          ink.classList.add("archive-float-ink--legacy");
+          ink.textContent = itemTitle;
         }
+        const caption = document.createElement("span");
+        caption.className = "archive-float-caption";
+        caption.textContent = itemTitle;
+        piece.append(ink, caption);
 
-        const body = document.createElement("div");
-        body.className = "archive-track-main";
-        const meta = document.createElement("div");
-        meta.className = "archive-track-meta";
-        meta.textContent = `${String(index + 1).padStart(2, "0")} / ${item.kind === "HAND" ? "HAND" : "MOUSE"} / ${(item.notes || []).length} NOTES`;
-        const title = document.createElement("input");
-        title.className = "archive-title-input";
-        title.type = "text";
-        title.maxLength = 32;
-        title.value = item.title || `${t("archiveUntitled")} ${String(index + 1).padStart(2, "0")}`;
-        title.setAttribute("aria-label", t("archiveName"));
-        title.addEventListener("change", () => {
-          const next = readArchive();
-          const found = next.find((saved) => saved.id === item.id);
-          if (!found) return;
-          found.title = title.value.trim() || t("archiveUntitled");
-          title.value = found.title;
-          item.title = found.title;
-          writeArchive(next);
+        piece.addEventListener("pointermove", (event) => {
+          const bounds = piece.getBoundingClientRect();
+          const x = (event.clientX - bounds.left) / Math.max(1, bounds.width) - .5;
+          const y = (event.clientY - bounds.top) / Math.max(1, bounds.height) - .5;
+          piece.style.setProperty("--touch-x", `${(x * 9).toFixed(2)}px`);
+          piece.style.setProperty("--touch-y", `${(y * 7).toFixed(2)}px`);
+          piece.style.setProperty("--touch-r", `${(x * 3.2).toFixed(2)}deg`);
         });
-        const details = document.createElement("p");
-        details.textContent = item.kind === "HAND" ? "CAMERA COMPOSITION" : "MOUSE COMPOSITION";
-        body.append(meta, title, details);
-
-        const date = document.createElement("time");
-        date.className = "archive-track-date";
-        date.dateTime = item.createdAt || "";
-        date.textContent = formatDate(item.createdAt);
-
-        const remove = document.createElement("button");
-        remove.className = "archive-delete";
-        remove.type = "button";
-        remove.textContent = t("archiveDelete");
-        remove.addEventListener("click", () => {
-          const next = readArchive().filter((saved) => saved.id !== item.id);
-          writeArchive(next);
-          renderArchive();
+        piece.addEventListener("pointerleave", () => {
+          piece.style.removeProperty("--touch-x");
+          piece.style.removeProperty("--touch-y");
+          piece.style.removeProperty("--touch-r");
+        });
+        piece.addEventListener("click", () => {
+          const wasPlaying = piece.classList.contains("is-playing");
+          if (wasPlaying) {
+            stopArchivePreview();
+            dockStatus.textContent = document.documentElement.lang === "ko" ? "다시 누르면 재생됩니다" : "CLICK AGAIN TO LISTEN";
+            return;
+          }
+          playArchivePreview(item, piece, piece);
+          selectItem(item, index, piece);
         });
 
-        card.append(preview, body, date, remove);
-        tracks.appendChild(card);
+        anchor.appendChild(piece);
+        stage.appendChild(anchor);
       });
 
-      library.append(libraryBar, tracks);
+      const discoveryPiece = stage.querySelector(".archive-float-piece");
+      if (discoveryPiece) {
+        discoveryPiece.classList.add("is-discovering");
+        const finishDiscovery = () => discoveryPiece.classList.remove("is-discovering");
+        window.setTimeout(finishDiscovery, 6200);
+        stage.addEventListener("pointerover", (event) => {
+          if (event.target.closest?.(".archive-float-piece")) finishDiscovery();
+        }, { once: true });
+      }
+
+      dockTitle.addEventListener("change", () => {
+        if (!selectedItem) return;
+        const next = readArchive();
+        const found = next.find((saved) => saved.id === selectedItem.id);
+        if (!found) return;
+        found.title = dockTitle.value.trim() || t("archiveUntitled");
+        writeArchive(next);
+        renderArchive();
+      });
+      dockDelete.addEventListener("click", () => {
+        if (!selectedItem) return;
+        stopArchivePreview();
+        writeArchive(readArchive().filter((saved) => saved.id !== selectedItem.id));
+        renderArchive();
+      });
+
+      stage.appendChild(dock);
+      library.appendChild(stage);
       archiveList.appendChild(library);
+      requestAnimationFrame(() => startArchivePhysics(stage));
     }
 
     renderArchive();

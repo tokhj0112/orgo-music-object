@@ -17,7 +17,10 @@
   const playButton = $("play-score");
   const finishButton = $("finish-score");
   const undoButton = $("undo-stroke");
+  const clearButton = $("clear-sheet");
   const saveHandButton = $("save-hand-archive");
+  const sheetActions = document.querySelector(".sheet-actions");
+  const finishNextStep = $("finish-next-step");
   const cameraLed = $("camera-led");
   const toneSelector = $("hand-tone");
   const playerScreen = $("player-screen");
@@ -27,6 +30,30 @@
   const playerPercent = $("player-percent");
   const handCrankStatus = $("hand-crank-status");
   const handCrankLed = $("hand-crank-led");
+  const autoPlayerButton = $("auto-player");
+  const autoSpeedInput = $("auto-speed");
+  const autoSpeedValue = $("auto-speed-value");
+  const cameraGuideDialog = $("camera-guide-dialog");
+  const signalConsole = $("signal-console");
+  const signalMode = $("signal-mode");
+  const signalCanvases = {
+    sheet: $("signal-sheet"),
+    rack: $("signal-rack"),
+    roll: $("signal-roll"),
+    orbit: $("signal-orbit"),
+  };
+  const signalReadout = {
+    printed: $("signal-printed"),
+    time: $("signal-time"),
+    lufs: $("signal-lufs"),
+    peak: $("signal-peak"),
+    current: $("signal-current"),
+    bar: $("signal-bar"),
+    tempo: $("signal-tempo"),
+    hits: $("signal-hits"),
+    revolution: $("signal-revolution"),
+    sounding: $("signal-sounding"),
+  };
 
   const pitches = [261.63, 293.66, 329.63, 392, 440, 523.25, 587.33, 659.25];
   const toneProfiles = {
@@ -80,6 +107,9 @@
   let notes = [];
   let audio = null;
   let master = null;
+  let signalAnalyser = null;
+  let signalTimeData = null;
+  let signalFrequencyData = null;
   let finished = false;
   let reverbMix = null;
   let toneName = "warm";
@@ -96,7 +126,27 @@
   let previousCrankAngle = null;
   let previousHandCrankAngle = null;
   let handCrankMotion = 0;
+  let signalAnimation = 0;
+  let autoPlayerAnimation = 0;
+  let autoPlayerLastFrame = 0;
+  let autoPlaying = false;
+  let autoPlayerStart = 0;
+  let autoPlayerEnd = sheet.width;
+  let playbackStart = 0;
+  let playbackEnd = sheet.width;
+  let autoPlayDuration = 6;
+  let autoPlaySpeed = Number(autoSpeedInput.value) || 1.25;
   const PLAYER_ROTATION = Math.PI * 8;
+  const noteNames = ["C4", "D4", "E4", "G4", "A4", "C5", "D5", "E5"];
+  const signalState = {
+    energy: 0,
+    hitCount: 0,
+    noteIndex: -1,
+    activityUntil: 0,
+    tempo: 96,
+    phase: 0,
+    lastFrame: 0,
+  };
 
   const harmonyProgression = [
     [261.63, 329.63, 392],
@@ -104,6 +154,56 @@
     [174.61, 220, 261.63],
     [196, 246.94, 293.66],
   ];
+
+  function updatePlaybackWindow() {
+    if (!notes.length) {
+      playbackStart = 0;
+      playbackEnd = sheet.width;
+      autoPlayerStart = playbackStart;
+      autoPlayerEnd = playbackEnd;
+      autoPlayDuration = 4;
+      return;
+    }
+
+    const positions = notes.map((note) => note.x);
+    const first = Math.min(...positions);
+    const last = Math.max(...positions);
+    const rawSpan = Math.max(1, last - first);
+    const padding = Math.max(18, Math.min(42, rawSpan * .055));
+    const minimumSpan = Math.min(sheet.width, Math.max(120, sheet.width * .16));
+    let start = Math.max(0, first - padding);
+    let end = Math.min(sheet.width, last + padding);
+
+    if (end - start < minimumSpan) {
+      const center = (first + last) / 2;
+      start = Math.max(0, center - minimumSpan / 2);
+      end = Math.min(sheet.width, start + minimumSpan);
+      start = Math.max(0, end - minimumSpan);
+    }
+
+    playbackStart = start;
+    playbackEnd = Math.max(start + 1, end);
+    autoPlayerStart = playbackStart;
+    autoPlayerEnd = playbackEnd;
+    autoPlayDuration = Math.max(3.6, Math.min(7.2,
+      2.5 + Math.sqrt(notes.length) * .72 + (rawSpan / sheet.width) * 1.45
+    ));
+  }
+
+  function scoreXRatio(x) {
+    const span = Math.max(1, playbackEnd - playbackStart);
+    return Math.max(0, Math.min(1, (x - playbackStart) / span));
+  }
+
+  function playbackProgressRatio() {
+    return scoreXRatio(playerProgress);
+  }
+
+  function updateAutoSpeed() {
+    autoPlaySpeed = Math.max(.75, Math.min(2, Number(autoSpeedInput.value) || 1.25));
+    autoSpeedValue.textContent = `${String(autoPlaySpeed).replace(/\.0+$/, "")}×`;
+    if (autoPlaying) signalState.tempo = Math.round(88 + autoPlaySpeed * 24);
+  }
 
   function updateSheet() {
     sheetCtx.clearRect(0, 0, sheet.width, sheet.height);
@@ -113,7 +213,7 @@
     strokes.forEach((stroke) => {
       if (stroke.length < 2) return;
       sheetCtx.beginPath();
-      sheetCtx.strokeStyle = "#313a31";
+      sheetCtx.strokeStyle = "#343434";
       sheetCtx.lineWidth = 7;
       sheetCtx.moveTo(stroke[0].x, stroke[0].y);
 
@@ -174,7 +274,14 @@
     reverb.connect(reverbTone);
     reverbTone.connect(reverbGain);
     reverbGain.connect(compressor);
-    compressor.connect(audio.destination);
+
+    signalAnalyser = audio.createAnalyser();
+    signalAnalyser.fftSize = 256;
+    signalAnalyser.smoothingTimeConstant = 0.82;
+    signalTimeData = new Uint8Array(signalAnalyser.fftSize);
+    signalFrequencyData = new Uint8Array(signalAnalyser.frequencyBinCount);
+    compressor.connect(signalAnalyser);
+    signalAnalyser.connect(audio.destination);
   }
 
   function playNote(y, strength = 0.8, x) {
@@ -184,6 +291,11 @@
     const now = audio.currentTime;
     const pitchDecay = Math.max(0.8, Math.min(1.2, 700 / frequency));
     const profile = toneProfiles[toneName];
+
+    signalState.energy = Math.max(signalState.energy, Math.min(1, strength * 0.92));
+    signalState.hitCount += 1;
+    signalState.noteIndex = index;
+    signalState.activityUntil = performance.now() + 420;
 
     profile.partials.forEach((partial) => {
       const oscillator = audio.createOscillator();
@@ -242,6 +354,288 @@
     });
   }
 
+  function signalSurface(canvas) {
+    const bounds = canvas.getBoundingClientRect();
+    const width = Math.max(1, Math.round(bounds.width));
+    const height = Math.max(1, Math.round(bounds.height));
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const pixelWidth = Math.round(width * ratio);
+    const pixelHeight = Math.round(height * ratio);
+
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
+
+    const context = canvas.getContext("2d");
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    context.clearRect(0, 0, width, height);
+    return { context, width, height };
+  }
+
+  function drawSignalGrid(context, width, height, columns, rows) {
+    context.save();
+    context.strokeStyle = "rgba(160, 160, 160, 0.11)";
+    context.lineWidth = 1;
+
+    for (let column = 1; column < columns; column++) {
+      const x = Math.round((width / columns) * column) + 0.5;
+      context.beginPath();
+      context.moveTo(x, 0);
+      context.lineTo(x, height);
+      context.stroke();
+    }
+
+    for (let row = 1; row < rows; row++) {
+      const y = Math.round((height / rows) * row) + 0.5;
+      context.beginPath();
+      context.moveTo(0, y);
+      context.lineTo(width, y);
+      context.stroke();
+    }
+    context.restore();
+  }
+
+  function readSignalMeter() {
+    let rms = 0;
+    let peak = 0;
+
+    if (signalAnalyser && signalTimeData) {
+      signalAnalyser.getByteTimeDomainData(signalTimeData);
+      let sum = 0;
+      signalTimeData.forEach((sample) => {
+        const normalized = (sample - 128) / 128;
+        sum += normalized * normalized;
+        peak = Math.max(peak, Math.abs(normalized));
+      });
+      rms = Math.sqrt(sum / signalTimeData.length);
+    }
+
+    return {
+      rms,
+      peak,
+      level: Math.min(1, Math.max(signalState.energy * 0.68, rms * 3.1)),
+    };
+  }
+
+  function drawSignalSheet(level) {
+    const { context, width, height } = signalSurface(signalCanvases.sheet);
+    const lanes = 5;
+    const laneHeight = height / lanes;
+    drawSignalGrid(context, width, height, 1, lanes);
+
+    if (strokes.length === 0) {
+      context.strokeStyle = "rgba(180, 180, 180, 0.32)";
+      context.beginPath();
+      context.moveTo(9, height / 2);
+      context.lineTo(width - 9, height / 2);
+      context.stroke();
+      return;
+    }
+
+    for (let lane = 0; lane < lanes; lane++) {
+      const laneCenter = laneHeight * (lane + 0.5);
+      const alpha = 0.2 + lane * 0.09 + level * 0.12;
+      const horizontalDrift = (lane - 2) * 1.7;
+      context.strokeStyle = `rgba(190, 190, 190, ${alpha})`;
+      context.lineWidth = lane === lanes - 2 ? 1.45 : 0.9;
+
+      strokes.forEach((stroke) => {
+        if (stroke.length < 2) return;
+        context.beginPath();
+        stroke.forEach((point, index) => {
+          const x = 8 + scoreXRatio(point.x) * (width - 16) + horizontalDrift;
+          const wave = ((point.y / sheet.height) - 0.5) * laneHeight * (0.58 + level * 0.18);
+          const y = laneCenter + wave;
+          if (index === 0) context.moveTo(x, y);
+          else context.lineTo(x, y);
+        });
+        context.stroke();
+      });
+    }
+
+    const progressX = playbackProgressRatio() * width;
+    context.fillStyle = "#dedede";
+    context.beginPath();
+    context.arc(progressX, height / 2, 3.5 + level * 2.5, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  function drawSignalRack(level) {
+    const { context, width, height } = signalSurface(signalCanvases.rack);
+    const waveformHeight = height * 0.57;
+    drawSignalGrid(context, width, waveformHeight, 8, 3);
+
+    context.save();
+    context.beginPath();
+    context.rect(0, 0, width, waveformHeight);
+    context.clip();
+    context.strokeStyle = "#bdbdbd";
+    context.lineWidth = 1.45;
+    context.beginPath();
+
+    const points = signalTimeData?.length || 96;
+    for (let index = 0; index < points; index++) {
+      const sample = signalTimeData
+        ? (signalTimeData[index] - 128) / 128
+        : Math.sin(signalState.phase + index * 0.2) * level * 0.08;
+      const x = (index / (points - 1)) * width;
+      const y = waveformHeight / 2 + sample * waveformHeight * 0.38;
+      if (index === 0) context.moveTo(x, y);
+      else context.lineTo(x, y);
+    }
+    context.stroke();
+    context.restore();
+
+    if (signalAnalyser && signalFrequencyData) {
+      signalAnalyser.getByteFrequencyData(signalFrequencyData);
+    }
+
+    const spectrumTop = waveformHeight + 5;
+    const spectrumHeight = height - spectrumTop - 4;
+    const bars = 22;
+    const gap = 2;
+    const barWidth = Math.max(1, (width - gap * (bars - 1)) / bars);
+    for (let index = 0; index < bars; index++) {
+      const sourceIndex = Math.floor((index / bars) * (signalFrequencyData?.length || bars));
+      const sampled = signalFrequencyData ? signalFrequencyData[sourceIndex] / 255 : 0;
+      const value = Math.max(sampled, level * Math.max(0, 1 - Math.abs(index - 8) / 12) * 0.54);
+      const barHeight = Math.max(1, value * spectrumHeight);
+      context.fillStyle = index === 8 || index === 9 ? "#d2d2d2" : "rgba(180, 180, 180, 0.48)";
+      context.fillRect(index * (barWidth + gap), spectrumTop + spectrumHeight - barHeight, barWidth, barHeight);
+    }
+  }
+
+  function drawSignalRoll(level) {
+    const { context, width, height } = signalSurface(signalCanvases.roll);
+    const labelWidth = 28;
+    drawSignalGrid(context, width, height, 8, pitches.length);
+
+    context.font = "7px Consolas, monospace";
+    context.fillStyle = "rgba(200, 200, 200, 0.48)";
+    ["E5", "C5", "G4", "C4"].forEach((label, index) => {
+      context.fillText(label, 5, 14 + index * ((height - 12) / 4));
+    });
+
+    notes.forEach((note, index) => {
+      const x = labelWidth + scoreXRatio(note.x) * (width - labelWidth - 5);
+      const pitch = Math.max(0, Math.min(pitches.length - 1, pitches.length - 1 - Math.round((note.y / sheet.height) * (pitches.length - 1))));
+      const y = height - ((pitch + 0.5) / pitches.length) * height;
+      const played = note.x <= playerProgress;
+      context.fillStyle = played ? "#ccc" : "rgba(145, 145, 145, 0.35)";
+      context.fillRect(x, y - 1.5, 5 + (index % 3) * 2 + level * 3, 3);
+    });
+
+    const playhead = labelWidth + playbackProgressRatio() * (width - labelWidth - 5);
+    context.strokeStyle = "#e6e6e6";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(playhead, 0);
+    context.lineTo(playhead, height);
+    context.stroke();
+  }
+
+  function drawSignalOrbit(level) {
+    const { context, width, height } = signalSurface(signalCanvases.orbit);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) * 0.34;
+    const progress = playbackProgressRatio();
+
+    context.strokeStyle = "rgba(165, 165, 165, 0.2)";
+    context.lineWidth = 1;
+    [0.58, 0.82, 1].forEach((scale) => {
+      context.beginPath();
+      context.arc(centerX, centerY, radius * scale, 0, Math.PI * 2);
+      context.stroke();
+    });
+
+    notes.forEach((note, index) => {
+      const angle = scoreXRatio(note.x) * Math.PI * 2 - Math.PI / 2;
+      const ring = 0.62 + (1 - note.y / sheet.height) * 0.33;
+      const x = centerX + Math.cos(angle) * radius * ring;
+      const y = centerY + Math.sin(angle) * radius * ring;
+      context.fillStyle = note.x <= playerProgress ? "#c7c7c7" : "rgba(145, 145, 145, 0.28)";
+      context.beginPath();
+      context.arc(x, y, 1.7 + ((index + signalState.hitCount) % 3) * 0.55 + level, 0, Math.PI * 2);
+      context.fill();
+    });
+
+    context.strokeStyle = "#d5d5d5";
+    context.lineWidth = 4;
+    context.lineCap = "round";
+    context.beginPath();
+    context.arc(centerX, centerY, radius * 0.82, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+    context.stroke();
+
+    const hand = playerAngle - Math.PI / 2;
+    context.strokeStyle = "#e6e6e6";
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(centerX, centerY);
+    context.lineTo(centerX + Math.cos(hand) * radius * 1.08, centerY + Math.sin(hand) * radius * 1.08);
+    context.stroke();
+
+    context.fillStyle = "#e7e7e7";
+    context.textAlign = "center";
+    context.font = "8px Consolas, monospace";
+    context.fillText("BAR", centerX, centerY - 6);
+    context.font = "600 23px -apple-system, sans-serif";
+    context.fillText(String(Math.min(4, Math.floor(progress * 4) + 1)), centerX, centerY + 18);
+    context.textAlign = "start";
+  }
+
+  function updateSignalReadout(meter) {
+    const progress = playbackProgressRatio();
+    const seconds = Math.round(progress * (autoPlayDuration / autoPlaySpeed));
+    const lufs = meter.rms > 0.0005 ? `${(20 * Math.log10(meter.rms) - 8).toFixed(1)} LUFS` : "−∞ LUFS";
+    const peak = meter.peak > 0.0005 ? `${Math.min(0, 20 * Math.log10(meter.peak)).toFixed(1)} dBFS` : "0.0 dBFS";
+    const current = signalState.noteIndex >= 0 ? noteNames[signalState.noteIndex] : "—";
+
+    signalReadout.printed.textContent = `${Math.round(progress * 100)}%`;
+    signalReadout.time.textContent = `0:${String(seconds).padStart(2, "0")}`;
+    signalReadout.lufs.textContent = lufs;
+    signalReadout.peak.textContent = peak;
+    signalReadout.current.textContent = current;
+    signalReadout.bar.textContent = `BAR ${Math.min(4, Math.floor(progress * 4) + 1)}.${Math.floor((progress * 16) % 4) + 1}`;
+    signalReadout.tempo.textContent = `TEMPO ${String(Math.round(signalState.tempo)).padStart(3, "0")} BPM`;
+    signalReadout.hits.textContent = `${signalState.hitCount} HITS`;
+    signalReadout.revolution.textContent = `${(playerAngle / (Math.PI * 2)).toFixed(2)} REV`;
+    signalReadout.sounding.textContent = `SOUNDING ${current}`;
+  }
+
+  function drawSignalFrame(timestamp) {
+    const elapsed = signalState.lastFrame ? Math.min(50, timestamp - signalState.lastFrame) : 16;
+    signalState.lastFrame = timestamp;
+    signalState.phase += elapsed * 0.006 * (1 + signalState.energy * 2.4);
+    signalState.energy *= Math.pow(0.88, elapsed / 16);
+
+    const meter = readSignalMeter();
+    const active = performance.now() < signalState.activityUntil;
+    signalConsole.classList.toggle("is-active", active);
+    signalConsole.style.setProperty("--signal-energy", meter.level.toFixed(3));
+    signalMode.textContent = active ? "TURNING / LIVE" : "READY / LISTEN";
+
+    drawSignalSheet(meter.level);
+    drawSignalRack(meter.level);
+    drawSignalRoll(meter.level);
+    drawSignalOrbit(meter.level);
+    updateSignalReadout(meter);
+    signalAnimation = requestAnimationFrame(drawSignalFrame);
+  }
+
+  function startSignalConsole() {
+    if (signalAnimation) cancelAnimationFrame(signalAnimation);
+    signalState.lastFrame = 0;
+    signalAnimation = requestAnimationFrame(drawSignalFrame);
+  }
+
+  function stopSignalConsole() {
+    if (signalAnimation) cancelAnimationFrame(signalAnimation);
+    signalAnimation = 0;
+    signalConsole.classList.remove("is-active");
+  }
+
   function addPoint(point) {
     if (finished) return;
 
@@ -281,7 +675,8 @@
       notes.push({ ...quantized, strokeId: currentStrokeId });
       lastNote = point;
       playNote(quantized.y, 0.72, quantized.x);
-      noteCount.textContent = `${notes.length} NOTES`;
+      noteCount.textContent = String(notes.length);
+      noteCount.setAttribute("aria-label", `${notes.length} notes`);
       finishButton.disabled = false;
     }
   }
@@ -444,8 +839,8 @@
     }
 
     overlayCtx.clearRect(0, 0, width, height);
-    overlayCtx.strokeStyle = pinching ? "#e8f2ce" : "#aab5a0";
-    overlayCtx.fillStyle = pinching ? "#e8f2ce" : "#aab5a0";
+    overlayCtx.strokeStyle = pinching ? "#f2f2f2" : "#b5b5b5";
+    overlayCtx.fillStyle = pinching ? "#f2f2f2" : "#b5b5b5";
     overlayCtx.lineWidth = 3;
 
     const links = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12], [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [17, 18], [18, 19], [19, 20], [0, 17]];
@@ -472,11 +867,13 @@
       resetPointStabilizer();
       updateFingertipPointer(null);
       if (!playerScreen.hidden) {
-        handCrankStatus.textContent = t("cameraNeedHand");
+        handCrankStatus.textContent = autoPlaying
+          ? t("cameraAutoPlaying")
+          : t("cameraNeedHand");
         handCrankLed.classList.remove("is-on");
         resetHandCrankTracking();
       } else {
-        handState.textContent = "손을 화면에 보여주세요";
+        handState.textContent = t("cameraNoHand");
       }
       resetPinchState();
       stopDrawing();
@@ -490,6 +887,12 @@
 
     if (!playerScreen.hidden) {
       updateFingertipPointer(point);
+      if (autoPlaying) {
+        resetHandCrankTracking();
+        handCrankLed.classList.remove("is-on");
+        handCrankStatus.textContent = t("cameraAutoPlaying");
+        return;
+      }
       if (!isPinching) {
         resetHandCrankTracking();
         handCrankLed.classList.remove("is-on");
@@ -531,12 +934,12 @@
     updateFingertipPointer(point, isPinching ? "writing" : "idle");
 
     if (!isPinching) {
-      handState.textContent = "검지와 엄지를 맞대면 쓰기 시작";
+      handState.textContent = t("cameraPinchHint");
       stopDrawing();
       return;
     }
 
-    handState.textContent = "쓰는 중 · 손끝을 천천히 움직여보세요";
+    handState.textContent = t("cameraDrawing");
     drawing = true;
     addPoint(point);
   }
@@ -596,11 +999,13 @@
     const width = playerFeed.width;
     const height = playerFeed.height;
     const center = width / 2;
+    const contentSpan = Math.max(1, playbackEnd - playbackStart);
+    const feedScale = (width * .72) / contentSpan;
 
     playerFeedCtx.clearRect(0, 0, width, height);
-    playerFeedCtx.fillStyle = "#ebeae1";
+    playerFeedCtx.fillStyle = "#ebebeb";
     playerFeedCtx.fillRect(0, 0, width, height);
-    playerFeedCtx.strokeStyle = "#b9b8ae";
+    playerFeedCtx.strokeStyle = "#b8b8b8";
     playerFeedCtx.lineWidth = 2;
 
     for (let row = 1; row < 8; row++) {
@@ -612,41 +1017,51 @@
     }
 
     notes.forEach((note) => {
-      const x = center + (note.x - playerProgress) * 0.85;
+      const x = center + (note.x - playerProgress) * feedScale;
       const y = (note.y / sheet.height) * height;
       if (x < -12 || x > width + 12) return;
       playerFeedCtx.beginPath();
       playerFeedCtx.arc(x, y, 10, 0, Math.PI * 2);
-      playerFeedCtx.fillStyle = "#2f3830";
+      playerFeedCtx.fillStyle = "#333";
       playerFeedCtx.fill();
     });
 
-    const percent = Math.round((playerProgress / sheet.width) * 100);
+    const percent = Math.round(playbackProgressRatio() * 100);
     playerPercent.textContent = `${percent}%`;
   }
 
   function rewindPlayer() {
-    playerProgress = 0;
+    stopAutoPlayer();
+    updatePlaybackWindow();
+    playerProgress = playbackStart;
     playerAngle = 0;
     previousCrankAngle = null;
     activeHarmonyStep = -1;
+    signalState.energy = 0;
+    signalState.hitCount = 0;
+    signalState.noteIndex = -1;
+    signalState.tempo = 96;
+    signalState.activityUntil = 0;
     playerCrank.style.setProperty("--angle", "0rad");
     drawPlayerFeed();
   }
 
   function turnPlayer(delta) {
     if (delta <= 0 || notes.length === 0) return;
-    let travel = (delta * sheet.width) / PLAYER_ROTATION;
+    const playbackSpan = Math.max(1, playbackEnd - playbackStart);
+    let travel = (delta * playbackSpan) / PLAYER_ROTATION;
     playerAngle += delta;
+    signalState.tempo = Math.min(148, Math.max(72, 76 + delta * 420));
+    signalState.activityUntil = performance.now() + 260;
 
     while (travel > 0) {
-      if (playerProgress >= sheet.width) {
-        playerProgress = 0;
+      if (playerProgress >= playbackEnd) {
+        playerProgress = playbackStart;
         activeHarmonyStep = -1;
       }
 
       const oldProgress = playerProgress;
-      const step = Math.min(travel, sheet.width - playerProgress);
+      const step = Math.min(travel, playbackEnd - playerProgress);
       playerProgress += step;
       travel -= step;
 
@@ -660,6 +1075,84 @@
 
     playerCrank.style.setProperty("--angle", `${playerAngle}rad`);
     drawPlayerFeed();
+  }
+
+  function stopAutoPlayer(statusKey) {
+    autoPlaying = false;
+    autoPlayerLastFrame = 0;
+    if (autoPlayerAnimation) cancelAnimationFrame(autoPlayerAnimation);
+    autoPlayerAnimation = 0;
+    autoPlayerButton.setAttribute("aria-pressed", "false");
+    autoPlayerButton.textContent = t("cameraAutoPlay");
+
+    if (statusKey) handCrankStatus.textContent = t(statusKey);
+  }
+
+  function autoPlayerStep(timestamp) {
+    if (!autoPlaying) return;
+    if (!autoPlayerLastFrame) {
+      autoPlayerLastFrame = timestamp;
+      autoPlayerAnimation = requestAnimationFrame(autoPlayerStep);
+      return;
+    }
+
+    const elapsed = Math.min(50, timestamp - autoPlayerLastFrame) / 1000;
+    autoPlayerLastFrame = timestamp;
+    const playbackRange = Math.max(1, autoPlayerEnd - autoPlayerStart);
+    const effectiveDuration = Math.max(1.8, autoPlayDuration / autoPlaySpeed);
+    const travel = elapsed * (playbackRange / effectiveDuration);
+    const delta = (travel / playbackRange) * PLAYER_ROTATION;
+    const remainingDelta = ((autoPlayerEnd - playerProgress) / playbackRange) * PLAYER_ROTATION;
+
+    if (remainingDelta <= 0.0005) {
+      stopAutoPlayer("cameraAutoDone");
+      return;
+    }
+
+    turnPlayer(Math.min(delta, remainingDelta));
+    signalState.tempo = Math.round(88 + autoPlaySpeed * 24);
+    handCrankStatus.textContent = t("cameraAutoPlaying");
+
+    if (playerProgress >= autoPlayerEnd - 0.5) {
+      stopAutoPlayer("cameraAutoDone");
+      return;
+    }
+
+    autoPlayerAnimation = requestAnimationFrame(autoPlayerStep);
+  }
+
+  async function toggleAutoPlayer() {
+    if (autoPlaying) {
+      stopAutoPlayer();
+      handCrankStatus.textContent = stream ? t("cameraRotateHint") : t("cameraCrank");
+      return;
+    }
+
+    initAudio();
+    if (audio && audio.state !== "running") await audio.resume();
+
+    updatePlaybackWindow();
+    autoPlayerStart = playbackStart;
+    autoPlayerEnd = playbackEnd;
+
+    if (playerProgress < autoPlayerStart || playerProgress >= autoPlayerEnd - 0.5) {
+      stopAutoPlayer();
+      playerProgress = autoPlayerStart;
+      playerAngle = 0;
+      activeHarmonyStep = -1;
+      signalState.hitCount = 0;
+      signalState.noteIndex = -1;
+      playerCrank.style.setProperty("--angle", `${playerAngle}rad`);
+      drawPlayerFeed();
+    }
+
+    autoPlaying = true;
+    autoPlayerLastFrame = 0;
+    autoPlayerButton.setAttribute("aria-pressed", "true");
+    autoPlayerButton.textContent = t("cameraAutoPause");
+    handCrankLed.classList.remove("is-on");
+    handCrankStatus.textContent = t("cameraAutoPlaying");
+    autoPlayerAnimation = requestAnimationFrame(autoPlayerStep);
   }
 
   function crankAngle(event) {
@@ -679,12 +1172,25 @@
     finished = false;
     activeHarmonyStep = -1;
     placeholder.hidden = false;
-    noteCount.textContent = "0 NOTES";
+    noteCount.textContent = "0";
+    noteCount.setAttribute("aria-label", "0 notes");
     undoButton.disabled = true;
     playButton.disabled = true;
     finishButton.disabled = true;
     saveHandButton.disabled = true;
-    finishButton.textContent = "곡 완성하기";
+    finishNextStep.hidden = true;
+    sheetActions.classList.remove("is-finished");
+    signalState.energy = 0;
+    signalState.hitCount = 0;
+    signalState.noteIndex = -1;
+    playbackStart = 0;
+    playbackEnd = sheet.width;
+    playerProgress = 0;
+    clearButton.textContent = t("cameraClear");
+    finishButton.textContent = t("cameraFinish");
+    playButton.textContent = t("cameraPlay");
+    saveHandButton.textContent = t("cameraSave");
+    handState.textContent = t("cameraWaiting");
     updateSheet();
   }
 
@@ -697,11 +1203,12 @@
     notes = notes.filter((note) => note.strokeId !== lastStrokeId);
 
     placeholder.hidden = strokes.length > 0;
-    noteCount.textContent = `${notes.length} NOTES`;
+    noteCount.textContent = String(notes.length);
+    noteCount.setAttribute("aria-label", `${notes.length} notes`);
     undoButton.disabled = strokes.length === 0;
     finishButton.disabled = notes.length === 0;
     activeHarmonyStep = -1;
-    handState.textContent = "마지막 획을 되돌렸어요";
+    handState.textContent = t("cameraUndone");
     updateSheet();
   }
 
@@ -712,11 +1219,18 @@
     stopDrawing();
     undoButton.disabled = true;
     finishButton.disabled = true;
-    finishButton.textContent = "곡 완성 ✓";
+    finishButton.textContent = t("cameraFinished");
     playButton.disabled = false;
     saveHandButton.disabled = false;
-    handState.textContent = "곡 완성 · 아래 버튼에서 재생할 수 있습니다";
+    updatePlaybackWindow();
+    finishNextStep.hidden = false;
+    sheetActions.classList.add("is-finished");
+    clearButton.textContent = t("cameraStartOver");
+    playButton.textContent = t("cameraPlayNext");
+    saveHandButton.textContent = t("cameraSaveNext");
+    handState.textContent = t("cameraFinished");
     cameraStatus.textContent = "입력이 끝났습니다. ‘연주하기’에서 손잡이를 돌려 재생하세요.";
+    requestAnimationFrame(() => playButton.focus({ preventScroll: true }));
   }
 
   function requestArchiveName(onSave) {
@@ -800,7 +1314,7 @@
         const interval = Math.max(1, Math.ceil(stroke.length / 240));
 
         return {
-          ink: "#313a31",
+          ink: "#343434",
           width: 7,
           points: stroke
             .filter((_, index) => index % interval === 0 || index === stroke.length - 1)
@@ -810,7 +1324,7 @@
     });
 
     localStorage.setItem(key, JSON.stringify(saved.slice(0, 30)));
-    saveHandButton.textContent = "저장됨 ✓";
+    saveHandButton.textContent = t("cameraSaved");
     cameraStatus.textContent = "아카이브에 저장했습니다. ARCHIVE에서 다시 확인할 수 있어요.";
   }
 
@@ -818,8 +1332,10 @@
     if (!finished || notes.length === 0) return;
     initAudio();
     if (audio && audio.state !== "running") await audio.resume();
+    updatePlaybackWindow();
     rewindPlayer();
     playerScreen.hidden = false;
+    startSignalConsole();
     resetHandCrankTracking();
     handCrankLed.classList.remove("is-on");
     handCrankStatus.textContent = stream
@@ -829,7 +1345,11 @@
   }
 
   $("start-camera").addEventListener("click", startCamera);
-  $("clear-sheet").addEventListener("click", clearSheet);
+  $("open-camera-guide").addEventListener("click", () => cameraGuideDialog.showModal());
+  cameraGuideDialog.addEventListener("close", () => {
+    if (!stream) $("start-camera").focus();
+  });
+  clearButton.addEventListener("click", clearSheet);
   undoButton.addEventListener("click", undoLastStroke);
   finishButton.addEventListener("click", finishScore);
   saveHandButton.addEventListener("click", () => {
@@ -837,14 +1357,20 @@
     requestArchiveName(saveHandArchive);
   });
   playButton.addEventListener("click", playScore);
+  autoPlayerButton.addEventListener("click", toggleAutoPlayer);
+  autoSpeedInput.addEventListener("input", updateAutoSpeed);
+  updateAutoSpeed();
   $("rewind-player").addEventListener("click", rewindPlayer);
   $("close-player").addEventListener("click", () => {
+    stopAutoPlayer();
     playerScreen.hidden = true;
+    stopSignalConsole();
     resetHandCrankTracking();
     document.querySelector("main").scrollIntoView({ behavior: "smooth" });
   });
 
   playerCrank.addEventListener("pointerdown", (event) => {
+    stopAutoPlayer();
     playerCrank.setPointerCapture(event.pointerId);
     previousCrankAngle = crankAngle(event);
   });
@@ -870,6 +1396,7 @@
   playerCrank.addEventListener("keydown", async (event) => {
     if (!["ArrowRight", "ArrowUp", " "].includes(event.key)) return;
     event.preventDefault();
+    stopAutoPlayer();
     initAudio();
     if (audio && audio.state !== "running") await audio.resume();
     turnPlayer(Math.PI / 12);
@@ -891,6 +1418,13 @@
     playNote(sheet.height / 2, 0.85);
     cameraStatus.textContent = `${toneProfiles[toneName].label} 음색으로 바꿨어요.`;
   });
-  window.addEventListener("pagehide", () => stream && stream.getTracks().forEach((track) => track.stop()));
+  window.addEventListener("pagehide", () => {
+    stopAutoPlayer();
+    stopSignalConsole();
+    if (stream) stream.getTracks().forEach((track) => track.stop());
+  });
   updateSheet();
+  requestAnimationFrame(() => {
+    if (!cameraGuideDialog.open) cameraGuideDialog.showModal();
+  });
 })();
