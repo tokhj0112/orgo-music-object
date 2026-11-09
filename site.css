@@ -2854,6 +2854,27 @@ legend {
 .home-main > .signal-bridge { order: 4; }
 .home-main > .sound-lab { order: 5; }
 
+/* The landing page ends after the COMPOSE primer. STORY and LAB reuse the
+   same sections as focused menu views so their animations and controls stay intact. */
+html[data-orgo-view="home"] .home-main > .story-narrative,
+html[data-orgo-view="home"] .home-main > .signal-bridge,
+html[data-orgo-view="home"] .home-main > .sound-lab,
+html[data-orgo-view="story"] .home-main > .hero,
+html[data-orgo-view="story"] .home-main > .compose-primer,
+html[data-orgo-view="story"] .home-main > .signal-bridge,
+html[data-orgo-view="story"] .home-main > .sound-lab,
+html[data-orgo-view="lab"] .home-main > .hero,
+html[data-orgo-view="lab"] .home-main > .compose-primer,
+html[data-orgo-view="lab"] .home-main > .story-narrative {
+  display: none !important;
+}
+
+html[data-orgo-view="story"] .home-main > .story-narrative,
+html[data-orgo-view="lab"] .home-main > .signal-bridge,
+html[data-orgo-view="lab"] .home-main > .sound-lab {
+  display: block;
+}
+
 .story.story-narrative {
   display: block;
   padding: 0;

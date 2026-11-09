@@ -3,6 +3,11 @@
 
   const t = (key) => window.orgoI18n?.text(key) || key;
 
+  const activeView = document.documentElement.dataset.orgoView;
+  if (activeView === "story" || activeView === "lab") {
+    document.querySelector(`[data-view-link="${activeView}"]`)?.setAttribute("aria-current", "page");
+  }
+
   /* ------------------------------
      스크롤 등장 효과
      펀칭 종이에는 적용하지 않습니다.

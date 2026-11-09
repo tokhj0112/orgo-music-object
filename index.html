@@ -9,12 +9,18 @@
     content="손글씨와 움직임을 소리로 바꾸는 인터랙티브 음악 웹사이트 ORGO."
   >
   <title>ORGO — Every line, a little music</title>
-  <link rel="stylesheet" href="site.css?v=assembled-drums-98">
+  <script>
+    (() => {
+      const view = new URLSearchParams(window.location.search).get("view");
+      document.documentElement.dataset.orgoView = view === "story" || view === "lab" ? view : "home";
+    })();
+  </script>
+  <link rel="stylesheet" href="site.css?v=split-sections-99">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  <script src="i18n.js?v=assembled-drums-98" defer></script>
-  <script src="site.js?v=assembled-drums-98" defer></script>
+  <script src="i18n.js?v=split-sections-99" defer></script>
+  <script src="site.js?v=split-sections-99" defer></script>
 </head>
 
 <body>
@@ -26,8 +32,8 @@
     </a>
 
     <nav class="site-nav" aria-label="메인 메뉴">
-      <a href="#story">STORY</a>
-      <a href="#sound-lab">LAB</a>
+      <a href="index.html?view=story" data-view-link="story">STORY</a>
+      <a href="index.html?view=lab" data-view-link="lab">LAB</a>
       <a href="compose.html">COMPOSE</a>
       <a href="archive.html">ARCHIVE</a>
       <a href="object.html">OBJECT</a>
@@ -53,7 +59,7 @@
 
         <div class="hero-actions">
           <a class="solid-link" href="compose.html" data-i18n="heroPrimary">COMPOSE에서 곡 만들기</a>
-          <a class="text-link" href="#sound-lab" data-i18n="heroSecondary">소리만 먼저 체험하기</a>
+          <a class="text-link" href="index.html?view=lab" data-i18n="heroSecondary">소리만 먼저 체험하기</a>
         </div>
       </div>
 
@@ -91,7 +97,7 @@
         <a href="compose.html">
           <b>01</b><span data-i18n="pathComposeTitle">곡 만들기</span><small data-i18n="pathComposeDesc">손글씨로 악보 만들기</small>
         </a>
-        <a href="#sound-lab">
+        <a href="index.html?view=lab">
           <b>02</b><span data-i18n="pathSoundTitle">소리 체험</span><small data-i18n="pathSoundDesc">음색과 악기를 직접 연주하기</small>
         </a>
         <a href="archive.html">
