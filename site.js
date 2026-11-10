@@ -4,6 +4,49 @@
   const t = (key) => window.orgoI18n?.text(key) || key;
 
   const activeView = document.documentElement.dataset.orgoView;
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  );
+
+  const siteIntro = document.querySelector("[data-site-intro]");
+
+  if (siteIntro && activeView === "home") {
+    const skipIntro = siteIntro.querySelector("[data-site-intro-skip]");
+    let introDismissed = false;
+    let introTimer = 0;
+
+    const dismissIntro = () => {
+      if (introDismissed) return;
+      introDismissed = true;
+      window.clearTimeout(introTimer);
+      siteIntro.classList.add("is-leaving");
+      document.body.classList.remove("is-intro-open");
+      window.removeEventListener("keydown", handleIntroKeydown);
+      window.setTimeout(() => {
+        siteIntro.hidden = true;
+      }, reduceMotion.matches ? 100 : 760);
+    };
+
+    const handleIntroKeydown = (event) => {
+      if (event.key === "Escape" || event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        dismissIntro();
+      }
+    };
+
+    document.body.classList.add("is-intro-open");
+    if (reduceMotion.matches) siteIntro.classList.add("is-reduced-motion");
+    requestAnimationFrame(() => siteIntro.classList.add("is-active"));
+    skipIntro?.addEventListener("click", dismissIntro, { once: true });
+    window.addEventListener("keydown", handleIntroKeydown);
+    introTimer = window.setTimeout(
+      dismissIntro,
+      reduceMotion.matches ? 1800 : 3600
+    );
+  } else if (siteIntro) {
+    siteIntro.hidden = true;
+  }
+
   if (activeView === "story" || activeView === "lab") {
     document.querySelector(`[data-view-link="${activeView}"]`)?.setAttribute("aria-current", "page");
   }
@@ -12,10 +55,6 @@
      스크롤 등장 효과
      펀칭 종이에는 적용하지 않습니다.
   ------------------------------ */
-
-  const reduceMotion = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  );
 
   const composePrimer = document.querySelector("[data-compose-primer-motion]");
 

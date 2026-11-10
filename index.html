@@ -15,16 +15,32 @@
       document.documentElement.dataset.orgoView = view === "story" || view === "lab" ? view : "home";
     })();
   </script>
-  <link rel="stylesheet" href="site.css?v=split-sections-116">
+  <link rel="stylesheet" href="site.css?v=intro-117">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
   <script src="i18n.js?v=split-sections-116" defer></script>
-  <script src="site.js?v=split-sections-116" defer></script>
+  <script src="site.js?v=intro-117" defer></script>
 </head>
 
 <body>
   <a class="skip-link" href="#main">본문으로 이동</a>
+
+  <section class="site-intro" data-site-intro aria-labelledby="site-intro-title">
+    <div class="site-intro-grid" aria-hidden="true"></div>
+    <div class="site-intro-content">
+      <p class="site-intro-kicker">HANDWRITING / SOUND / OBJECT</p>
+      <p class="site-intro-title" id="site-intro-title">
+        <span class="site-intro-line"><span>당신의 글씨가</span></span>
+        <span class="site-intro-line site-intro-line-muted"><span>노래가 됩니다</span></span>
+      </p>
+      <p class="site-intro-description">손으로 쓴 선을 소리로 바꾸는 음악 웹사이트 ORGO</p>
+      <div class="site-intro-progress" aria-hidden="true"><i></i></div>
+    </div>
+    <button class="site-intro-skip" type="button" data-site-intro-skip>
+      <span>SKIP</span><span aria-hidden="true">↗</span>
+    </button>
+  </section>
 
   <header class="site-header">
     <a class="brand" href="index.html" aria-label="ORGO 메인페이지">
