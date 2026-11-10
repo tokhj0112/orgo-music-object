@@ -55,6 +55,7 @@ body.is-intro-open {
     visibility .72s;
 }
 
+html.has-seen-site-intro .site-intro,
 html[data-orgo-view="story"] .site-intro,
 html[data-orgo-view="lab"] .site-intro {
   display: none;

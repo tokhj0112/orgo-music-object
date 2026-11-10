@@ -13,14 +13,21 @@
     (() => {
       const view = new URLSearchParams(window.location.search).get("view");
       document.documentElement.dataset.orgoView = view === "story" || view === "lab" ? view : "home";
+      try {
+        if (window.sessionStorage.getItem("orgo-site-intro-seen") === "1") {
+          document.documentElement.classList.add("has-seen-site-intro");
+        }
+      } catch (_) {
+        // The intro still works when browser storage is unavailable.
+      }
     })();
   </script>
-  <link rel="stylesheet" href="site.css?v=intro-117">
+  <link rel="stylesheet" href="site.css?v=intro-120">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
   <script src="i18n.js?v=split-sections-116" defer></script>
-  <script src="site.js?v=intro-117" defer></script>
+  <script src="site.js?v=intro-120" defer></script>
 </head>
 
 <body>

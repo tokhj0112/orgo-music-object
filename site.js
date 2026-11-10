@@ -10,10 +10,20 @@
 
   const siteIntro = document.querySelector("[data-site-intro]");
 
-  if (siteIntro && activeView === "home") {
+  const hasSeenSiteIntro = document.documentElement.classList.contains(
+    "has-seen-site-intro"
+  );
+
+  if (siteIntro && activeView === "home" && !hasSeenSiteIntro) {
     const skipIntro = siteIntro.querySelector("[data-site-intro-skip]");
     let introDismissed = false;
     let introTimer = 0;
+
+    try {
+      window.sessionStorage.setItem("orgo-site-intro-seen", "1");
+    } catch (_) {
+      // Keep the first-view intro usable when browser storage is unavailable.
+    }
 
     const dismissIntro = () => {
       if (introDismissed) return;
