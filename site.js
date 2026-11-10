@@ -75,19 +75,20 @@
     let primerTicking = false;
 
     const clamp = (value) => Math.min(1, Math.max(0, value));
-    const smoothstep = (value) => value * value * (3 - 2 * value);
+    const smootherstep = (value) =>
+      value * value * value * (value * (value * 6 - 15) + 10);
 
     const updateComposePrimerMotion = () => {
       const bounds = composePrimer.getBoundingClientRect();
       const viewportHeight = Math.max(1, window.innerHeight);
-      const start = viewportHeight * .78;
-      const travel = Math.max(420, viewportHeight * .56);
+      const start = viewportHeight * .92;
+      const travel = Math.max(760, viewportHeight * 1.08);
       const progress = clamp((start - bounds.top) / travel);
-      const titleProgress = smoothstep(clamp(progress / .74));
+      const titleProgress = smootherstep(clamp(progress / .84));
 
       composePrimer.style.setProperty(
         "--primer-title-x",
-        `${(-190 * (1 - titleProgress)).toFixed(2)}px`
+        `${(-104 * (1 - titleProgress)).toFixed(2)}px`
       );
       composePrimer.style.setProperty(
         "--primer-title-opacity",
@@ -95,21 +96,21 @@
       );
       composePrimer.style.setProperty(
         "--primer-title-clip",
-        `${(100 * (1 - titleProgress)).toFixed(2)}%`
+        `${(34 * (1 - titleProgress)).toFixed(2)}%`
       );
       composePrimer.style.setProperty(
         "--primer-title-blur",
-        `${(7 * (1 - titleProgress)).toFixed(2)}px`
+        `${(3.5 * (1 - titleProgress)).toFixed(2)}px`
       );
 
-      const stepStarts = [.16, .3, .44];
+      const stepStarts = [.18, .36, .54];
       primerSteps.forEach((step, index) => {
-        const stepProgress = smoothstep(
-          clamp((progress - stepStarts[index]) / .42)
+        const stepProgress = smootherstep(
+          clamp((progress - stepStarts[index]) / .46)
         );
         step.style.setProperty(
           "--primer-step-y",
-          `${(76 * (1 - stepProgress)).toFixed(2)}px`
+          `${(56 * (1 - stepProgress)).toFixed(2)}px`
         );
         step.style.setProperty(
           "--primer-step-opacity",
@@ -117,7 +118,7 @@
         );
         step.style.setProperty(
           "--primer-step-blur",
-          `${(4 * (1 - stepProgress)).toFixed(2)}px`
+          `${(2.8 * (1 - stepProgress)).toFixed(2)}px`
         );
       });
 

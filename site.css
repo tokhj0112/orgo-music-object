@@ -780,7 +780,7 @@ img {
 .compose-primer {
   position: relative;
   display: grid;
-  min-height: 76svh;
+  min-height: 88svh;
   padding: clamp(92px, 11vw, 168px) 5%;
   overflow: hidden;
   background:
