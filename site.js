@@ -137,6 +137,120 @@
     window.addEventListener("resize", requestComposePrimerMotion);
   }
 
+  const labLanding = document.querySelector("[data-lab-landing]");
+
+  if (labLanding && activeView === "lab") {
+    const playground = labLanding.querySelector("[data-lab-landing-playground]");
+    const previewCards = [
+      ...labLanding.querySelectorAll("[data-lab-preview-tone]"),
+    ];
+    const previewTimers = new WeakMap();
+    let previewAudioContext = null;
+
+    const ensurePreviewAudio = () => {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      previewAudioContext ||= new AudioContextClass();
+      previewAudioContext.resume?.();
+      return previewAudioContext;
+    };
+
+    const pulsePreviewCard = (card) => {
+      window.clearTimeout(previewTimers.get(card));
+      card.classList.remove("is-playing");
+      requestAnimationFrame(() => card.classList.add("is-playing"));
+      previewTimers.set(card, window.setTimeout(() => {
+        card.classList.remove("is-playing");
+      }, 480));
+    };
+
+    const playPreviewTone = (card) => {
+      const context = ensurePreviewAudio();
+      if (!context) return;
+      const tone = card.dataset.labPreviewTone;
+      const now = context.currentTime;
+      const output = context.createGain();
+      const filter = context.createBiquadFilter();
+      const level = tone === "strike" ? .075 : .052;
+
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(tone === "crumple" ? 4200 : 2900, now);
+      output.gain.setValueAtTime(.0001, now);
+      output.gain.exponentialRampToValueAtTime(level, now + .012);
+      output.gain.exponentialRampToValueAtTime(.0001, now + (tone === "drag" ? .52 : .34));
+      output.connect(filter).connect(context.destination);
+
+      if (tone === "crumple") {
+        const length = Math.floor(context.sampleRate * .22);
+        const buffer = context.createBuffer(1, length, context.sampleRate);
+        const channel = buffer.getChannelData(0);
+        for (let index = 0; index < length; index += 1) {
+          const envelope = Math.pow(1 - index / length, 1.8);
+          channel[index] = (Math.random() * 2 - 1) * envelope;
+        }
+        const noise = context.createBufferSource();
+        const textureFilter = context.createBiquadFilter();
+        textureFilter.type = "bandpass";
+        textureFilter.frequency.setValueAtTime(1850, now);
+        textureFilter.Q.setValueAtTime(.8, now);
+        noise.buffer = buffer;
+        noise.connect(textureFilter).connect(output);
+        noise.start(now);
+      } else {
+        const settings = {
+          press: { wave: "sine", from: 470, to: 360, duration: .34 },
+          drag: { wave: "triangle", from: 190, to: 430, duration: .52 },
+          strike: { wave: "sine", from: 148, to: 82, duration: .34 },
+        }[tone] || { wave: "sine", from: 330, to: 280, duration: .34 };
+        const oscillator = context.createOscillator();
+        oscillator.type = settings.wave;
+        oscillator.frequency.setValueAtTime(settings.from, now);
+        oscillator.frequency.exponentialRampToValueAtTime(settings.to, now + settings.duration);
+        oscillator.connect(output);
+        oscillator.start(now);
+        oscillator.stop(now + settings.duration + .03);
+
+        if (tone === "strike") {
+          const overtone = context.createOscillator();
+          const overtoneGain = context.createGain();
+          overtone.type = "triangle";
+          overtone.frequency.setValueAtTime(690, now);
+          overtone.frequency.exponentialRampToValueAtTime(420, now + .2);
+          overtoneGain.gain.setValueAtTime(.25, now);
+          overtoneGain.gain.exponentialRampToValueAtTime(.0001, now + .22);
+          overtone.connect(overtoneGain).connect(output);
+          overtone.start(now);
+          overtone.stop(now + .24);
+        }
+      }
+
+      pulsePreviewCard(card);
+    };
+
+    playground?.addEventListener("pointermove", (event) => {
+      const bounds = labLanding.getBoundingClientRect();
+      const x = ((event.clientX - bounds.left) / Math.max(1, bounds.width)) * 100;
+      const y = ((event.clientY - bounds.top) / Math.max(1, bounds.height)) * 100;
+      labLanding.style.setProperty("--lab-pointer-x", `${x.toFixed(2)}%`);
+      labLanding.style.setProperty("--lab-pointer-y", `${y.toFixed(2)}%`);
+    });
+
+    previewCards.forEach((card) => {
+      card.addEventListener("pointermove", (event) => {
+        const bounds = card.getBoundingClientRect();
+        const x = (event.clientX - bounds.left) / Math.max(1, bounds.width) - .5;
+        const y = (event.clientY - bounds.top) / Math.max(1, bounds.height) - .5;
+        card.style.setProperty("--card-tilt-x", `${(x * 9).toFixed(2)}deg`);
+        card.style.setProperty("--card-tilt-y", `${(-y * 9).toFixed(2)}deg`);
+      });
+      card.addEventListener("pointerleave", () => {
+        card.style.setProperty("--card-tilt-x", "0deg");
+        card.style.setProperty("--card-tilt-y", "0deg");
+      });
+      card.addEventListener("click", () => playPreviewTone(card));
+    });
+  }
+
   const storyNarrative = document.querySelector("[data-story-narrative]");
 
   if (storyNarrative && !reduceMotion.matches) {
