@@ -13,6 +13,16 @@
       pathComposeDesc: "Turn handwriting into a score",
       pathArchiveTitle: "Saved tracks",
       pathArchiveDesc: "Listen again and build an object",
+      composePrimerTitle: "Your handwriting<br><span>can become a song</span>",
+      composePrimerTitleAccessible: "Your handwriting can become a song. Hover to read the Korean translation.",
+      composePrimerDescription: "Begin in COMPOSE. The position of each line becomes pitch and time, and the points you choose become the notes of one complete piece.",
+      composePrimerAction: "START IN COMPOSE",
+      composePrimerStepOneTitle: "Write by hand",
+      composePrimerStepOneBody: "Leave a sentence, a word, or a free line on the page.",
+      composePrimerStepTwoTitle: "Choose the sound points",
+      composePrimerStepTwoBody: "Select the places on your writing that will actually be played.",
+      composePrimerStepThreeTitle: "Play and save",
+      composePrimerStepThreeBody: "Play the finished page and keep it as your own composition.",
       labLandingTitle: "Move your hands<br><span>and sound follows</span>",
       labLandingDescription: "There is no right answer. Press, drag, crumple and strike to discover how sound changes beneath your fingertips.",
       labLandingEnter: "TOUCH THE FIRST SOUND",
@@ -260,6 +270,16 @@
       pathComposeDesc: "손글씨로 악보 만들기",
       pathArchiveTitle: "저장한 곡",
       pathArchiveDesc: "다시 듣고 오르골 구성하기",
+      composePrimerTitle: "당신의 손글씨가<br><span>하나의 노래가 됩니다</span>",
+      composePrimerTitleAccessible: "당신의 손글씨가 하나의 노래가 됩니다",
+      composePrimerDescription: "먼저 COMPOSE에서 글씨를 써보세요. 선의 위치가 음높이와 시간이 되고, 원하는 곳에 소리를 놓으면 한 장의 곡이 완성됩니다.",
+      composePrimerAction: "COMPOSE 시작하기",
+      composePrimerStepOneTitle: "글씨 쓰기",
+      composePrimerStepOneBody: "종이 위에 한 문장이나 자유로운 선을 남겨보세요.",
+      composePrimerStepTwoTitle: "소리 위치 고르기",
+      composePrimerStepTwoBody: "글씨 위에서 실제로 연주될 지점을 직접 선택합니다.",
+      composePrimerStepThreeTitle: "연주하고 저장하기",
+      composePrimerStepThreeBody: "완성된 종이를 연주하고 나만의 곡으로 저장하세요.",
       labLandingTitle: "손끝이 움직이면<br><span>소리가 따라옵니다</span>",
       labLandingDescription: "정답은 없습니다. 누르고, 끌고, 구기고, 두드리며 손끝에서 달라지는 소리를 찾아보세요.",
       labLandingEnter: "첫 번째 소리 만져보기",
@@ -399,15 +419,15 @@
       composeTitle: "펀칭 악보 만들기",
       composeIntro: "손글씨를 쓰고, 구멍을 뚫고, 손잡이를 돌려 재생하세요.",
       composeTone: "음색",
-      toneBright: "BRIGHT · 선명한 고음",
-      toneWarm: "WARM · 균형 잡힌 울림",
-      toneSoft: "SOFT · 부드러운 여운",
+      toneBright: "맑은 별빛 · 선명한 고음",
+      toneWarm: "따뜻한 숲 · 균형 잡힌 울림",
+      toneSoft: "밤의 자장가 · 부드러운 여운",
       composeBacking: "반주",
       composeBackingSelect: "배경 반주 선택",
       backingNone: "없음 · 멜로디만",
-      backingGuitar: "ACOUSTIC · 나무 울림 스트럼",
-      backingBass: "ACOUSTIC BASS · 둥근 현의 울림",
-      backingBeat: "SOFT BEAT · 부드러운 킥 · 스네어",
+      backingGuitar: "통기타 · 맑은 나무 울림",
+      backingBass: "어쿠스틱 베이스 · 둥근 현의 울림",
+      backingBeat: "부드러운 비트 · 킥과 스네어",
       composeTest: "음색 들어보기 ♪",
       composeMute: "음소거",
       composeVolume: "음량",
@@ -497,11 +517,13 @@
   };
 
   const storageKey = "orgo-language";
-  const getLanguage = () => localStorage.getItem(storageKey) || "en";
+  const getLockedLanguage = () => document.documentElement.dataset.languageLock || "";
+  const getLanguage = () => getLockedLanguage() || localStorage.getItem(storageKey) || "en";
   const text = (key) => copy[getLanguage()]?.[key] || copy.en[key] || key;
 
   function applyLanguage(language = getLanguage()) {
-    localStorage.setItem(storageKey, language);
+    language = getLockedLanguage() || language;
+    if (!getLockedLanguage()) localStorage.setItem(storageKey, language);
     document.documentElement.lang = language;
     document.documentElement.setAttribute("translate", "no");
     document.querySelectorAll("[data-i18n]").forEach((element) => {
@@ -565,3 +587,4 @@
     applyLanguage();
   });
 })();
+

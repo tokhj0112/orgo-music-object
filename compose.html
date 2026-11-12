@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="en" translate="no">
+<html lang="ko" translate="no" data-language-lock="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
-  <title>ORGO — Compose atelier</title>
-  <link rel="stylesheet" href="style.css?v=clear-actions-99">
-  <script src="i18n.js?v=title-motion-86" defer></script>
-  <script src="app.js?v=clear-actions-99" defer></script>
+  <title>ORGO — 작곡 작업실</title>
+  <link rel="stylesheet" href="style.css?v=compose-korean-125">
+  <script src="i18n.js?v=compose-korean-125" defer></script>
+  <script src="app.js?v=compose-korean-125" defer></script>
 </head>
 
 <body data-mode="write">
   <header>
     <a class="logo" href="index.html">orgo<sup>®</sup></a>
 
-    <span class="header-label">THE COMPOSING ROOM</span>
+    <span class="header-label">작곡 작업실</span>
 
     <button id="open-tutorial" class="guide-trigger" type="button" data-i18n="composeGuide">
       사용 안내
@@ -25,7 +25,7 @@
   <main>
     <div class="intro">
       <div>
-        <p class="eyebrow">YOUR WORDS. YOUR MELODY.</p>
+        <p class="eyebrow">당신의 글씨 · 당신의 멜로디</p>
         <h1 data-i18n="composeTitle">펀칭 악보 만들기</h1>
       </div>
 
@@ -65,9 +65,9 @@
           <span data-i18n="composeBacking">반주</span>
           <select id="backing" aria-label="배경 반주 선택" data-i18n-attr="composeBackingSelect">
             <option value="none" selected data-i18n="backingNone">없음 · 멜로디만</option>
-            <option value="guitar" data-i18n="backingGuitar">ACOUSTIC · 나무 울림 스트럼</option>
-            <option value="bass" data-i18n="backingBass">ACOUSTIC BASS · 둥근 현의 울림</option>
-            <option value="beat" data-i18n="backingBeat">SOFT BEAT · 부드러운 킥 · 스네어</option>
+            <option value="guitar" data-i18n="backingGuitar">통기타 · 맑은 나무 울림</option>
+            <option value="bass" data-i18n="backingBass">어쿠스틱 베이스 · 둥근 현의 울림</option>
+            <option value="beat" data-i18n="backingBeat">부드러운 비트 · 킥과 스네어</option>
           </select>
         </label>
 
@@ -102,7 +102,7 @@
       <section class="writing-desk" aria-label="손글씨 작업 공간">
         <div class="toolbar">
           <div class="inks" aria-label="글씨 색상">
-            <span>INK</span>
+            <span>잉크</span>
 
             <button
               type="button"
@@ -152,7 +152,7 @@
           </div>
 
           <label class="weight">
-            STROKE
+            굵기
             <input
               id="width"
               type="range"
@@ -165,8 +165,8 @@
 
           <div id="punch-tools" class="punch-tools" hidden aria-label="펀칭 모양과 크기 선택">
             <div class="punch-option" role="group" aria-label="펀칭 모양">
-              <span>SHAPE</span>
-              <button type="button" class="punch-choice selected" data-punch-shape="mix" aria-pressed="true">MIX</button>
+              <span>모양</span>
+              <button type="button" class="punch-choice selected" data-punch-shape="mix" aria-pressed="true">섞기</button>
               <button type="button" class="punch-choice punch-symbol" data-punch-shape="circle" aria-label="동그라미" aria-pressed="false">●</button>
               <button type="button" class="punch-choice punch-symbol" data-punch-shape="star" aria-label="별" aria-pressed="false">★</button>
               <button type="button" class="punch-choice punch-symbol" data-punch-shape="heart" aria-label="하트" aria-pressed="false">♥</button>
@@ -174,24 +174,24 @@
             </div>
 
             <div class="punch-option" role="group" aria-label="펀칭 크기">
-              <span>SIZE</span>
-              <button type="button" class="punch-size selected" data-punch-size="mix" aria-pressed="true">MIX</button>
-              <button type="button" class="punch-size" data-punch-size="small" aria-label="작게" aria-pressed="false">S</button>
-              <button type="button" class="punch-size" data-punch-size="medium" aria-label="보통" aria-pressed="false">M</button>
-              <button type="button" class="punch-size" data-punch-size="large" aria-label="크게" aria-pressed="false">L</button>
+              <span>크기</span>
+              <button type="button" class="punch-size selected" data-punch-size="mix" aria-pressed="true">섞기</button>
+              <button type="button" class="punch-size" data-punch-size="small" aria-label="작게" aria-pressed="false">소</button>
+              <button type="button" class="punch-size" data-punch-size="medium" aria-label="보통" aria-pressed="false">중</button>
+              <button type="button" class="punch-size" data-punch-size="large" aria-label="크게" aria-pressed="false">대</button>
             </div>
           </div>
 
           <div>
-            <button id="undo" type="button" data-i18n="composeUndo" aria-keyshortcuts="Control+Z Meta+Z" title="Undo (Ctrl+Z)">되돌리기</button>
+            <button id="undo" type="button" data-i18n="composeUndo" aria-keyshortcuts="Control+Z Meta+Z" title="되돌리기 (Ctrl+Z)">되돌리기</button>
             <button id="clear" type="button" data-i18n="composeClear">새로 쓰기</button>
           </div>
         </div>
 
         <div class="paper">
           <div class="paper-meta">
-            <span>YOUR HANDWRITING</span>
-            <span>NO. 001 / ORIGINAL</span>
+            <span>나의 손글씨</span>
+            <span>001 / 원본</span>
           </div>
 
           <canvas
@@ -215,13 +215,13 @@
             색상과 굵기를 선택한 뒤 종이에 글씨를 써보세요.
           </p>
 
-          <span id="count">0 STROKES</span>
+          <span id="count">0획</span>
         </div>
       </section>
 
       <aside id="mechanism" class="instrument">
         <div class="instrument-top">
-          <span>ORGO / MECHANICAL PLAYER</span>
+          <span>ORGO / 수동 오르골</span>
           <i aria-hidden="true"></i>
         </div>
 
@@ -233,7 +233,7 @@
             aria-label="완성된 종이가 지나가는 오르골 입구"
           ></canvas>
 
-          <span class="feed-label">PAPER FEED</span>
+          <span class="feed-label">악보 투입구</span>
         </div>
 
         <div class="crank-wrap">
@@ -266,7 +266,7 @@
 
     <div class="actionbar">
       <div>
-        <span id="stage-label">01 / WRITE</span>
+        <span id="stage-label">01 / 쓰기</span>
 
         <strong id="stage-title" data-i18n="composeStageTitle">
           종이에 글씨를 써주세요
@@ -311,8 +311,8 @@
   </main>
 
   <footer>
-    <span>HANDWRITING INTO MELODY</span>
-    <span>COMPOSE ATELIER / STUDY 02</span>
+    <span>손글씨를 멜로디로</span>
+    <span>작곡 작업실 / 연구 02</span>
   </footer>
 
   <section id="compose-tutorial" class="compose-tutorial" role="dialog" aria-modal="true" aria-labelledby="tutorial-title" hidden>
@@ -323,7 +323,7 @@
     </button>
 
     <div class="tutorial-heading">
-      <span>ORGO / QUICK GUIDE</span>
+      <span>ORGO / 빠른 사용 안내</span>
       <h2 id="tutorial-title">이 화면에서 곡을 만드는 순서</h2>
       <p>한 단계씩 핵심 기능을 확인해 보세요.</p>
       <div class="tutorial-progress" aria-hidden="true">
@@ -334,7 +334,7 @@
     <div class="tutorial-focus-rings" aria-hidden="true"></div>
 
     <div id="tutorial-callout" class="tutorial-callout">
-      <span id="tutorial-step-label">01 / INPUT</span>
+      <span id="tutorial-step-label">01 / 입력 방식</span>
       <strong id="tutorial-callout-title">마우스 또는 카메라를 선택하세요</strong>
       <p id="tutorial-callout-copy">현재 작업대에서는 마우스로, 카메라 모드에서는 손끝 움직임으로 그릴 수 있습니다.</p>
     </div>
@@ -347,3 +347,4 @@
   </section>
 </body>
 </html>
+
