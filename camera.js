@@ -579,7 +579,7 @@
     context.fillStyle = "#e7e7e7";
     context.textAlign = "center";
     context.font = "8px Consolas, monospace";
-    context.fillText("BAR", centerX, centerY - 6);
+    context.fillText("마디", centerX, centerY - 6);
     context.font = "600 23px -apple-system, sans-serif";
     context.fillText(String(Math.min(4, Math.floor(progress * 4) + 1)), centerX, centerY + 18);
     context.textAlign = "start";
@@ -597,11 +597,11 @@
     signalReadout.lufs.textContent = lufs;
     signalReadout.peak.textContent = peak;
     signalReadout.current.textContent = current;
-    signalReadout.bar.textContent = `BAR ${Math.min(4, Math.floor(progress * 4) + 1)}.${Math.floor((progress * 16) % 4) + 1}`;
-    signalReadout.tempo.textContent = `TEMPO ${String(Math.round(signalState.tempo)).padStart(3, "0")} BPM`;
-    signalReadout.hits.textContent = `${signalState.hitCount} HITS`;
-    signalReadout.revolution.textContent = `${(playerAngle / (Math.PI * 2)).toFixed(2)} REV`;
-    signalReadout.sounding.textContent = `SOUNDING ${current}`;
+    signalReadout.bar.textContent = `마디 ${Math.min(4, Math.floor(progress * 4) + 1)}.${Math.floor((progress * 16) % 4) + 1}`;
+    signalReadout.tempo.textContent = `빠르기 ${String(Math.round(signalState.tempo)).padStart(3, "0")} BPM`;
+    signalReadout.hits.textContent = `음 ${signalState.hitCount}개`;
+    signalReadout.revolution.textContent = `${(playerAngle / (Math.PI * 2)).toFixed(2)}바퀴`;
+    signalReadout.sounding.textContent = `재생 음 ${current}`;
   }
 
   function drawSignalFrame(timestamp) {
@@ -614,7 +614,7 @@
     const active = performance.now() < signalState.activityUntil;
     signalConsole.classList.toggle("is-active", active);
     signalConsole.style.setProperty("--signal-energy", meter.level.toFixed(3));
-    signalMode.textContent = active ? "TURNING / LIVE" : "READY / LISTEN";
+    signalMode.textContent = active ? "회전 중 / 실시간" : "준비 / 듣기";
 
     drawSignalSheet(meter.level);
     drawSignalRack(meter.level);
@@ -676,7 +676,7 @@
       lastNote = point;
       playNote(quantized.y, 0.72, quantized.x);
       noteCount.textContent = String(notes.length);
-      noteCount.setAttribute("aria-label", `${notes.length} notes`);
+      noteCount.setAttribute("aria-label", `음 ${notes.length}개`);
       finishButton.disabled = false;
     }
   }
@@ -1173,7 +1173,7 @@
     activeHarmonyStep = -1;
     placeholder.hidden = false;
     noteCount.textContent = "0";
-    noteCount.setAttribute("aria-label", "0 notes");
+    noteCount.setAttribute("aria-label", "음 0개");
     undoButton.disabled = true;
     playButton.disabled = true;
     finishButton.disabled = true;
@@ -1204,7 +1204,7 @@
 
     placeholder.hidden = strokes.length > 0;
     noteCount.textContent = String(notes.length);
-    noteCount.setAttribute("aria-label", `${notes.length} notes`);
+    noteCount.setAttribute("aria-label", `음 ${notes.length}개`);
     undoButton.disabled = strokes.length === 0;
     finishButton.disabled = notes.length === 0;
     activeHarmonyStep = -1;

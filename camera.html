@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="en" translate="no">
+<html lang="ko" translate="no" data-language-lock="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
-  <title>ORGO — Hand compose</title>
-  <link rel="stylesheet" href="camera.css?v=finish-flow-speed-78">
+  <title>ORGO — 손끝 작곡실</title>
+  <link rel="stylesheet" href="camera.css?v=camera-korean-126">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  <script src="i18n.js?v=title-motion-86" defer></script>
-  <script src="camera.js?v=finish-flow-speed-78" defer></script>
+  <script src="i18n.js?v=camera-korean-126" defer></script>
+  <script src="camera.js?v=camera-korean-126" defer></script>
 </head>
 
 <body>
@@ -20,13 +20,13 @@
       <a href="compose.html" data-i18n="composeMouse">마우스로 만들기</a>
       <a href="camera.html" aria-current="page" data-i18n="composeHand">손끝으로 만들기</a>
     </nav>
-    <span class="header-label">HAND COMPOSING ROOM</span>
+    <span class="header-label">손끝 작곡실</span>
   </header>
 
   <main>
     <section class="intro">
       <div>
-        <p class="eyebrow">CAMERA / FINGERTIP COMPOSE</p>
+        <p class="eyebrow">카메라 / 손끝 작곡</p>
         <h1 data-i18n="cameraTitle">손동작으로 곡 만들기</h1>
       </div>
       <p data-i18n="cameraIntro" data-i18n-html="true">검지와 엄지를 맞대고 공중에 선을 그리세요.<br>움직임이 펀칭 악보로 변환됩니다.</p>
@@ -59,13 +59,13 @@
 
       <div class="sheet-panel">
         <div class="paper">
-          <div class="paper-meta"><span id="hand-state" data-i18n="cameraWaiting">대기 중</span><span id="note-count" aria-label="0 notes">0</span></div>
+          <div class="paper-meta"><span id="hand-state" data-i18n="cameraWaiting">대기 중</span><span id="note-count" aria-label="음 0개">0</span></div>
           <canvas id="gesture-sheet" width="1200" height="600" aria-label="손끝으로 쓰는 악보"></canvas>
           <div id="fingertip-pointer" aria-hidden="true" hidden></div>
           <div id="sheet-placeholder" data-i18n="cameraSheetPlaceholder" data-i18n-html="true">검지와 엄지를 맞대고<br>공중에 한 줄을 그려보세요.</div>
         </div>
         <div id="finish-next-step" class="finish-next-step" role="status" hidden>
-          <span data-i18n="cameraNextLabel">NEXT</span>
+          <span data-i18n="cameraNextLabel">다음 단계</span>
           <strong data-i18n="cameraNextTitle">곡이 완성됐어요. 먼저 들어보세요.</strong>
           <p data-i18n="cameraNextBody">재생 화면에서 곡을 확인한 다음, 마음에 들면 아카이브에 저장하세요.</p>
         </div>
@@ -85,7 +85,7 @@
     <form method="dialog">
       <div class="camera-guide-head">
         <div>
-          <p>CAMERA / QUICK GUIDE</p>
+          <p>카메라 / 빠른 사용 안내</p>
           <h2 id="camera-guide-title" data-i18n="cameraGuideTitle">손끝 작곡 가이드</h2>
         </div>
         <button type="submit" value="close" data-i18n="cameraGuideClose">가이드 닫기</button>
@@ -108,13 +108,13 @@
 
   <section id="player-screen" class="player-screen" hidden aria-label="완성한 곡 연주하기">
     <div class="player-header">
-      <span>ORGO / YOUR HANDWRITING MELODY</span>
+      <span>ORGO / 나의 손글씨 멜로디</span>
       <button id="close-player" type="button" data-i18n="cameraBack">작업대로 돌아가기</button>
     </div>
 
     <div class="player-layout">
       <section class="player-copy">
-        <p class="eyebrow">01 / PLAY YOUR LINE</p>
+        <p class="eyebrow">01 / 나의 선 연주</p>
         <h2 data-i18n="cameraPlayerTitle">손끝으로 만든 곡을 들어보세요</h2>
         <p data-i18n="cameraPlayerCopy">손잡이를 직접 돌리거나 자동 재생으로 들을 수 있습니다.</p>
         <div class="player-progress"><strong id="player-percent">0%</strong></div>
@@ -122,37 +122,37 @@
 
       <section id="signal-console" class="signal-console" aria-label="연주 신호 시각화">
         <div class="signal-console-head">
-          <span>LIVE SIGNAL / CH 01</span>
-          <span id="signal-mode">READY</span>
+          <span>실시간 신호 / 채널 01</span>
+          <span id="signal-mode">준비</span>
         </div>
 
         <div class="signal-grid">
           <article class="signal-module signal-sheet-module">
-            <div class="signal-module-head"><b>01</b><span>SHEET</span><em id="signal-printed">0%</em></div>
+            <div class="signal-module-head"><b>01</b><span>악보</span><em id="signal-printed">0%</em></div>
             <canvas id="signal-sheet" aria-label="손끝 선의 진행 흔적"></canvas>
-            <div class="signal-module-foot"><span>PEN / HAND</span><span id="signal-time">0:00</span></div>
+            <div class="signal-module-foot"><span>펜 / 손</span><span id="signal-time">0:00</span></div>
           </article>
 
           <article class="signal-module signal-rack-module">
-            <div class="signal-module-head"><b>02</b><span>RACK</span><em>LOUDNESS</em></div>
+            <div class="signal-module-head"><b>02</b><span>음향 분석</span><em>음량</em></div>
             <canvas id="signal-rack" aria-label="재생 중인 파형과 주파수 신호"></canvas>
             <div class="signal-metrics signal-metrics-three">
-              <span><small>MOMENTARY</small><strong id="signal-lufs">−∞ LUFS</strong></span>
-              <span><small>PEAK</small><strong id="signal-peak">0.0 dBFS</strong></span>
-              <span><small>NOTE</small><strong id="signal-current">—</strong></span>
+              <span><small>순간 음량</small><strong id="signal-lufs">−∞ LUFS</strong></span>
+              <span><small>최고값</small><strong id="signal-peak">0.0 dBFS</strong></span>
+              <span><small>음표</small><strong id="signal-current">—</strong></span>
             </div>
           </article>
 
           <article class="signal-module signal-roll-module">
-            <div class="signal-module-head"><b>03</b><span>ROLL</span><em id="signal-bar">BAR 1.1</em></div>
+            <div class="signal-module-head"><b>03</b><span>음표 진행</span><em id="signal-bar">마디 1.1</em></div>
             <canvas id="signal-roll" aria-label="음표와 현재 재생 위치"></canvas>
-            <div class="signal-module-foot"><span id="signal-tempo">TEMPO 096 BPM</span><span id="signal-hits">0 HITS</span></div>
+            <div class="signal-module-foot"><span id="signal-tempo">빠르기 096 BPM</span><span id="signal-hits">음 0개</span></div>
           </article>
 
           <article class="signal-module signal-orbit-module">
-            <div class="signal-module-head"><b>04</b><span>ORBIT</span><em>CRANK</em></div>
+            <div class="signal-module-head"><b>04</b><span>회전 궤도</span><em>손잡이</em></div>
             <canvas id="signal-orbit" aria-label="손잡이 회전과 음표 궤도"></canvas>
-            <div class="signal-module-foot"><span id="signal-revolution">0.00 REV</span><span id="signal-sounding">SOUNDING —</span></div>
+            <div class="signal-module-foot"><span id="signal-revolution">0.00바퀴</span><span id="signal-sounding">재생 음 —</span></div>
           </article>
         </div>
       </section>
@@ -162,7 +162,7 @@
         <div class="crank-player-wrap">
           <button id="player-crank" type="button" aria-label="오르골 손잡이. 시계 방향으로 드래그해 연주하기"><span class="player-axle"></span><span class="player-arm"><span class="player-knob"></span></span></button>
           <span id="hand-crank-status" data-i18n="cameraCrank">카메라를 켠 뒤, 핀치해서 원을 그려보세요</span>
-          <span class="hand-crank-led"><i id="hand-crank-led" aria-hidden="true"></i> HAND CRANK</span>
+          <span class="hand-crank-led"><i id="hand-crank-led" aria-hidden="true"></i> 손 인식 손잡이</span>
         </div>
         <div class="player-controls">
           <label class="playback-speed-control" for="auto-speed">
