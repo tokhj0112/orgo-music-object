@@ -72,6 +72,7 @@
     const primerSteps = [
       ...composePrimer.querySelectorAll(".compose-primer-motion-step"),
     ];
+    const primerCta = composePrimer.querySelector("[data-compose-primer-cta]");
     let primerTicking = false;
 
     const clamp = (value) => Math.min(1, Math.max(0, value));
@@ -121,6 +122,26 @@
           `${(2.8 * (1 - stepProgress)).toFixed(2)}px`
         );
       });
+
+      if (primerCta) {
+        const ctaProgress = smootherstep(clamp((progress - .58) / .34));
+        composePrimer.style.setProperty(
+          "--primer-cta-y",
+          `${(44 * (1 - ctaProgress)).toFixed(2)}px`
+        );
+        composePrimer.style.setProperty(
+          "--primer-cta-opacity",
+          ctaProgress.toFixed(4)
+        );
+        composePrimer.style.setProperty(
+          "--primer-cta-blur",
+          `${(3 * (1 - ctaProgress)).toFixed(2)}px`
+        );
+        composePrimer.style.setProperty(
+          "--primer-cta-scale",
+          `${(.96 + .04 * ctaProgress).toFixed(4)}`
+        );
+      }
 
       primerTicking = false;
     };

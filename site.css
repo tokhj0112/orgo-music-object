@@ -779,10 +779,12 @@ img {
 
 .compose-primer {
   position: relative;
-  display: grid;
-  min-height: 88svh;
-  padding: clamp(92px, 11vw, 168px) 5%;
+  display: flex;
+  min-height: 100svh;
+  padding: clamp(92px, 11vw, 168px) 5% clamp(84px, 10vw, 144px);
   overflow: hidden;
+  flex-direction: column;
+  justify-content: center;
   background:
     radial-gradient(circle at 20% 48%, #ffffff0b 0, transparent 31%),
     linear-gradient(135deg, #151517, #0d0d0f 68%);
@@ -794,7 +796,7 @@ img {
   align-items: center;
   gap: clamp(54px, 8vw, 140px);
   width: min(100%, 1480px);
-  margin: auto;
+  margin: 0 auto;
 }
 
 .compose-primer-copy h2 {
@@ -877,27 +879,78 @@ img {
 }
 
 .compose-primer-action {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 52px;
-  margin-top: 34px;
-  padding: 14px 23px;
-  border-radius: 14px;
+  gap: 32px;
+  width: min(100%, 480px);
+  min-height: 84px;
+  padding: 20px 28px 20px 34px;
+  border: 1px solid #fff;
+  border-radius: 20px;
   background: #f5f5f7;
   color: #171719;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -.015em;
-  box-shadow: 0 14px 36px #00000038, inset 0 1px 0 #fff;
-  transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  font-size: clamp(17px, 1.5vw, 22px);
+  font-weight: 650;
+  letter-spacing: -.035em;
+  box-shadow: 0 24px 64px #00000070, 0 0 0 0 #ffffff00, inset 0 1px 0 #fff;
+  transition: background 220ms ease, color 220ms ease, transform 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.compose-primer-action span {
+  flex: 1;
+  text-align: left;
+}
+
+.compose-primer-action i {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  place-items: center;
+  background: #171719;
+  color: #fff;
+  font-size: 19px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  transition: background 220ms ease, color 220ms ease, transform 220ms ease;
 }
 
 .compose-primer-action:hover,
 .compose-primer-action:focus-visible {
   background: #fff;
-  transform: translateY(-2px);
-  box-shadow: 0 18px 44px #00000052, inset 0 1px 0 #fff;
+  transform: translateY(-4px) scale(1.012);
+  box-shadow: 0 30px 76px #0000008a, 0 0 0 6px #ffffff12, inset 0 1px 0 #fff;
+}
+
+.compose-primer-action:hover i,
+.compose-primer-action:focus-visible i {
+  transform: translateX(4px);
+}
+
+.compose-primer-cta {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 720px);
+  margin: clamp(62px, 8vw, 110px) auto 0;
+  text-align: center;
+}
+
+.compose-primer-cta > p {
+  margin: 0 0 20px;
+  color: #f5f5f7;
+  font-size: clamp(18px, 2vw, 25px);
+  font-weight: 500;
+  letter-spacing: -.035em;
+}
+
+.compose-primer-cta > small {
+  margin-top: 16px;
+  color: #77777c;
+  font-size: 11px;
+  letter-spacing: -.015em;
 }
 
 .compose-primer-steps {
@@ -952,6 +1005,8 @@ img {
     gap: 58px;
   }
 
+  .compose-primer-cta { margin-top: 72px; }
+
   .compose-primer-copy h2 {
     font-size: clamp(48px, 11vw, 78px);
   }
@@ -961,7 +1016,8 @@ img {
   .compose-primer { padding: 78px 7%; }
   .compose-primer-copy h2 { margin: 0 0 22px; }
   .compose-primer-copy > p { font-size: 12px; }
-  .compose-primer-action { width: 100%; margin-top: 28px; }
+  .compose-primer-action { width: 100%; min-height: 76px; }
+  .compose-primer-cta { margin-top: 58px; }
   .compose-primer-inner { gap: 42px; }
   .compose-primer-steps li { grid-template-columns: 34px 1fr; padding: 20px; }
 }
@@ -3518,6 +3574,15 @@ legend {
   opacity: var(--primer-step-opacity, 1);
   filter: blur(var(--primer-step-blur, 0px));
   transform: translate3d(0, var(--primer-step-y, 0px), 0);
+  will-change: opacity, filter, transform;
+}
+
+.compose-primer.is-scroll-responsive .compose-primer-cta {
+  opacity: var(--primer-cta-opacity, 1);
+  filter: blur(var(--primer-cta-blur, 0px));
+  transform: translate3d(0, var(--primer-cta-y, 0px), 0)
+    scale(var(--primer-cta-scale, 1));
+  transform-origin: center;
   will-change: opacity, filter, transform;
 }
 
