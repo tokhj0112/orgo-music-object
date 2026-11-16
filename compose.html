@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>ORGO — 작곡 작업실</title>
-  <link rel="stylesheet" href="style.css?v=radius-refine-138">
+  <link rel="stylesheet" href="style.css?v=compose-clean-139">
   <script src="i18n.js?v=compose-korean-125" defer></script>
-  <script src="app.js?v=compose-korean-125" defer></script>
+  <script src="app.js?v=compose-clean-139" defer></script>
 </head>
 
 <body data-mode="write">
@@ -25,7 +25,6 @@
   <main>
     <div class="intro">
       <div>
-        <p class="eyebrow">당신의 글씨 · 당신의 멜로디</p>
         <h1 data-i18n="composeTitle">펀칭 악보 만들기</h1>
       </div>
 
@@ -189,11 +188,6 @@
         </div>
 
         <div class="paper">
-          <div class="paper-meta">
-            <span>나의 손글씨</span>
-            <span>001 / 원본</span>
-          </div>
-
           <canvas
             id="sheet"
             width="1200"
@@ -220,11 +214,6 @@
       </section>
 
       <aside id="mechanism" class="instrument">
-        <div class="instrument-top">
-          <span>ORGO / 수동 오르골</span>
-          <i aria-hidden="true"></i>
-        </div>
-
         <div class="feed-shell">
           <canvas
             id="feed"
@@ -254,13 +243,6 @@
           </span>
         </div>
 
-        <div class="instrument-foot">
-          <span id="position">0% · 종이의 시작</span>
-
-          <button id="rewind" type="button" disabled data-i18n="composeRewind">
-            처음으로
-          </button>
-        </div>
       </aside>
     </div>
 

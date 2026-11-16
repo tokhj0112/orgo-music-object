@@ -1424,8 +1424,6 @@
     document.body.dataset.mode = mode;
 
     $("crank").disabled = mode !== "listen";
-    $("rewind").disabled = mode !== "listen";
-
     $("crank-label").textContent = mode === "listen"
       ? (isKorean() ? "시계 방향으로 돌려보세요" : "Turn clockwise")
       : (isKorean() ? "종이를 완성하면 연주할 수 있어요" : "Finish the paper to play it.");
@@ -1992,8 +1990,6 @@
 
     draw(progress);
 
-    $("position").textContent =
-      `${Math.round(progress / 12)}% · 같은 페이지 반복`;
   }
 
   const crank = $("crank");
@@ -2076,15 +2072,8 @@
 
     crank.style.setProperty("--angle", "0rad");
 
-    $("position").textContent = "0% · 종이의 시작";
-
     draw(mode === "listen" ? 0 : undefined);
   }
-
-  $("rewind").onclick = () => {
-    stop();
-    rewind();
-  };
 
   /* ------------------------------
      자동재생: 같은 한 페이지 반복
