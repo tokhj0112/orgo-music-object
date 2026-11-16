@@ -10,7 +10,7 @@ header { position: sticky; top: 0; z-index: 50; height: 72px; padding: 0 4%; dis
 .logo { color: inherit; font-size: 34px; font-weight: 650; letter-spacing: -2.5px; text-decoration: none; }
 .logo sup { font-size: 11px; vertical-align: top; letter-spacing: 0; }
 .mode-switch { display: flex; gap: 7px; }
-.mode-switch a { padding: 7px 10px; border: 1px solid transparent; border-radius: 10px; color: #a1a1a1; font-size: 11px; text-decoration: none; }
+.mode-switch a { padding: 7px 10px; border: 1px solid transparent; border-radius: 8px; color: #a1a1a1; font-size: 11px; text-decoration: none; }
 .mode-switch a[aria-current="page"] { border-color: #ffffff2b; background: #ffffff10; color: #f5f5f5; }
 .header-label, .eyebrow, footer { color: #b3b3b3; font: 9px monospace; letter-spacing: 2px; }
 
@@ -20,10 +20,10 @@ main { max-width: 1600px; margin: auto; padding: 40px 4% 0; }
 h1 { margin: 0; font-size: clamp(27px, 2.7vw, 42px); font-weight: 500; letter-spacing: -.05em; }
 .intro > p { color: #b5b5b5; font-size: 13px; line-height: 1.8; }
 
-.camera-workbench { display: grid; grid-template-columns: minmax(300px, .8fr) minmax(0, 1.2fr); border: 1px solid #ffffff17; border-radius: 24px; overflow: hidden; background: #181818d1; box-shadow: 0 30px 90px #00000052, inset 0 1px 0 #ffffff0b; backdrop-filter: blur(18px) saturate(112%); -webkit-backdrop-filter: blur(18px) saturate(112%); }
+.camera-workbench { display: grid; grid-template-columns: minmax(300px, .8fr) minmax(0, 1.2fr); border: 1px solid #ffffff17; border-radius: 20px; overflow: hidden; background: #181818d1; box-shadow: 0 30px 90px #00000052, inset 0 1px 0 #ffffff0b; backdrop-filter: blur(18px) saturate(112%); -webkit-backdrop-filter: blur(18px) saturate(112%); }
 .camera-panel, .sheet-panel { padding: 20px; min-width: 0; }
 .camera-panel { border-right: 1px solid #ffffff12; background: linear-gradient(135deg, #242424, #151515); }
-.camera-frame { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid #555; border-radius: 10px; background: #0c0c0c; }
+.camera-frame { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid #555; border-radius: 8px; background: #0c0c0c; }
 .camera-live-dot { position: absolute; top: 12px; right: 12px; z-index: 4; width: 8px; height: 8px; border-radius: 50%; background: #727272; box-shadow: 0 0 0 4px #0005; }
 .camera-live-dot.is-on { background: #f1f1f1; box-shadow: 0 0 0 4px #0005, 0 0 14px #ffffff88; }
 #webcam, #hand-overlay { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
@@ -31,7 +31,7 @@ h1 { margin: 0; font-size: clamp(27px, 2.7vw, 42px); font-weight: 500; letter-sp
 .camera-placeholder { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; gap: 14px; padding: 30px; text-align: center; background: radial-gradient(circle at center, #292929, #101010 70%); }
 .camera-placeholder[hidden] { display: none; }
 .camera-placeholder strong { max-width: 230px; font-size: 16px; font-weight: 400; line-height: 1.6; }
-.camera-placeholder button { min-height: 44px; padding: 0 22px; border: 1px solid #eee; border-radius: 11px; background: #eee; color: #171717; font-size: 12px; font-weight: 650; box-shadow: 0 8px 22px #0005; }
+.camera-placeholder button { min-height: 44px; padding: 0 22px; border: 1px solid #eee; border-radius: 9px; background: #eee; color: #171717; font-size: 12px; font-weight: 650; box-shadow: 0 8px 22px #0005; }
 .camera-placeholder button:hover { background: #fff; border-color: #fff; }
 .camera-guide-button { min-height: 44px; padding: 0 16px; border: 1px solid #666; border-radius: 9px; color: #f2f2f2; background: #292929; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .camera-guide-button:hover { border-color: #aaa; background: #373737; }
@@ -41,7 +41,7 @@ h1 { margin: 0; font-size: clamp(27px, 2.7vw, 42px); font-weight: 500; letter-sp
 .hand-settings select { width: 100%; min-height: 44px; padding: 0 11px; border: 1px solid #666; border-radius: 9px; background: #292929; color: #f0f0f0; font: 12px Arial, "Malgun Gothic", sans-serif; }
 
 .sheet-panel { background: #1c1c1c; }
-.paper { position: relative; overflow: hidden; border-radius: 10px; background: #f1f1f1; box-shadow: 0 10px 20px #0003; color: #222; }
+.paper { position: relative; overflow: hidden; border-radius: 8px; background: #f1f1f1; box-shadow: 0 10px 20px #0003; color: #222; }
 .paper-meta { display: flex; min-height: 43px; align-items: center; justify-content: space-between; padding: 0 18px; border-bottom: 1px solid #d1d1d1; color: #737373; font: 9px monospace; letter-spacing: .8px; }
 .paper-meta #hand-state { color: #535353; }
 #gesture-sheet { display: block; width: 100%; height: clamp(270px, 38vh, 450px); background: repeating-linear-gradient(transparent 0 34px, #a9a9a92e 34px 35px); }
@@ -52,7 +52,7 @@ h1 { margin: 0; font-size: clamp(27px, 2.7vw, 42px); font-weight: 500; letter-sp
 #fingertip-pointer[hidden] { display: none; }
 #sheet-placeholder { position: absolute; top: 47%; left: 0; right: 0; color: #aaa; font-size: 20px; line-height: 1.6; text-align: center; pointer-events: none; }
 #sheet-placeholder[hidden] { display: none; }
-.finish-next-step { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: center; margin-top: 14px; padding: 14px 16px; border: 1px solid #777; border-radius: 11px; background: #f0f0f0; color: #171717; }
+.finish-next-step { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: center; margin-top: 14px; padding: 14px 16px; border: 1px solid #777; border-radius: 9px; background: #f0f0f0; color: #171717; }
 .finish-next-step[hidden] { display: none; }
 .finish-next-step > span { grid-row: 1 / 3; align-self: stretch; padding-right: 15px; border-right: 1px solid #bdbdbd; color: #686868; font: 8px/1.4 "SFMono-Regular", Consolas, monospace; letter-spacing: 1.4px; }
 .finish-next-step strong { font-size: 14px; font-weight: 650; }
@@ -83,7 +83,7 @@ h1 { margin: 0; font-size: clamp(27px, 2.7vw, 42px); font-weight: 500; letter-sp
 .player-progress strong { font-size: 30px; font-weight: 400; }
 .player-progress span { color: #aaa; font: 10px monospace; }
 .player-machine { display: grid; place-items: center; gap: 22px; }
-.player-feed { position: relative; width: 100%; overflow: hidden; border: 1px solid #606060; border-radius: 12px; background: #e9e9e9; box-shadow: 0 22px 40px #0008; }
+.player-feed { position: relative; width: 100%; overflow: hidden; border: 1px solid #606060; border-radius: 10px; background: #e9e9e9; box-shadow: 0 22px 40px #0008; }
 #player-feed { display: block; width: 100%; height: auto; }
 .player-feed i { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #707070; box-shadow: 0 0 9px #aaaaaa66; }
 .crank-player-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; color: #c4c4c4; font-size: 11px; }

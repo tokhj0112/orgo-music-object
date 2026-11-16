@@ -96,7 +96,7 @@ footer {
   width: min(420px, calc(100vw - 40px));
   padding: 0;
   border: 1px solid #65665e;
-  border-radius: 14px;
+  border-radius: 12px;
   color: #ecece5;
   background: #20211d;
   box-shadow: 0 28px 80px #000b;
@@ -217,7 +217,7 @@ h1 {
   align-items: center;
   gap: 11px;
   border: 1px solid #ffffff1c;
-  border-radius: 15px;
+  border-radius: 12px;
   color: #f5f5f7;
   background: #ffffff08;
   box-shadow: inset 0 1px 0 #ffffff0c;
@@ -237,7 +237,7 @@ h1 {
   display: grid;
   place-items: center;
   border: 1px solid #ffffff22;
-  border-radius: 11px;
+  border-radius: 9px;
   background: #ffffff0b;
 }
 
@@ -330,7 +330,7 @@ h1 {
   grid-template-columns: minmax(0, 1fr) 265px;
   border: 1px solid #383b34;
   background: #1c1f1b;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -1110,7 +1110,7 @@ body:not([data-mode="write"]) .weight {
   width: min(450px, 100%);
   padding: 24px;
   border: 1px solid #737a6b;
-  border-radius: 16px;
+  border-radius: 13px;
   color: #efefe9;
   background: linear-gradient(145deg, #2a2e26, #1b1d19 72%);
   box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
@@ -1313,7 +1313,7 @@ body:not([data-mode="write"]) .weight {
   position: fixed;
   z-index: 1;
   border: 1px solid #f4f4eeb8;
-  border-radius: 11px;
+  border-radius: 9px;
   box-shadow: 0 0 0 4px #ffffff0a, 0 0 26px #e8efd526;
   pointer-events: none;
 }
@@ -1324,7 +1324,7 @@ body:not([data-mode="write"]) .weight {
   width: min(280px, calc(100vw - 28px));
   padding: 14px 15px;
   border: 1px solid #ffffff1f;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #18181be8;
   box-shadow: 0 16px 44px #0007, inset 0 1px 0 #ffffff0d;
   backdrop-filter: blur(20px);
@@ -1461,7 +1461,7 @@ main {
   margin: 0;
   padding: 12px 16px;
   border: 1px solid #70776a80;
-  border-radius: 15px;
+  border-radius: 12px;
   background: #171915ed;
   box-shadow: 0 18px 54px #0009, 0 1px 0 #ffffff0b inset;
   backdrop-filter: blur(16px);
@@ -1555,7 +1555,7 @@ footer {
 .sound-controls select,
 .sound-controls button {
   border-color: #ffffff18;
-  border-radius: 10px;
+  border-radius: 8px;
   background: #ffffff08;
   color: #d1d1d6;
   box-shadow: inset 0 1px 0 #ffffff0b;
@@ -1582,7 +1582,7 @@ h1 {
 
 .steps button {
   border-color: #ffffff12;
-  border-radius: 12px;
+  border-radius: 10px;
   background: #ffffff04;
 }
 
@@ -1600,7 +1600,7 @@ h1 {
 
 .workbench {
   border-color: #ffffff17;
-  border-radius: 24px;
+  border-radius: 20px;
   background: #18181bd1;
   box-shadow: 0 30px 90px #00000052, inset 0 1px 0 #ffffff0b;
   backdrop-filter: blur(18px) saturate(112%);
@@ -1620,7 +1620,7 @@ h1 {
 .tutorial-actions button,
 .guide-trigger {
   border-color: #ffffff1f;
-  border-radius: 11px;
+  border-radius: 9px;
   background: #ffffff08;
   color: #e5e5ea;
   box-shadow: inset 0 1px 0 #ffffff10;
@@ -1673,7 +1673,7 @@ h1 {
 
 .actionbar {
   border-color: #ffffff1c;
-  border-radius: 18px;
+  border-radius: 15px;
   background: #18181bd9;
   box-shadow: 0 18px 54px #00000066, inset 0 1px 0 #ffffff10;
   backdrop-filter: blur(24px) saturate(120%);
@@ -1694,7 +1694,7 @@ h1 {
 .tutorial-card,
 .archive-name-dialog {
   border-color: #ffffff24;
-  border-radius: 24px;
+  border-radius: 20px;
   background: #1c1c1edb;
   box-shadow: 0 32px 100px #00000080, inset 0 1px 0 #ffffff16;
   backdrop-filter: blur(28px) saturate(120%);
@@ -1713,11 +1713,11 @@ h1 {
 
   .workbench,
   .tutorial-card {
-    border-radius: 18px;
+    border-radius: 15px;
   }
 
   .actionbar {
-    border-radius: 15px;
+    border-radius: 12px;
   }
 }
 
@@ -1730,7 +1730,7 @@ body[data-mode="listen"] .actions button {
   min-width: 205px;
   min-height: 52px;
   padding: 14px 24px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.2;
@@ -1788,3 +1788,4 @@ body[data-mode="listen"] .actions button:focus-visible {
     font-size: 11px;
   }
 }
+
