@@ -913,7 +913,7 @@ img {
 
 .compose-primer-cta {
   width: min(100%, 1160px);
-  margin: clamp(68px, 8vw, 112px) auto 0;
+  margin: clamp(38px, 4.5vw, 70px) auto 0;
 }
 
 .compose-primer-video {
@@ -3575,6 +3575,12 @@ legend {
   will-change: opacity, filter, transform;
 }
 
+.compose-primer.is-scroll-responsive .compose-primer-inner {
+  opacity: var(--primer-content-opacity, 1);
+  transform: translate3d(0, var(--primer-content-y, 0px), 0);
+  will-change: opacity, transform;
+}
+
 .compose-primer.is-scroll-responsive .compose-primer-cta {
   opacity: var(--primer-cta-opacity, 1);
   filter: blur(var(--primer-cta-blur, 0px));
@@ -3582,6 +3588,18 @@ legend {
     scale(var(--primer-cta-scale, 1));
   transform-origin: center;
   will-change: opacity, filter, transform;
+}
+
+.compose-primer.is-scroll-responsive .compose-primer-video {
+  clip-path: inset(
+    var(--primer-video-clip-y, 0%)
+    var(--primer-video-clip-x, 0%)
+    round var(--primer-video-clip-radius, 22px)
+  );
+  filter: grayscale(var(--primer-video-gray, 0))
+    brightness(var(--primer-video-brightness, 1))
+    saturate(var(--primer-video-saturation, 1));
+  will-change: clip-path, filter;
 }
 
 @keyframes box-float {

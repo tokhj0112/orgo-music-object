@@ -124,22 +124,55 @@
       });
 
       if (primerCta) {
-        const ctaProgress = smootherstep(clamp((progress - .58) / .34));
+        const ctaProgress = smootherstep(clamp((progress - .4) / .46));
+        const focusProgress = smootherstep(clamp((progress - .68) / .3));
         composePrimer.style.setProperty(
           "--primer-cta-y",
-          `${(44 * (1 - ctaProgress)).toFixed(2)}px`
+          `${(76 * (1 - ctaProgress)).toFixed(2)}px`
         );
         composePrimer.style.setProperty(
           "--primer-cta-opacity",
-          ctaProgress.toFixed(4)
+          `${(.16 + .84 * ctaProgress).toFixed(4)}`
         );
         composePrimer.style.setProperty(
           "--primer-cta-blur",
-          `${(3 * (1 - ctaProgress)).toFixed(2)}px`
+          `${(4 * (1 - ctaProgress)).toFixed(2)}px`
         );
         composePrimer.style.setProperty(
           "--primer-cta-scale",
-          `${(.96 + .04 * ctaProgress).toFixed(4)}`
+          `${(.88 + .12 * ctaProgress).toFixed(4)}`
+        );
+        composePrimer.style.setProperty(
+          "--primer-video-clip-x",
+          `${(10 * (1 - ctaProgress)).toFixed(2)}%`
+        );
+        composePrimer.style.setProperty(
+          "--primer-video-clip-y",
+          `${(5 * (1 - ctaProgress)).toFixed(2)}%`
+        );
+        composePrimer.style.setProperty(
+          "--primer-video-clip-radius",
+          `${(46 - 24 * ctaProgress).toFixed(2)}px`
+        );
+        composePrimer.style.setProperty(
+          "--primer-video-gray",
+          `${(1 - ctaProgress).toFixed(4)}`
+        );
+        composePrimer.style.setProperty(
+          "--primer-video-brightness",
+          `${(.46 + .54 * ctaProgress).toFixed(4)}`
+        );
+        composePrimer.style.setProperty(
+          "--primer-video-saturation",
+          `${(.28 + .72 * ctaProgress).toFixed(4)}`
+        );
+        composePrimer.style.setProperty(
+          "--primer-content-opacity",
+          `${(1 - .38 * focusProgress).toFixed(4)}`
+        );
+        composePrimer.style.setProperty(
+          "--primer-content-y",
+          `${(-28 * focusProgress).toFixed(2)}px`
         );
       }
 
