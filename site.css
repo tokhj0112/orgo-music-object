@@ -891,13 +891,13 @@ img {
   padding: 16px 24px;
   border: 1px solid #f5f5f7;
   border-radius: 10px;
-  background: #0d0d0fa8;
+  background: transparent;
   color: #f5f5f7;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: -.02em;
-  box-shadow: 0 16px 48px #00000066;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 38px #00000042;
+  backdrop-filter: none;
   transform: translate(-50%, -50%);
   transition: background 220ms ease, color 220ms ease, transform 220ms ease,
     box-shadow 220ms ease;
