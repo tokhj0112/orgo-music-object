@@ -22,7 +22,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="site.css?v=compose-cta-133">
+  <link rel="stylesheet" href="site.css?v=compose-video-134">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
@@ -173,10 +173,17 @@
       </div>
 
       <div class="compose-primer-cta" data-compose-primer-cta>
-        <p>이제 직접 만들어볼 차례입니다</p>
-        <a class="compose-primer-action" href="compose.html">
-          <span data-i18n="composePrimerAction">COMPOSE 시작하기</span>
-        </a>
+        <div class="compose-primer-video">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/GKNMp0uKE64?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=GKNMp0uKE64&amp;controls=0&amp;rel=0&amp;playsinline=1&amp;modestbranding=1&amp;disablekb=1&amp;origin=https%3A%2F%2Ftokhj0112.github.io"
+            title="오르골 만들기 영상"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            referrerpolicy="strict-origin-when-cross-origin"
+            loading="lazy"
+          ></iframe>
+          <span class="compose-primer-video-shade" aria-hidden="true"></span>
+          <a class="compose-primer-action" href="compose.html">오르골 만들기</a>
+        </div>
       </div>
     </section>
 
