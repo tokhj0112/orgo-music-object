@@ -801,11 +801,12 @@ img {
 
 .compose-primer-copy h2 {
   position: relative;
-  max-width: 760px;
+  width: 100%;
+  max-width: 860px;
   min-height: 2.08em;
   margin: 0 0 10px;
   padding-bottom: .24em;
-  font-size: clamp(52px, 6.6vw, 102px);
+  font-size: clamp(40px, 5.8vw, 90px);
   font-weight: 500;
   line-height: 1;
   letter-spacing: -.072em;
@@ -1000,13 +1001,13 @@ img {
   .compose-primer-cta { margin-top: 72px; }
 
   .compose-primer-copy h2 {
-    font-size: clamp(48px, 11vw, 78px);
+    font-size: clamp(38px, 9vw, 72px);
   }
 }
 
 @media (max-width: 650px) {
   .compose-primer { padding: 78px 7%; }
-  .compose-primer-copy h2 { margin: 0 0 22px; }
+  .compose-primer-copy h2 { margin: 0 0 22px; font-size: clamp(34px, 9vw, 58px); }
   .compose-primer-copy > p { font-size: 12px; }
   .compose-primer-action { width: min(calc(100% - 40px), 218px); min-height: 58px; }
   .compose-primer-cta { margin-top: 58px; }
