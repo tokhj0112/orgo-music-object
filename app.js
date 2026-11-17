@@ -1770,43 +1770,6 @@
      소리 설정
   ------------------------------ */
 
-  $("test").onclick = async () => {
-    sound = true;
-
-    $("sound").textContent = "음소거";
-    $("sound").setAttribute("aria-pressed", "false");
-
-    if (await audioReady()) {
-      updateMasterVolume();
-      note(210);
-
-      $("hint").textContent =
-        "확인음을 재생했습니다. 안 들리면 컴퓨터 음량과 브라우저 탭 음소거를 확인해 주세요.";
-    }
-  };
-
-  $("sound").onclick = async () => {
-    sound = !sound;
-
-    if (!sound) {
-      silencePencil();
-    }
-
-    $("sound").textContent = sound ? "음소거" : "소리 켜기";
-
-    $("sound").setAttribute(
-      "aria-pressed",
-      String(!sound)
-    );
-
-    updateMasterVolume();
-
-    if (sound && (await audioReady())) {
-      updateMasterVolume();
-      note(210);
-    }
-  };
-
   $("volume").oninput = updateMasterVolume;
 
   $("tone").onchange = async (event) => {
