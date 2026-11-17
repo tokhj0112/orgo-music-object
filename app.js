@@ -1372,8 +1372,8 @@
     $("auto").textContent = isKorean() ? "자동으로 모두 뚫기" : "Punch all automatically";
 
     $("next").textContent = isKorean()
-      ? (mode === "listen" ? "다시 연주하기" : mode === "punch" ? "이 종이로 연주하기" : "다 썼어요 · 펀칭하기")
-      : (mode === "listen" ? "Play again" : mode === "punch" ? "Play this page" : "Finished writing · punch it");
+      ? "다 썼어요 · 펀칭하기"
+      : "Finished writing · punch it";
 
     draw(mode === "listen" ? progress : undefined);
   }
@@ -1414,7 +1414,7 @@
     $("autoplay").hidden = mode !== "listen";
     $("save-archive").hidden = mode !== "listen" || Boolean(archivePlayback);
     $("open-archive").hidden = mode !== "listen" || !lastArchivedId;
-    $("next").hidden = mode === "listen";
+    $("next").hidden = mode !== "write";
 
     if (mode === "listen") {
       $("save-archive").textContent = isKorean() ? "아카이브에 저장" : "Save to archive";
