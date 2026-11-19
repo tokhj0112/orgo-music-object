@@ -737,195 +737,6 @@ body[data-mode="listen"] .crank-wrap {
   animation: toolSceneIn 420ms cubic-bezier(.2, .8, .2, 1) both;
 }
 
-.writing-tools {
-  position: relative;
-  width: min(100%, 220px);
-  height: 190px;
-  margin: 5px auto 8px;
-  border: 1px solid #ffffff12;
-  border-radius: 14px;
-  background:
-    linear-gradient(90deg, transparent 0 49.6%, #ffffff08 50%, transparent 50.4%),
-    linear-gradient(#ffffff06, #00000008);
-  box-shadow: inset 0 1px 0 #ffffff0d, 0 18px 28px #0003;
-  overflow: hidden;
-}
-
-.tool-ruler {
-  position: absolute;
-  left: 23px;
-  top: 30px;
-  width: 164px;
-  height: 25px;
-  border: 1px solid #c9cbc76b;
-  border-radius: 3px;
-  background:
-    repeating-linear-gradient(90deg, transparent 0 9px, #16181655 9px 10px),
-    linear-gradient(180deg, #b7bab4, #777c74);
-  box-shadow: 0 8px 14px #0005, inset 0 1px 0 #ffffff73;
-  transform: rotate(-5deg);
-  opacity: .72;
-}
-
-.tool-pencil {
-  position: absolute;
-  left: 32px;
-  top: 94px;
-  width: 162px;
-  height: 16px;
-  border-radius: 2px 7px 7px 2px;
-  background: linear-gradient(180deg, #f3f3f1 0 28%, #a8aaa7 31% 70%, #efefec 73%);
-  box-shadow: 0 8px 14px #0007, inset 0 0 0 1px #ffffff34;
-  transform: rotate(-24deg);
-  transform-origin: 18px 50%;
-}
-
-.tool-pencil::before {
-  content: "";
-  position: absolute;
-  left: -23px;
-  top: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 24px solid #d8d2c5;
-  filter: drop-shadow(-2px 2px 2px #0005);
-}
-
-.tool-pencil::after {
-  content: "";
-  position: absolute;
-  left: -25px;
-  top: 6px;
-  border-top: 2px solid transparent;
-  border-bottom: 2px solid transparent;
-  border-right: 7px solid #252525;
-}
-
-.tool-pencil i {
-  position: absolute;
-  right: 12px;
-  top: 2px;
-  width: 1px;
-  height: 12px;
-  background: #3b3d3a99;
-  box-shadow: 4px 0 0 #ffffff38;
-}
-
-.tool-eraser {
-  position: absolute;
-  right: 25px;
-  bottom: 26px;
-  width: 54px;
-  height: 29px;
-  border-radius: 7px 7px 5px 5px;
-  background: linear-gradient(135deg, #dededb 0 54%, #7e817b 55%);
-  box-shadow: 0 10px 14px #0006, inset 0 1px 0 #fff8;
-  transform: rotate(8deg);
-}
-
-.tool-clip {
-  position: absolute;
-  left: 27px;
-  bottom: 25px;
-  width: 31px;
-  height: 44px;
-  border: 3px solid #aaaead;
-  border-bottom-color: transparent;
-  border-radius: 16px 16px 10px 10px;
-  transform: rotate(22deg);
-  opacity: .68;
-}
-
-.tool-line {
-  position: absolute;
-  left: 28px;
-  right: 28px;
-  bottom: 18px;
-  height: 1px;
-  background: #ffffff15;
-}
-
-.instrument.is-writing .tool-pencil {
-  animation: pencilWorking 360ms ease-in-out infinite alternate;
-}
-
-.punch-machine {
-  position: relative;
-  width: min(100%, 220px);
-  height: 205px;
-  margin: 1px auto 4px;
-  filter: drop-shadow(0 20px 18px #0007);
-}
-
-.punch-machine-base {
-  position: absolute;
-  left: 24px;
-  right: 18px;
-  bottom: 20px;
-  height: 38px;
-  border: 1px solid #ffffff2b;
-  border-radius: 50% 50% 12px 12px / 26px 26px 12px 12px;
-  background: linear-gradient(180deg, #777b77 0 8%, #262a27 12% 76%, #141614 100%);
-  box-shadow: inset 0 2px 1px #ffffff27, 0 7px 12px #0008;
-}
-
-.punch-machine-paper {
-  position: absolute;
-  left: 39px;
-  right: 34px;
-  bottom: 49px;
-  height: 16px;
-  border-radius: 2px;
-  background: #e5e3dc;
-  box-shadow: 0 3px 7px #0007;
-  transform: skewX(-5deg);
-}
-
-.punch-machine-neck {
-  position: absolute;
-  left: 92px;
-  bottom: 54px;
-  width: 44px;
-  height: 78px;
-  border: 1px solid #ffffff24;
-  border-radius: 9px 9px 4px 4px;
-  background: linear-gradient(90deg, #1c1f1c, #626661 48%, #252824);
-  box-shadow: inset 5px 0 8px #0006, inset -3px 0 5px #ffffff12;
-}
-
-.punch-machine-die {
-  position: absolute;
-  left: 100px;
-  bottom: 55px;
-  width: 28px;
-  height: 20px;
-  border-radius: 4px 4px 10px 10px;
-  background: linear-gradient(90deg, #777c77, #d5d7d2 48%, #555a55);
-  box-shadow: 0 4px 6px #0008;
-}
-
-.punch-machine-handle {
-  position: absolute;
-  left: 52px;
-  top: 25px;
-  width: 130px;
-  height: 36px;
-  border: 1px solid #ffffff28;
-  border-radius: 17px 24px 10px 8px;
-  background: linear-gradient(180deg, #797d79, #303431 48%, #171a18);
-  box-shadow: inset 0 2px 1px #ffffff26, 0 10px 18px #0008;
-  transform: rotate(-7deg);
-  transform-origin: 72% 100%;
-}
-
-.instrument.is-punching .punch-machine-handle {
-  animation: punchHandle 220ms cubic-bezier(.3, 0, .2, 1);
-}
-
-.instrument.is-punching .punch-machine-die {
-  animation: punchDie 220ms cubic-bezier(.3, 0, .2, 1);
-}
-
 .punch-scraps {
   position: absolute;
   inset: 0;
@@ -959,21 +770,6 @@ body[data-mode="listen"] .crank-wrap {
 @keyframes toolSceneIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pencilWorking {
-  from { transform: rotate(-24deg) translate3d(-2px, 1px, 0); }
-  to { transform: rotate(-21deg) translate3d(4px, -2px, 0); }
-}
-
-@keyframes punchHandle {
-  0%, 100% { transform: rotate(-7deg); }
-  42% { transform: rotate(10deg) translateY(9px); }
-}
-
-@keyframes punchDie {
-  0%, 100% { transform: translateY(0); }
-  42% { transform: translateY(9px); }
 }
 
 @keyframes punchScrapFall {
@@ -1337,55 +1133,6 @@ body:not([data-mode="write"]) .weight {
     display: none;
   }
 
-  .writing-tools,
-  .punch-machine {
-    width: 126px;
-    height: 132px;
-    margin: 4px 0 0;
-    transform: scale(.82);
-    transform-origin: 50% 30%;
-  }
-
-  .tool-ruler {
-    left: 12px;
-    top: 21px;
-    width: 102px;
-  }
-
-  .tool-pencil {
-    left: 22px;
-    top: 73px;
-    width: 94px;
-  }
-
-  .tool-eraser {
-    right: 10px;
-    bottom: 12px;
-  }
-
-  .punch-machine-handle {
-    left: 5px;
-    width: 116px;
-  }
-
-  .punch-machine-neck {
-    left: 47px;
-  }
-
-  .punch-machine-die {
-    left: 55px;
-  }
-
-  .punch-machine-base {
-    left: 2px;
-    right: 2px;
-  }
-
-  .punch-machine-paper {
-    left: 15px;
-    right: 14px;
-  }
-
   .punch-scrap {
     top: 105px;
   }
@@ -1461,9 +1208,6 @@ body:not([data-mode="write"]) .weight {
 @media (prefers-reduced-motion: reduce) {
   .instrument-scene,
   body[data-mode="listen"] .crank-wrap,
-  .instrument.is-writing .tool-pencil,
-  .instrument.is-punching .punch-machine-handle,
-  .instrument.is-punching .punch-machine-die,
   .punch-scrap {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
@@ -2168,6 +1912,197 @@ body[data-mode="listen"] .actions button:focus-visible {
     min-height: 46px;
     padding: 12px 10px;
     font-size: 11px;
+  }
+}
+
+/* 실제 조작 기능을 담는 단계별 오른쪽 작업대 */
+.writing-desk {
+  padding: 22px 22px 0;
+}
+
+.write-controls-panel {
+  width: 100%;
+  display: grid;
+  gap: 22px;
+  margin: auto 0;
+}
+
+.write-controls-panel .inks,
+.write-controls-panel .weight {
+  width: 100%;
+  padding: 14px 0;
+  border-bottom: 1px solid #ffffff14;
+}
+
+.write-controls-panel .inks {
+  flex-wrap: wrap;
+  gap: 11px;
+}
+
+.write-controls-panel .inks > span,
+.write-controls-panel .weight > span {
+  width: 100%;
+  color: #9ea598;
+  font: 8px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .14em;
+}
+
+.write-controls-panel .swatch {
+  width: 22px;
+  height: 22px;
+  border-color: #ffffff36;
+}
+
+.write-controls-panel .swatch.selected {
+  outline-color: #f5f5f7;
+  outline-offset: 3px;
+}
+
+.write-controls-panel .custom {
+  width: 23px;
+  height: 23px;
+  color: #e6e6e8;
+  border-color: #ffffff52;
+}
+
+.write-controls-panel .weight {
+  display: grid;
+  gap: 14px;
+}
+
+.write-controls-panel .weight input {
+  width: 100%;
+  accent-color: #f2f2f3;
+}
+
+.write-tool-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.write-tool-actions button,
+.punch-scene .punch-choice,
+.punch-scene .punch-size {
+  min-height: 38px;
+  border: 1px solid #ffffff24;
+  border-radius: 8px;
+  color: #dedee2;
+  background: #ffffff08;
+  box-shadow: inset 0 1px 0 #ffffff0d;
+  font-size: 10px;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.write-tool-actions button:not(:disabled):hover,
+.punch-scene .punch-choice:hover,
+.punch-scene .punch-size:hover {
+  border-color: #ffffff4c;
+  background: #ffffff12;
+  transform: translateY(-1px);
+}
+
+.write-tool-actions button:disabled {
+  color: #73757a;
+  opacity: 1;
+}
+
+.punch-scene .punch-tools {
+  width: 100%;
+  display: grid;
+  align-content: center;
+  gap: 22px;
+  margin: auto 0;
+}
+
+.punch-scene .punch-option {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.punch-scene .punch-option > span {
+  grid-column: 1 / -1;
+  margin: 0 0 3px;
+  color: #9ea598;
+  font: 8px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .14em;
+}
+
+.punch-scene .punch-choice,
+.punch-scene .punch-size {
+  min-width: 0;
+  padding: 0 4px;
+}
+
+.punch-scene .punch-choice.selected,
+.punch-scene .punch-size.selected {
+  color: #171719;
+  border-color: #f5f5f7;
+  background: #f5f5f7;
+  box-shadow: 0 8px 20px #0003;
+}
+
+.punch-scene .punch-option:last-child {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.paper .punch-scraps {
+  z-index: 4;
+  inset: 0;
+  overflow: hidden;
+}
+
+.paper .punch-scrap {
+  left: var(--scrap-x, 50%);
+  top: var(--scrap-y, 50%);
+  background: #eeece5;
+  box-shadow: 0 2px 4px #312f2b66;
+}
+
+@keyframes punchScrapFall {
+  0% {
+    opacity: 1;
+    transform: translate3d(-50%, -50%, 0) rotate(0deg) scale(1);
+  }
+  28% { opacity: 1; }
+  82% { opacity: .84; }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(-50% + var(--scrap-drift, 0px)), var(--scrap-fall, 100px), 0) rotate(var(--scrap-rotate, 180deg)) scale(.88);
+  }
+}
+
+@media (max-width: 650px) {
+  .instrument {
+    grid-template-columns: 1fr;
+  }
+
+  .instrument-scenes,
+  .crank-wrap {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .instrument-scenes {
+    min-height: 220px;
+  }
+
+  .instrument-scene p {
+    display: block;
+  }
+
+  .write-controls-panel {
+    gap: 12px;
+  }
+
+  .write-controls-panel .inks,
+  .write-controls-panel .weight {
+    padding: 9px 0;
+  }
+
+  .punch-scene .punch-tools {
+    gap: 12px;
   }
 }
 

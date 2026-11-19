@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>ORGO — 작곡 작업실</title>
-  <link rel="stylesheet" href="style.css?v=compose-tools-145">
+  <link rel="stylesheet" href="style.css?v=compose-tools-146">
   <script src="i18n.js?v=compose-controls-141" defer></script>
-  <script src="app.js?v=compose-tools-145" defer></script>
+  <script src="app.js?v=compose-tools-146" defer></script>
 </head>
 
 <body data-mode="write">
@@ -96,94 +96,6 @@
 
     <div class="workbench">
       <section class="writing-desk" aria-label="손글씨 작업 공간">
-        <div class="toolbar">
-          <div class="inks" aria-label="글씨 색상">
-            <span>잉크</span>
-
-            <button
-              type="button"
-              class="swatch selected"
-              data-color="#222222"
-              style="--ink: #222222"
-              aria-label="검정"
-              aria-pressed="true"
-            ></button>
-
-            <button
-              type="button"
-              class="swatch"
-              data-color="#536b91"
-              style="--ink: #536b91"
-              aria-label="파랑"
-              aria-pressed="false"
-            ></button>
-
-            <button
-              type="button"
-              class="swatch"
-              data-color="#a45345"
-              style="--ink: #a45345"
-              aria-label="붉은 갈색"
-              aria-pressed="false"
-            ></button>
-
-            <button
-              type="button"
-              class="swatch"
-              data-color="#66725c"
-              style="--ink: #66725c"
-              aria-label="올리브"
-              aria-pressed="false"
-            ></button>
-
-            <label class="custom">
-              +
-              <input
-                id="color"
-                type="color"
-                value="#222222"
-                aria-label="직접 색상 선택"
-              >
-            </label>
-          </div>
-
-          <label class="weight">
-            굵기
-            <input
-              id="width"
-              type="range"
-              min="2"
-              max="9"
-              value="3"
-              aria-label="펜 굵기"
-            >
-          </label>
-
-          <div id="punch-tools" class="punch-tools" hidden aria-label="펀칭 모양과 크기 선택">
-            <div class="punch-option" role="group" aria-label="펀칭 모양">
-              <span>모양</span>
-              <button type="button" class="punch-choice selected" data-punch-shape="mix" aria-pressed="true">섞기</button>
-              <button type="button" class="punch-choice punch-symbol" data-punch-shape="circle" aria-label="동그라미" aria-pressed="false">●</button>
-              <button type="button" class="punch-choice punch-symbol" data-punch-shape="star" aria-label="별" aria-pressed="false">★</button>
-              <button type="button" class="punch-choice punch-symbol" data-punch-shape="heart" aria-label="하트" aria-pressed="false">♥</button>
-              <button type="button" class="punch-choice punch-symbol" data-punch-shape="diamond" aria-label="다이아" aria-pressed="false">◆</button>
-            </div>
-
-            <div class="punch-option" role="group" aria-label="펀칭 크기">
-              <span>크기</span>
-              <button type="button" class="punch-size selected" data-punch-size="mix" aria-pressed="true">섞기</button>
-              <button type="button" class="punch-size" data-punch-size="small" aria-label="작게" aria-pressed="false">소</button>
-              <button type="button" class="punch-size" data-punch-size="medium" aria-label="보통" aria-pressed="false">중</button>
-              <button type="button" class="punch-size" data-punch-size="large" aria-label="크게" aria-pressed="false">대</button>
-            </div>
-          </div>
-
-          <div>
-            <button id="undo" type="button" data-i18n="composeUndo" aria-keyshortcuts="Control+Z Meta+Z" title="되돌리기 (Ctrl+Z)">되돌리기</button>
-            <button id="clear" type="button" data-i18n="composeClear">새로 쓰기</button>
-          </div>
-        </div>
-
         <div class="paper">
           <canvas
             id="sheet"
@@ -191,6 +103,8 @@
             height="460"
             aria-label="마우스나 손가락으로 손글씨를 쓰는 종이"
           ></canvas>
+
+          <div id="punch-scraps" class="punch-scraps" aria-hidden="true"></div>
 
           <div id="placeholder" data-i18n="composePlaceholder">
             여기에 글씨를 써보세요
@@ -225,27 +139,59 @@
         <div class="instrument-scenes" aria-live="polite">
           <section class="instrument-scene write-scene" aria-label="쓰기 도구">
             <span class="scene-kicker">01 / 쓰기 도구</span>
-            <div class="writing-tools" aria-hidden="true">
-              <span class="tool-ruler"></span>
-              <span class="tool-pencil"><i></i></span>
-              <span class="tool-eraser"></span>
-              <span class="tool-clip"></span>
-              <span class="tool-line"></span>
+
+            <div class="write-controls-panel">
+              <div class="inks" aria-label="글씨 색상">
+                <span>잉크</span>
+
+                <button type="button" class="swatch selected" data-color="#222222" style="--ink: #222222" aria-label="검정" aria-pressed="true"></button>
+                <button type="button" class="swatch" data-color="#536b91" style="--ink: #536b91" aria-label="파랑" aria-pressed="false"></button>
+                <button type="button" class="swatch" data-color="#a45345" style="--ink: #a45345" aria-label="붉은 갈색" aria-pressed="false"></button>
+                <button type="button" class="swatch" data-color="#66725c" style="--ink: #66725c" aria-label="올리브" aria-pressed="false"></button>
+
+                <label class="custom">
+                  +
+                  <input id="color" type="color" value="#222222" aria-label="직접 색상 선택">
+                </label>
+              </div>
+
+              <label class="weight">
+                <span>굵기</span>
+                <input id="width" type="range" min="2" max="9" value="3" aria-label="펜 굵기">
+              </label>
+
+              <div class="write-tool-actions">
+                <button id="undo" type="button" data-i18n="composeUndo" aria-keyshortcuts="Control+Z Meta+Z" title="되돌리기 (Ctrl+Z)">되돌리기</button>
+                <button id="clear" type="button" data-i18n="composeClear">새로 쓰기</button>
+              </div>
             </div>
-            <p>연필로 종이 위에 선을 남겨보세요</p>
+
+            <p>색과 굵기를 고른 뒤 종이에 써보세요</p>
           </section>
 
           <section class="instrument-scene punch-scene" aria-label="펀칭 도구">
             <span class="scene-kicker">02 / 펀칭 도구</span>
-            <div class="punch-machine" aria-hidden="true">
-              <span class="punch-machine-handle"></span>
-              <span class="punch-machine-neck"></span>
-              <span class="punch-machine-die"></span>
-              <span class="punch-machine-paper"></span>
-              <span class="punch-machine-base"></span>
+
+            <div id="punch-tools" class="punch-tools" hidden aria-label="펀칭 모양과 크기 선택">
+              <div class="punch-option" role="group" aria-label="펀칭 모양">
+                <span>모양</span>
+                <button type="button" class="punch-choice selected" data-punch-shape="mix" aria-pressed="true">섞기</button>
+                <button type="button" class="punch-choice punch-symbol" data-punch-shape="circle" aria-label="동그라미" aria-pressed="false">●</button>
+                <button type="button" class="punch-choice punch-symbol" data-punch-shape="star" aria-label="별" aria-pressed="false">★</button>
+                <button type="button" class="punch-choice punch-symbol" data-punch-shape="heart" aria-label="하트" aria-pressed="false">♥</button>
+                <button type="button" class="punch-choice punch-symbol" data-punch-shape="diamond" aria-label="다이아" aria-pressed="false">◆</button>
+              </div>
+
+              <div class="punch-option" role="group" aria-label="펀칭 크기">
+                <span>크기</span>
+                <button type="button" class="punch-size selected" data-punch-size="mix" aria-pressed="true">섞기</button>
+                <button type="button" class="punch-size" data-punch-size="small" aria-label="작게" aria-pressed="false">소</button>
+                <button type="button" class="punch-size" data-punch-size="medium" aria-label="보통" aria-pressed="false">중</button>
+                <button type="button" class="punch-size" data-punch-size="large" aria-label="크게" aria-pressed="false">대</button>
+              </div>
             </div>
-            <div id="punch-scraps" class="punch-scraps" aria-hidden="true"></div>
-            <p>점을 누르면 작은 종이 조각이 떨어집니다</p>
+
+            <p>종이 위 점을 눌러 모양대로 구멍을 뚫어보세요</p>
           </section>
         </div>
 

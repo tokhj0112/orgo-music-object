@@ -159,7 +159,6 @@
   let autoTimer = 0;
   let punching = false;
   let punchToken = 0;
-  let punchMotionTimer = 0;
 
   let looping = false;
   let loopToken = 0;
@@ -477,32 +476,29 @@
     return point;
   }
 
-  function animatePunchTool(point = {}) {
-    const mechanism = $("mechanism");
+  function dropPunchScrap(point = {}) {
     const scraps = $("punch-scraps");
-
-    if (mechanism) {
-      mechanism.classList.remove("is-punching");
-      // 연속 펀칭에서도 손잡이가 매번 다시 눌리도록 애니메이션을 재시작합니다.
-      void mechanism.offsetWidth;
-      mechanism.classList.add("is-punching");
-      clearTimeout(punchMotionTimer);
-      punchMotionTimer = setTimeout(() => {
-        mechanism.classList.remove("is-punching");
-      }, 240);
-    }
-
-    if (!scraps) return;
+    const paper = scraps?.closest(".paper");
+    const sheet = $("sheet");
+    if (!scraps || !paper || !sheet) return;
 
     const style = normalizedHole(point);
     const scrap = document.createElement("span");
     const normalizedX = Math.max(0, Math.min(1, (Number(point.x) || PAGE_WIDTH / 2) / PAGE_WIDTH));
+    const normalizedY = Math.max(0, Math.min(1, (Number(point.y) || PAGE_HEIGHT / 2) / PAGE_HEIGHT));
+    const paperBounds = paper.getBoundingClientRect();
+    const sheetBounds = sheet.getBoundingClientRect();
+    const left = sheetBounds.left - paperBounds.left + normalizedX * sheetBounds.width;
+    const top = sheetBounds.top - paperBounds.top + normalizedY * sheetBounds.height;
+    const fall = Math.max(42, paperBounds.height - top + 14);
     const signature = Math.abs(Math.floor((Number(point.x) || 0) * 7 + (Number(point.y) || 0) * 11 + holes.length * 13));
     const drift = (signature % 35) - 17;
     const rotation = 130 + (signature % 260);
 
     scrap.className = `punch-scrap is-${style.shape}`;
-    scrap.style.setProperty("--scrap-x", `${46 + normalizedX * 8}%`);
+    scrap.style.setProperty("--scrap-x", `${left}px`);
+    scrap.style.setProperty("--scrap-y", `${top}px`);
+    scrap.style.setProperty("--scrap-fall", `${fall}px`);
     scrap.style.setProperty("--scrap-size", `${Math.round(6 + style.size * 3)}px`);
     scrap.style.setProperty("--scrap-drift", `${drift}px`);
     scrap.style.setProperty("--scrap-rotate", `${rotation}deg`);
@@ -1401,10 +1397,6 @@
 
     cancelAnimationFrame(raf);
     clearTimeout(autoTimer);
-    clearTimeout(punchMotionTimer);
-
-    $("mechanism")?.classList.remove("is-writing", "is-punching");
-
     silencePencil();
 
     $("autoplay").textContent = isKorean() ? "자동 재생" : "Autoplay";
@@ -1618,7 +1610,7 @@
     if (nearest) {
       prepareHole(nearest, holes.length);
       holes.push(nearest);
-      animatePunchTool(nearest);
+      dropPunchScrap(nearest);
       punchSound(nearest, holes.length);
       draw();
     }
@@ -1635,7 +1627,6 @@
     const point = pointerPoint(event);
 
     if (mode === "write") {
-      $("mechanism")?.classList.add("is-writing");
       candidates = [];
       holes = [];
 
@@ -1689,7 +1680,6 @@
   ]) {
     canvas.addEventListener(eventName, () => {
       current = null;
-      $("mechanism")?.classList.remove("is-writing");
       silencePencil();
     });
   }
@@ -1917,7 +1907,7 @@
       if (!holes.includes(hole)) {
         prepareHole(hole, holes.length);
         holes.push(hole);
-        animatePunchTool(hole);
+        dropPunchScrap(hole);
         punchSound(hole, holes.length);
         draw();
       }
