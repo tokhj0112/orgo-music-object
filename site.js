@@ -51,7 +51,7 @@
     window.addEventListener("keydown", handleIntroKeydown);
     introTimer = window.setTimeout(
       dismissIntro,
-      reduceMotion.matches ? 1800 : 3600
+      reduceMotion.matches ? 1800 : 4300
     );
   } else if (siteIntro) {
     siteIntro.hidden = true;
