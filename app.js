@@ -1590,6 +1590,23 @@
     };
   }
 
+  function finishPunchingIfComplete() {
+    if (
+      mode !== "punch" ||
+      candidates.length === 0 ||
+      holes.length < candidates.length
+    ) {
+      return false;
+    }
+
+    setMode("listen");
+    $("hint").textContent = isKorean()
+      ? "모든 구멍을 뚫었어요. 손잡이를 돌리거나 자동 재생을 눌러 연주해 보세요."
+      : "Every hole is punched. Turn the crank or press autoplay to begin.";
+
+    return true;
+  }
+
   function punch(point) {
     let nearest = null;
     let distance = 25;
@@ -1614,6 +1631,7 @@
       dropPunchScrap(nearest);
       punchSound(nearest, holes.length);
       draw();
+      finishPunchingIfComplete();
     }
   }
 
@@ -1895,11 +1913,7 @@
       }
 
       if (index >= remaining.length) {
-        stop();
-
-        $("hint").textContent =
-          "모든 구멍을 뚫었어요. 이제 이 종이로 연주해 보세요.";
-
+        finishPunchingIfComplete();
         return;
       }
 
@@ -1911,6 +1925,8 @@
         dropPunchScrap(hole);
         punchSound(hole, holes.length);
         draw();
+
+        if (finishPunchingIfComplete()) return;
       }
 
       autoTimer = setTimeout(tick, 65);
