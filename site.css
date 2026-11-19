@@ -156,8 +156,8 @@ html[data-orgo-view="lab"] .site-intro {
 }
 
 .site-intro-handwriting {
-  width: 100%;
-  margin-top: clamp(24px, 3.6vw, 50px);
+  width: min(58%, 620px);
+  margin: clamp(28px, 3.8vw, 48px) auto 0;
   opacity: 0;
   transform: translateY(8px);
 }
@@ -165,7 +165,7 @@ html[data-orgo-view="lab"] .site-intro {
 .site-intro-handwriting svg {
   display: block;
   width: 100%;
-  height: clamp(82px, 11vw, 142px);
+  height: clamp(58px, 7vw, 92px);
   overflow: visible;
 }
 
@@ -177,13 +177,13 @@ html[data-orgo-view="lab"] .site-intro {
 }
 
 .site-intro-ink-guide path {
-  stroke: #ffffff12;
-  stroke-width: 2;
+  stroke: #ffffff0d;
+  stroke-width: 1.55;
 }
 
 .site-intro-ink-stroke {
   stroke: #efeff1;
-  stroke-width: 3.2;
+  stroke-width: 2.65;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   filter: drop-shadow(0 0 5px #ffffff2b);
@@ -193,20 +193,16 @@ html[data-orgo-view="lab"] .site-intro {
   animation: introHandwritingReveal .5s cubic-bezier(.22, 1, .36, 1) .82s forwards;
 }
 
-.site-intro.is-active .site-intro-ink-o1 {
-  animation: introInkDraw .62s cubic-bezier(.55, .05, .22, 1) .98s forwards;
+.site-intro.is-active .site-intro-ink-music {
+  animation: introInkDraw 1.3s cubic-bezier(.38, .05, .18, 1) 1.04s forwards;
 }
 
-.site-intro.is-active .site-intro-ink-r {
-  animation: introInkDraw .5s cubic-bezier(.55, .05, .22, 1) 1.46s forwards;
+.site-intro.is-active .site-intro-ink-box {
+  animation: introInkDraw .92s cubic-bezier(.38, .05, .18, 1) 2.18s forwards;
 }
 
-.site-intro.is-active .site-intro-ink-g {
-  animation: introInkDraw .88s cubic-bezier(.55, .05, .22, 1) 1.82s forwards;
-}
-
-.site-intro.is-active .site-intro-ink-o2 {
-  animation: introInkDraw 1.12s cubic-bezier(.46, .02, .18, 1) 2.52s forwards;
+.site-intro.is-active .site-intro-ink-tail {
+  animation: introInkDraw .62s cubic-bezier(.32, .02, .16, 1) 2.98s forwards;
 }
 
 .site-intro-skip {
@@ -283,13 +279,14 @@ html[data-orgo-view="lab"] .site-intro {
   }
 
   .site-intro-handwriting {
-    margin-top: 24px;
+    width: min(86%, 520px);
+    margin-top: 28px;
   }
 
   .site-intro-handwriting svg {
-    width: 112%;
-    height: 90px;
-    transform: translateX(-3%);
+    width: 100%;
+    height: 68px;
+    transform: none;
   }
 
   .site-intro-grid {
