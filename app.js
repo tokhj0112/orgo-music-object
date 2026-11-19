@@ -173,6 +173,7 @@
   let pencilGain = null;
   let pencilFilter = null;
   let pencilTimer = 0;
+  let archiveToastTimer = 0;
 
   /* ------------------------------
      오디오 초기화
@@ -1446,7 +1447,7 @@
     $("skip").hidden = mode !== "punch";
     $("punch-tools").hidden = mode !== "punch";
     $("autoplay").hidden = mode !== "listen";
-    $("save-archive").hidden = mode !== "listen" || Boolean(archivePlayback);
+    $("save-archive").hidden = mode !== "listen" || Boolean(archivePlayback) || Boolean(lastArchivedId);
     $("open-archive").hidden = mode !== "listen" || !lastArchivedId;
     $("next").hidden = mode !== "write";
 
@@ -2243,11 +2244,27 @@
 
     localStorage.setItem(key, JSON.stringify(saved.slice(0, 30)));
     lastArchivedId = id;
-    $("hint").textContent = isKorean()
-      ? "아카이브에 저장했어요. 바로 아카이브에서 다시 확인할 수 있습니다."
-      : "Saved to your archive. You can open it right away.";
-    $("save-archive").textContent = isKorean() ? "저장됨 ✓" : "Saved ✓";
+    $("save-archive").hidden = true;
     $("open-archive").hidden = false;
+    showArchiveToast();
+  }
+
+  function showArchiveToast() {
+    const toast = $("archive-toast");
+    clearTimeout(archiveToastTimer);
+    toast.textContent = isKorean()
+      ? "아카이브에 저장되었습니다"
+      : "Saved to your archive";
+    toast.hidden = false;
+    toast.classList.remove("is-hiding");
+
+    archiveToastTimer = setTimeout(() => {
+      toast.classList.add("is-hiding");
+      archiveToastTimer = setTimeout(() => {
+        toast.hidden = true;
+        toast.classList.remove("is-hiding");
+      }, 220);
+    }, 1800);
   }
 
   $("save-archive").onclick = () => {
