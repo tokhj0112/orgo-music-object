@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>ORGO — 작곡 작업실</title>
-  <link rel="stylesheet" href="style.css?v=compose-clean-139">
+  <link rel="stylesheet" href="style.css?v=compose-tools-145">
   <script src="i18n.js?v=compose-controls-141" defer></script>
-  <script src="app.js?v=compose-controls-141" defer></script>
+  <script src="app.js?v=compose-tools-145" defer></script>
 </head>
 
 <body data-mode="write">
@@ -222,7 +222,35 @@
           <span class="feed-label">악보 투입구</span>
         </div>
 
+        <div class="instrument-scenes" aria-live="polite">
+          <section class="instrument-scene write-scene" aria-label="쓰기 도구">
+            <span class="scene-kicker">01 / 쓰기 도구</span>
+            <div class="writing-tools" aria-hidden="true">
+              <span class="tool-ruler"></span>
+              <span class="tool-pencil"><i></i></span>
+              <span class="tool-eraser"></span>
+              <span class="tool-clip"></span>
+              <span class="tool-line"></span>
+            </div>
+            <p>연필로 종이 위에 선을 남겨보세요</p>
+          </section>
+
+          <section class="instrument-scene punch-scene" aria-label="펀칭 도구">
+            <span class="scene-kicker">02 / 펀칭 도구</span>
+            <div class="punch-machine" aria-hidden="true">
+              <span class="punch-machine-handle"></span>
+              <span class="punch-machine-neck"></span>
+              <span class="punch-machine-die"></span>
+              <span class="punch-machine-paper"></span>
+              <span class="punch-machine-base"></span>
+            </div>
+            <div id="punch-scraps" class="punch-scraps" aria-hidden="true"></div>
+            <p>점을 누르면 작은 종이 조각이 떨어집니다</p>
+          </section>
+        </div>
+
         <div class="crank-wrap">
+          <span class="scene-kicker">03 / 연주 손잡이</span>
           <button
             id="crank"
             type="button"
