@@ -56,6 +56,9 @@ button, select, input { font: inherit; }
 .player-settings { display: grid; grid-template-columns: 1fr; gap: 17px; margin-top: 45px; max-width: 330px; }
 .player-select, .player-volume { display: grid; grid-template-columns: 72px 1fr; align-items: center; gap: 14px; color: #bfc0b6; font: 10px monospace; letter-spacing: .9px; }
 .player-select select { width: 100%; padding: 10px 28px 10px 11px; border: 1px solid #ffffff1e; border-radius: 8px; color: #e5e5ea; background: #ffffff08; font-size: 12px; font-family: inherit; }
+.player-select select { color-scheme: dark; background-color: #19191b; }
+.player-select select option { color: #f4f4f6; background: #19191b; }
+.player-select select option:checked { color: #fff; background: #626267; }
 .player-volume input { accent-color: #d9d6c5; cursor: pointer; }
 
 .player-machine { position: relative; min-height: 500px; padding: 28px 29px 25px; border: 1px solid #ffffff18; border-radius: 22px; background: radial-gradient(circle at 52% 39%, #2b2b2f 0, var(--panel) 43%, #151517 100%); box-shadow: inset 0 1px #ffffff0d, 0 35px 80px #00000052; overflow: hidden; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }

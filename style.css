@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+:root {
+  color-scheme: dark;
+}
+
 body {
   margin: 0;
   background:
@@ -160,7 +164,19 @@ footer {
   font: 11px Arial, "Malgun Gothic", sans-serif;
 }
 
-.sound-controls select { min-width: 172px; }
+.sound-controls select {
+  min-width: 172px;
+  color-scheme: dark;
+  background-color: #1a1b19;
+}
+.sound-controls select option {
+  color: #f4f5ef;
+  background: #1a1b19;
+}
+.sound-controls select option:checked {
+  color: #ffffff;
+  background: #62645f;
+}
 .sound-controls .backing-picker select { min-width: 164px; }
 .sound-controls button:hover { background: #e4ebd339; }
 .sound-controls input { width: 76px; accent-color: #d6dfc7; }
@@ -2180,4 +2196,3 @@ body[data-mode="listen"] .actions button:focus-visible {
     gap: 12px;
   }
 }
-
