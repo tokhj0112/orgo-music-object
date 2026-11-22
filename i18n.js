@@ -483,45 +483,8 @@
     document.dispatchEvent(new CustomEvent("orgo-languagechange", { detail: { language } }));
   }
 
-  function addSwitch() {
-    const header = document.querySelector(".site-header, body > header");
-    if (!header || document.querySelector(".language-switch")) return;
-    const switcher = document.createElement("div");
-    switcher.className = "language-switch";
-    switcher.setAttribute("aria-label", "Language selection");
-    switcher.innerHTML = '<button type="button" data-language="en">EN</button><span>/</span><button type="button" data-language="ko">한국어</button>';
-    switcher.querySelectorAll("button").forEach((button) => {
-      button.addEventListener("click", () => applyLanguage(button.dataset.language));
-    });
-    const headerAction = header.querySelector(".header-action");
-    if (headerAction) header.insertBefore(switcher, headerAction);
-    else header.appendChild(switcher);
-  }
-
-  function isMainPage() {
-    const path = window.location.pathname.replace(/\\/g, "/");
-    return path.endsWith("/") || path.endsWith("/index.html");
-  }
-
-  function addStyles() {
-    const style = document.createElement("style");
-    style.textContent = `
-      .language-switch { display:flex; align-items:center; gap:6px; margin-left:auto; color:#8f9288; font:10px/1 monospace; letter-spacing:.5px; white-space:nowrap; }
-      .language-switch button { padding:5px 2px; border:0; background:transparent; color:inherit; font:inherit; cursor:pointer; }
-      .language-switch button.is-active { color:#f1f2ea; }
-      .site-header .language-switch { margin-left:20px; }
-      body > header .language-switch { margin-left:18px; }
-      @media (max-width:650px) { .language-switch { gap:4px; font-size:9px; } .site-header .language-switch { order:3; margin-left:0; } }
-    `;
-    document.head.appendChild(style);
-  }
-
   window.orgoI18n = { text, getLanguage, applyLanguage };
   document.addEventListener("DOMContentLoaded", () => {
-    if (isMainPage()) {
-      addStyles();
-      addSwitch();
-    }
     applyLanguage();
   });
 })();
