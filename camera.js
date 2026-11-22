@@ -6,6 +6,9 @@
   const video = $("webcam");
   const overlay = $("hand-overlay");
   const overlayCtx = overlay.getContext("2d");
+  const playerVideo = $("player-webcam");
+  const playerOverlay = $("player-hand-overlay");
+  const playerOverlayCtx = playerOverlay.getContext("2d");
   const sheet = $("gesture-sheet");
   const sheetCtx = sheet.getContext("2d");
   const fingertipPointer = $("fingertip-pointer");
@@ -856,12 +859,20 @@
       overlayCtx.arc(landmarks[index].x * width, landmarks[index].y * height, index === 8 ? 11 : 7, 0, Math.PI * 2);
       overlayCtx.fill();
     });
+
+    if (playerOverlay.width !== width || playerOverlay.height !== height) {
+      playerOverlay.width = width;
+      playerOverlay.height = height;
+    }
+    playerOverlayCtx.clearRect(0, 0, width, height);
+    playerOverlayCtx.drawImage(overlay, 0, 0, width, height);
   }
 
   function onResults(results) {
     const landmarks = results.multiHandLandmarks && results.multiHandLandmarks[0];
     if (!landmarks) {
       overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+      playerOverlayCtx.clearRect(0, 0, playerOverlay.width, playerOverlay.height);
       smoothedPinchRatio = null;
       resetPinchState();
       resetPointStabilizer();
@@ -965,6 +976,8 @@
       });
       video.srcObject = stream;
       await video.play();
+      playerVideo.srcObject = stream;
+      playerVideo.play().catch(() => {});
 
       handTracker = new Hands({
         locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,

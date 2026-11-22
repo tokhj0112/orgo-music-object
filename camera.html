@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>ORGO — 손끝 작곡실</title>
-  <link rel="stylesheet" href="camera.css?v=dropdown-visibility-151">
+  <link rel="stylesheet" href="camera.css?v=player-camera-154">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
   <script src="i18n.js?v=remove-language-switch-152" defer></script>
-  <script src="camera.js?v=camera-korean-126" defer></script>
+  <script src="camera.js?v=player-camera-154" defer></script>
 </head>
 
 <body>
@@ -108,13 +108,11 @@
 
   <section id="player-screen" class="player-screen" hidden aria-label="완성한 곡 연주하기">
     <div class="player-header">
-      <span>ORGO / 나의 손글씨 멜로디</span>
       <button id="close-player" type="button" data-i18n="cameraBack">작업대로 돌아가기</button>
     </div>
 
     <div class="player-layout">
       <section class="player-copy">
-        <p class="eyebrow">01 / 나의 선 연주</p>
         <h2 data-i18n="cameraPlayerTitle">손끝으로 만든 곡을 들어보세요</h2>
         <p data-i18n="cameraPlayerCopy">손잡이를 직접 돌리거나 자동 재생으로 들을 수 있습니다.</p>
         <div class="player-progress"><strong id="player-percent">0%</strong></div>
@@ -172,6 +170,17 @@
           </label>
           <button id="auto-player" class="auto-player" type="button" aria-pressed="false" data-i18n="cameraAutoPlay">자동 재생</button>
           <button id="rewind-player" class="rewind-player" type="button" data-i18n="cameraRewind">처음으로 되감기</button>
+        </div>
+        <div class="player-camera-card" aria-label="손 인식 카메라 미리보기">
+          <div class="player-camera-view">
+            <video id="player-webcam" autoplay playsinline muted></video>
+            <canvas id="player-hand-overlay" aria-hidden="true"></canvas>
+            <i class="player-camera-live" aria-hidden="true"></i>
+          </div>
+          <div class="player-camera-copy">
+            <strong>손끝으로 돌리기</strong>
+            <span>엄지와 검지를 맞대고 작은 원을 그려보세요</span>
+          </div>
         </div>
       </section>
     </div>
