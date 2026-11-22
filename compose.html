@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>ORGO — 작곡 작업실</title>
-  <link rel="stylesheet" href="style.css?v=dropdown-visibility-151">
+  <link rel="stylesheet" href="style.css?v=undo-icon-153">
   <script src="i18n.js?v=remove-language-switch-152" defer></script>
   <script src="app.js?v=punch-autoplay-150" defer></script>
 </head>
@@ -161,7 +161,12 @@
               </label>
 
               <div class="write-tool-actions">
-                <button id="undo" type="button" data-i18n="composeUndo" aria-keyshortcuts="Control+Z Meta+Z" title="되돌리기 (Ctrl+Z)">되돌리기</button>
+                <button id="undo" type="button" aria-label="되돌리기" aria-keyshortcuts="Control+Z Meta+Z" title="되돌리기 (Ctrl+Z)">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M9 5 4 10l5 5" />
+                    <path d="M4 10h9a7 7 0 0 1 7 7v2" />
+                  </svg>
+                </button>
                 <button id="clear" type="button" data-i18n="composeClear">새로 쓰기</button>
               </div>
             </div>

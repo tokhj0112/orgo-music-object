@@ -2068,8 +2068,24 @@ body[data-mode="listen"] .actions button:focus-visible {
 
 .write-tool-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 44px 1fr;
   gap: 8px;
+}
+
+.write-tool-actions #undo {
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.write-tool-actions #undo svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .write-tool-actions button,
