@@ -314,17 +314,22 @@
     const storyTrack = storyNarrative.querySelector("[data-story-track]");
     const storySticky = storyNarrative.querySelector(".story-sticky");
     const storyCurrent = storyNarrative.querySelector("[data-story-current]");
-    let storyTicking = false;
+    let storyCurrentProgress = 0;
+    let storyTargetProgress = 0;
+    let storyFrame = 0;
 
     const clampStory = (value) => Math.min(1, Math.max(0, value));
     const easeStory = (value) => value * value * (3 - 2 * value);
 
-    const updateStoryNarrative = () => {
+    const readStoryProgress = () => {
       if (!storyTrack || !storySticky || storyChapters.length === 0) return;
 
       const bounds = storyTrack.getBoundingClientRect();
       const travel = Math.max(1, storyTrack.offsetHeight - storySticky.offsetHeight);
-      const progress = clampStory(-bounds.top / travel);
+      return clampStory(-bounds.top / travel);
+    };
+
+    const renderStoryNarrative = (progress) => {
       const scenePosition = progress * (storyChapters.length - 1);
       const activeIndex = Math.min(
         storyChapters.length - 1,
@@ -354,17 +359,31 @@
         chapter.setAttribute("aria-hidden", index === activeIndex ? "false" : "true");
       });
 
-      storyTicking = false;
+    };
+
+    const animateStoryNarrative = () => {
+      storyCurrentProgress += (storyTargetProgress - storyCurrentProgress) * .1;
+      if (Math.abs(storyTargetProgress - storyCurrentProgress) < .0005) {
+        storyCurrentProgress = storyTargetProgress;
+      }
+      renderStoryNarrative(storyCurrentProgress);
+
+      if (storyCurrentProgress !== storyTargetProgress) {
+        storyFrame = requestAnimationFrame(animateStoryNarrative);
+      } else {
+        storyFrame = 0;
+      }
     };
 
     const requestStoryNarrative = () => {
-      if (storyTicking) return;
-      storyTicking = true;
-      requestAnimationFrame(updateStoryNarrative);
+      storyTargetProgress = readStoryProgress();
+      if (!storyFrame) storyFrame = requestAnimationFrame(animateStoryNarrative);
     };
 
     storyNarrative.classList.add("is-scroll-reactive");
-    updateStoryNarrative();
+    storyTargetProgress = readStoryProgress();
+    storyCurrentProgress = storyTargetProgress;
+    renderStoryNarrative(storyCurrentProgress);
     window.addEventListener("scroll", requestStoryNarrative, { passive: true });
     window.addEventListener("resize", requestStoryNarrative);
   }
@@ -402,31 +421,51 @@
   const scrollProduct = document.querySelector("[data-scroll-product]");
 
   if (scrollProduct && !reduceMotion.matches) {
-    let ticking = false;
+    let scrollCurrent = 0;
+    let scrollTarget = 0;
+    let scrollFrame = 0;
 
-    const updateScrollProduct = () => {
+    const readScrollProduct = () => {
       const bounds = scrollProduct.getBoundingClientRect();
       const travel = Math.max(1, scrollProduct.offsetHeight - window.innerHeight);
-      const raw = Math.min(1, Math.max(0, -bounds.top / travel));
-      const progress = Math.min(1, raw / 0.72);
+      return Math.min(1, Math.max(0, -bounds.top / travel));
+    };
+
+    const renderScrollProduct = (progress) => {
       const eased = progress * progress * (3 - 2 * progress);
 
       scrollProduct.style.setProperty("--explode", eased.toFixed(3));
       scrollProduct.style.setProperty(
         "--story-fade",
-        Math.max(0, (progress - 0.42) / 0.58).toFixed(3)
+        Math.max(0, (progress - 0.58) / 0.42).toFixed(3)
       );
       scrollProduct.classList.toggle("is-exploding", progress > 0.02);
-      ticking = false;
+    };
+
+    const animateScrollProduct = () => {
+      scrollCurrent += (scrollTarget - scrollCurrent) * 0.11;
+      if (Math.abs(scrollTarget - scrollCurrent) < 0.0005) {
+        scrollCurrent = scrollTarget;
+      }
+      renderScrollProduct(scrollCurrent);
+
+      if (scrollCurrent !== scrollTarget) {
+        scrollFrame = window.requestAnimationFrame(animateScrollProduct);
+      } else {
+        scrollFrame = 0;
+      }
     };
 
     const requestScrollUpdate = () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(updateScrollProduct);
+      scrollTarget = readScrollProduct();
+      if (!scrollFrame) {
+        scrollFrame = window.requestAnimationFrame(animateScrollProduct);
+      }
     };
 
-    updateScrollProduct();
+    scrollTarget = readScrollProduct();
+    scrollCurrent = scrollTarget;
+    renderScrollProduct(scrollCurrent);
     window.addEventListener("scroll", requestScrollUpdate, { passive: true });
     window.addEventListener("resize", requestScrollUpdate);
   }

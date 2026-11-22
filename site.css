@@ -22,6 +22,15 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 110px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 body {
@@ -496,7 +505,7 @@ img {
 
 .hero {
   position: relative;
-  min-height: 165svh;
+  min-height: 240svh;
   overflow: clip;
 }
 
@@ -3776,7 +3785,7 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
 
 .story-chapters {
   position: relative;
-  height: 300svh;
+  height: 480svh;
 }
 
 .story-sticky {
@@ -4111,7 +4120,7 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
 
   .story-scroll-cue { grid-column: 1; margin-top: 10px; }
 
-  .story-chapters { height: 320svh; }
+  .story-chapters { height: 520svh; }
 
   .story-chapter {
     grid-template-columns: 1fr;
@@ -4708,7 +4717,7 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
   }
 
   .hero {
-    min-height: 145svh;
+    min-height: 210svh;
   }
 
   .hero-stage {
