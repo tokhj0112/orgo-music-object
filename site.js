@@ -362,7 +362,7 @@
     };
 
     const animateStoryNarrative = () => {
-      storyCurrentProgress += (storyTargetProgress - storyCurrentProgress) * .1;
+      storyCurrentProgress += (storyTargetProgress - storyCurrentProgress) * .065;
       if (Math.abs(storyTargetProgress - storyCurrentProgress) < .0005) {
         storyCurrentProgress = storyTargetProgress;
       }
@@ -443,7 +443,7 @@
     };
 
     const animateScrollProduct = () => {
-      scrollCurrent += (scrollTarget - scrollCurrent) * 0.11;
+      scrollCurrent += (scrollTarget - scrollCurrent) * 0.07;
       if (Math.abs(scrollTarget - scrollCurrent) < 0.0005) {
         scrollCurrent = scrollTarget;
       }
