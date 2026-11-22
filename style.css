@@ -2068,17 +2068,20 @@ body[data-mode="listen"] .actions button:focus-visible {
 
 .write-tool-actions {
   display: grid;
-  grid-template-columns: 44px 1fr;
+  grid-template-columns: repeat(2, 44px);
+  justify-content: end;
   gap: 8px;
 }
 
-.write-tool-actions #undo {
+.write-tool-actions #undo,
+.write-tool-actions #clear {
   display: grid;
   place-items: center;
   padding: 0;
 }
 
-.write-tool-actions #undo svg {
+.write-tool-actions #undo svg,
+.write-tool-actions #clear svg {
   width: 18px;
   height: 18px;
   fill: none;

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
   <title>ORGO — 작곡 작업실</title>
-  <link rel="stylesheet" href="style.css?v=undo-icon-153">
+  <link rel="stylesheet" href="style.css?v=trash-icon-158">
   <script src="i18n.js?v=remove-language-switch-152" defer></script>
   <script src="app.js?v=punch-autoplay-150" defer></script>
 </head>
@@ -167,7 +167,14 @@
                     <path d="M4 10h9a7 7 0 0 1 7 7v2" />
                   </svg>
                 </button>
-                <button id="clear" type="button" data-i18n="composeClear">새로 쓰기</button>
+                <button id="clear" type="button" aria-label="새로 쓰기" title="새로 쓰기 · 전체 지우기">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 7h16" />
+                    <path d="M9 7V4h6v3" />
+                    <path d="m6.5 7 1 13h9l1-13" />
+                    <path d="M10 11v5M14 11v5" />
+                  </svg>
+                </button>
               </div>
             </div>
 
