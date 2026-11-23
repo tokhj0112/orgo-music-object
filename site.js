@@ -2186,14 +2186,37 @@
   if (archiveList) {
     const archiveEmpty = document.getElementById("archive-empty");
     const archiveKey = "orgo-archive";
+    let archiveSeed = [];
     let archiveScrollHandler = null;
 
-    function readArchive() {
+    function readLocalArchive() {
       try {
         const items = JSON.parse(localStorage.getItem(archiveKey) || "[]");
         return Array.isArray(items) ? items : [];
       } catch {
         return [];
+      }
+    }
+
+    function readArchive() {
+      const localItems = readLocalArchive();
+      const localIds = new Set(localItems.map((item) => item?.id).filter(Boolean));
+      return [
+        ...localItems,
+        ...archiveSeed.filter((item) => !localIds.has(item.id)),
+      ];
+    }
+
+    async function loadArchiveSeed() {
+      try {
+        const response = await fetch("archive-seed.json?v=shared-archive-164", { cache: "no-store" });
+        if (!response.ok) throw new Error(`Archive seed ${response.status}`);
+        const items = await response.json();
+        archiveSeed = Array.isArray(items)
+          ? items.map((item) => ({ ...item, shared: true }))
+          : [];
+      } catch {
+        archiveSeed = [];
       }
     }
 
@@ -2784,8 +2807,10 @@
         dock.hidden = false;
         dockIndex.textContent = `${String(index + 1).padStart(2, "0")} / ${item.kind === "HAND" ? "HAND" : "MOUSE"} / ${(item.notes || []).length} NOTES`;
         dockTitle.value = item.title || `${t("archiveUntitled")} ${String(index + 1).padStart(2, "0")}`;
+        dockTitle.readOnly = Boolean(item.shared);
         dockStatus.textContent = t("archivePlaying");
         dockPlayer.href = `player.html?archive=${encodeURIComponent(item.id)}`;
+        dockDelete.hidden = Boolean(item.shared);
       }
 
       items.forEach((item, index) => {
@@ -2884,8 +2909,8 @@
       }
 
       dockTitle.addEventListener("change", () => {
-        if (!selectedItem) return;
-        const next = readArchive();
+        if (!selectedItem || selectedItem.shared) return;
+        const next = readLocalArchive();
         const found = next.find((saved) => saved.id === selectedItem.id);
         if (!found) return;
         found.title = dockTitle.value.trim() || t("archiveUntitled");
@@ -2893,9 +2918,9 @@
         renderArchive();
       });
       dockDelete.addEventListener("click", () => {
-        if (!selectedItem) return;
+        if (!selectedItem || selectedItem.shared) return;
         stopArchivePreview();
-        writeArchive(readArchive().filter((saved) => saved.id !== selectedItem.id));
+        writeArchive(readLocalArchive().filter((saved) => saved.id !== selectedItem.id));
         renderArchive();
       });
 
@@ -2905,7 +2930,7 @@
       requestAnimationFrame(() => startArchivePhysics(stage));
     }
 
-    renderArchive();
+    loadArchiveSeed().finally(renderArchive);
     document.addEventListener("orgo-languagechange", renderArchive);
   }
 

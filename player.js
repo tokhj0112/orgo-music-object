@@ -42,13 +42,8 @@
     return { x: Math.max(0, Math.min(PAGE_WIDTH, x / sourceWidth * PAGE_WIDTH)), y: Math.max(0, Math.min(PAGE_HEIGHT, y / sourceHeight * PAGE_HEIGHT)) };
   }
 
-  function readItem() {
-    try {
-      const saved = JSON.parse(localStorage.getItem("orgo-archive") || "[]");
-      item = Array.isArray(saved) ? saved.find((entry) => entry?.id === archiveId) : null;
-    } catch { item = null; }
+  function prepareItem() {
     if (!item) return false;
-
     const sourceWidth = Number(item.width) > 0 ? Number(item.width) : PAGE_WIDTH;
     const sourceHeight = Number(item.height) > 0 ? Number(item.height) : PAGE_HEIGHT;
     notes = (Array.isArray(item.notes) ? item.notes : []).map((point) => pointForPlayer(point, sourceWidth, sourceHeight)).filter(Boolean).sort((a, b) => a.x - b.x);
@@ -60,6 +55,21 @@
     toneSelector.value = toneName;
     volume.value = Number.isFinite(Number(item.volume)) ? Math.max(0, Math.min(100, Number(item.volume))) : 65;
     return notes.length > 0;
+  }
+
+  async function readItem() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("orgo-archive") || "[]");
+      item = Array.isArray(saved) ? saved.find((entry) => entry?.id === archiveId) : null;
+    } catch { item = null; }
+    if (!item) {
+      try {
+        const response = await fetch("archive-seed.json?v=shared-archive-164", { cache: "no-store" });
+        const shared = response.ok ? await response.json() : [];
+        item = Array.isArray(shared) ? shared.find((entry) => entry?.id === archiveId) : null;
+      } catch { item = null; }
+    }
+    return prepareItem();
   }
 
   function formatDate(value) {
@@ -258,16 +268,20 @@
   });
   toneSelector.addEventListener("change", async () => { toneName = toneSelector.value; await audioReady(); });
   volume.addEventListener("input", () => { if (master && audio) master.gain.setTargetAtTime(Number(volume.value) / 100, audio.currentTime, .02); });
-  if (!archiveId || !readItem()) {
-    $("player-machine").remove();
-    document.querySelector(".player-settings").remove();
-    document.querySelector(".saved-paper").remove();
-    $("player-title").textContent = "저장한 곡을 찾을 수 없습니다";
-    $("player-description").textContent = "아카이브에서 다른 곡을 선택해 주세요.";
-    document.querySelector(".player-intro").classList.add("player-empty");
-  } else {
+  async function initializePlayer() {
+    if (!archiveId || !(await readItem())) {
+      $("player-machine").remove();
+      document.querySelector(".player-settings").remove();
+      document.querySelector(".saved-paper").remove();
+      $("player-title").textContent = "저장한 곡을 찾을 수 없습니다";
+      $("player-description").textContent = "아카이브에서 다른 곡을 선택해 주세요.";
+      document.querySelector(".player-intro").classList.add("player-empty");
+      return;
+    }
     updateCopy();
     drawSheet();
     updatePlayer();
   }
+
+  initializePlayer();
 })();

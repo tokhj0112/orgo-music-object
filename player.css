@@ -33,8 +33,9 @@ button, select, input { font: inherit; }
 
 .player-logo { color: var(--text); text-decoration: none; font-size: 33px; font-weight: 650; letter-spacing: -2.5px; }
 .player-logo sup { top: -1.1em; margin-left: 2px; font-size: 7px; letter-spacing: 0; }
-.back-link { color: #d8d8d0; font: 10px monospace; letter-spacing: 1px; text-decoration: none; padding-bottom: 4px; border-bottom: 1px solid #707169; }
-.back-link:hover { color: #fff; border-color: #fff; }
+.back-link { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; padding: 10px 16px; border: 1px solid #ffffff3d; border-radius: 8px; color: #f1f1ed; background: #ffffff0b; box-shadow: inset 0 1px #ffffff0d; font: 500 13px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: -.01em; text-decoration: none; transition: color 180ms ease, background 180ms ease, border-color 180ms ease, transform 180ms ease; }
+.back-link:hover { color: #111210; border-color: #f4f4ef; background: #f4f4ef; transform: translateY(-1px); }
+.back-link:focus-visible { outline: 2px solid #f4f4ef; outline-offset: 3px; }
 
 .player-main {
   min-height: calc(100svh - 76px);
@@ -105,7 +106,7 @@ button, select, input { font: inherit; }
 @media (max-width: 520px) {
   .player-header { min-height: 66px; padding-inline: 20px; }
   .player-logo { font-size: 29px; }
-  .back-link { font-size: 9px; }
+  .back-link { min-height: 38px; padding: 9px 12px; font-size: 11px; }
   .player-main { padding: 38px 18px 45px; }
   .player-machine { min-height: 435px; padding: 22px 18px; border-radius: 13px; }
   .feed-window { margin-top: 42px; }
