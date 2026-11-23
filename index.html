@@ -23,12 +23,12 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="site.css?v=lab-video-fix-171">
+  <link rel="stylesheet" href="site.css?v=lab-local-video-173">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  <script src="i18n.js?v=lab-video-fix-171" defer></script>
-  <script src="site.js?v=lab-video-fix-171" defer></script>
+  <script src="i18n.js?v=lab-local-video-173" defer></script>
+  <script src="site.js?v=lab-local-video-173" defer></script>
 </head>
 
 <body>
@@ -222,15 +222,17 @@
       </div>
 
       <div class="lab-landing-playground lab-video-stage" data-lab-landing-playground aria-label="ORGO 백킹 사운드 영상">
-        <iframe
+        <video
           class="lab-background-video"
-          src="https://tokhj0112.github.io/orgo-music-object/lab-video-player.html?v=171"
-          title="ORGO 백킹 사운드 영상"
-          allow="autoplay; encrypted-media; picture-in-picture"
-          referrerpolicy="strict-origin-when-cross-origin"
-          loading="eager"
+          src="lab-session.mp4?v=173"
+          aria-label="ORGO 백킹 사운드 영상"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="auto"
           tabindex="-1"
-        ></iframe>
+        ></video>
         <span class="lab-video-shade" aria-hidden="true"></span>
       </div>
     </section>
