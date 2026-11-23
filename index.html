@@ -23,12 +23,12 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="site.css?v=remove-wrap-165">
+  <link rel="stylesheet" href="site.css?v=lab-copy-layout-166">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  <script src="i18n.js?v=remove-wrap-165" defer></script>
-  <script src="site.js?v=remove-wrap-165" defer></script>
+  <script src="i18n.js?v=lab-copy-layout-166" defer></script>
+  <script src="site.js?v=lab-copy-layout-166" defer></script>
 </head>
 
 <body>
@@ -306,8 +306,18 @@
 
     <section class="sound-lab" id="sound-lab" aria-labelledby="sound-lab-title">
       <header class="sound-lab-intro reveal">
-        <h2 id="sound-lab-title" data-i18n="labTitle" data-i18n-html="true">소리를 선택하고<br>직접 움직이세요</h2>
-        <p data-i18n="labDescription">파형과 리듬을 직접 조작하는 전자음악 실험실입니다.</p>
+        <h2 class="sound-lab-hover-title" id="sound-lab-title" tabindex="0" aria-label="Choose a sound, then move it by hand. 마우스를 올리면 한국어로 표시됩니다.">
+          <span class="sound-lab-title-layer sound-lab-title-en" aria-hidden="true">
+            <span>Choose a sound,</span>
+            <span>then move it by</span>
+            <span>hand</span>
+          </span>
+          <span class="sound-lab-title-layer sound-lab-title-ko" aria-hidden="true" lang="ko">
+            <span>소리를 고르고</span>
+            <span>손으로 움직여보세요</span>
+          </span>
+        </h2>
+        <p lang="ko">오르골의 범위를 넘어 파형과 리듬을 직접 만지고 움직여보는 전자음악 놀이터입니다.</p>
       </header>
 
       <ol class="lab-howto reveal" aria-label="사운드 랩 사용 순서">
