@@ -23,12 +23,12 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="site.css?v=backing-sound-lab-168">
+  <link rel="stylesheet" href="site.css?v=lab-video-169">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  <script src="i18n.js?v=backing-sound-lab-168" defer></script>
-  <script src="site.js?v=backing-sound-lab-168" defer></script>
+  <script src="i18n.js?v=lab-video-169" defer></script>
+  <script src="site.js?v=lab-video-169" defer></script>
 </head>
 
 <body>
@@ -219,25 +219,20 @@
         <p class="lab-landing-description" data-i18n="labLandingDescription">
           정답은 없습니다. 누르고, 끌고, 두드리며 손끝에서 달라지는 소리를 찾아보세요.
         </p>
-        <a class="lab-landing-enter" href="#signal-bridge">
-          <span data-i18n="labLandingEnter">첫 번째 소리 만져보기</span>
-          <b aria-hidden="true">↓</b>
-        </a>
       </div>
 
-      <div class="lab-landing-playground" data-lab-landing-playground data-i18n-attr="labLandingPlaygroundLabel">
-        <button class="lab-touch-card lab-touch-press" type="button" data-lab-preview-tone="bass" data-i18n-attr="labLandingPressLabel">
-          <span>01</span><strong>BASS</strong><small data-i18n="labLandingPressHint">당겨서 낮은 울림 듣기</small><i aria-hidden="true"></i>
-        </button>
-        <button class="lab-touch-card lab-touch-drag" type="button" data-lab-preview-tone="guitar" data-i18n-attr="labLandingDragLabel">
-          <span>02</span><strong>GUITAR</strong><small data-i18n="labLandingDragHint">쓸어서 코드 듣기</small><i aria-hidden="true"></i>
-        </button>
-        <button class="lab-touch-card lab-touch-strike" type="button" data-lab-preview-tone="drum" data-i18n-attr="labLandingStrikeLabel">
-          <span>03</span><strong>DRUM</strong><small data-i18n="labLandingStrikeHint">두드려서 리듬 듣기</small><i aria-hidden="true"></i>
-        </button>
+      <div class="lab-landing-playground lab-video-stage" data-lab-landing-playground aria-label="ORGO 백킹 사운드 영상">
+        <iframe
+          class="lab-background-video"
+          src="https://www.youtube-nocookie.com/embed/V0iKv0qLdxU?autoplay=1&mute=1&controls=0&loop=1&playlist=V0iKv0qLdxU&playsinline=1&rel=0&modestbranding=1"
+          title="ORGO 백킹 사운드 영상"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          referrerpolicy="strict-origin-when-cross-origin"
+          loading="eager"
+          tabindex="-1"
+        ></iframe>
+        <span class="lab-video-shade" aria-hidden="true"></span>
       </div>
-
-      <p class="lab-landing-hint" aria-hidden="true">BASS / GUITAR / DRUM</p>
     </section>
 
     <section class="signal-bridge" id="signal-bridge" data-signal-bridge aria-labelledby="signal-bridge-title">
