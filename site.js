@@ -424,6 +424,7 @@
     let scrollCurrent = 0;
     let scrollTarget = 0;
     let scrollFrame = 0;
+    let scrollLastTime = 0;
 
     const readScrollProduct = () => {
       const bounds = scrollProduct.getBoundingClientRect();
@@ -432,7 +433,8 @@
     };
 
     const renderScrollProduct = (progress) => {
-      const eased = progress * progress * (3 - 2 * progress);
+      const eased = progress * progress * progress *
+        (progress * (progress * 6 - 15) + 10);
 
       scrollProduct.style.setProperty("--explode", eased.toFixed(3));
       scrollProduct.style.setProperty(
@@ -442,8 +444,11 @@
       scrollProduct.classList.toggle("is-exploding", progress > 0.02);
     };
 
-    const animateScrollProduct = () => {
-      scrollCurrent += (scrollTarget - scrollCurrent) * 0.07;
+    const animateScrollProduct = (time) => {
+      const elapsed = scrollLastTime ? Math.min(40, time - scrollLastTime) : 16.7;
+      scrollLastTime = time;
+      const follow = 1 - Math.exp(-elapsed / 105);
+      scrollCurrent += (scrollTarget - scrollCurrent) * follow;
       if (Math.abs(scrollTarget - scrollCurrent) < 0.0005) {
         scrollCurrent = scrollTarget;
       }
@@ -453,6 +458,7 @@
         scrollFrame = window.requestAnimationFrame(animateScrollProduct);
       } else {
         scrollFrame = 0;
+        scrollLastTime = 0;
       }
     };
 

@@ -505,7 +505,7 @@ img {
 
 .hero {
   position: relative;
-  min-height: 310svh;
+  min-height: 220svh;
   overflow: clip;
 }
 
@@ -642,10 +642,8 @@ img {
   display: block;
   width: min(100%, 650px);
   transform: translateY(calc(var(--explode, 0) * -8px)) rotate(calc(-8deg + var(--explode, 0) * 8deg));
-  transition:
-    transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    filter 650ms ease;
   filter: drop-shadow(0 35px 35px #0008);
+  will-change: transform;
 }
 
 .music-box .product-image {
@@ -690,7 +688,7 @@ img {
 .music-box .product-image--whole {
   animation: box-float 7s ease-in-out infinite;
   opacity: calc(1 - var(--explode, 0));
-  transition: opacity 160ms linear;
+  will-change: opacity;
 }
 
 .exploded-assembly {
@@ -715,7 +713,12 @@ img {
 
 .explode-complete {
   transform: translateY(calc((1 - var(--explode, 0)) * 34px)) scale(calc(.94 + var(--explode, 0) * .06));
-  transition: opacity 160ms linear;
+}
+
+.hero:not(.is-exploding) .music-box {
+  transition:
+    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 420ms ease;
 }
 
 .hero:not(.is-exploding) .music-box:hover,
@@ -4813,7 +4816,7 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
   }
 
   .hero {
-    min-height: 270svh;
+    min-height: 205svh;
   }
 
   .hero-stage {
