@@ -23,12 +23,12 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="site.css?v=hero-scroll-162">
+  <link rel="stylesheet" href="site.css?v=remove-wrap-165">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  <script src="i18n.js?v=remove-language-switch-152" defer></script>
-  <script src="site.js?v=hero-scroll-162" defer></script>
+  <script src="i18n.js?v=remove-wrap-165" defer></script>
+  <script src="site.js?v=remove-wrap-165" defer></script>
 </head>
 
 <body>
@@ -217,7 +217,7 @@
           </span>
         </h1>
         <p class="lab-landing-description" data-i18n="labLandingDescription">
-          정답은 없습니다. 누르고, 끌고, 구기고, 두드리며 손끝에서 달라지는 소리를 찾아보세요.
+          정답은 없습니다. 누르고, 끌고, 두드리며 손끝에서 달라지는 소리를 찾아보세요.
         </p>
         <a class="lab-landing-enter" href="#signal-bridge">
           <span data-i18n="labLandingEnter">첫 번째 소리 만져보기</span>
@@ -232,11 +232,8 @@
         <button class="lab-touch-card lab-touch-drag" type="button" data-lab-preview-tone="drag" data-i18n-attr="labLandingDragLabel">
           <span>02</span><strong>DRAG</strong><small data-i18n="labLandingDragHint">끌어서 변화시키기</small><i aria-hidden="true"></i>
         </button>
-        <button class="lab-touch-card lab-touch-crumple" type="button" data-lab-preview-tone="crumple" data-i18n-attr="labLandingCrumpleLabel">
-          <span>03</span><strong>CRUMPLE</strong><small data-i18n="labLandingCrumpleHint">구기며 질감 듣기</small><i aria-hidden="true"></i>
-        </button>
         <button class="lab-touch-card lab-touch-strike" type="button" data-lab-preview-tone="strike" data-i18n-attr="labLandingStrikeLabel">
-          <span>04</span><strong>STRIKE</strong><small data-i18n="labLandingStrikeHint">두드려서 울리기</small><i aria-hidden="true"></i>
+          <span>03</span><strong>STRIKE</strong><small data-i18n="labLandingStrikeHint">두드려서 울리기</small><i aria-hidden="true"></i>
         </button>
       </div>
 
@@ -328,17 +325,14 @@
           <button class="lab-voice" type="button" data-wave="square" aria-pressed="false">
             <span>02</span><strong>PULSE</strong><small data-i18n="labPulse">짧고 선명한 파동</small>
           </button>
-          <button class="lab-voice" type="button" data-wave="wrap" aria-pressed="false">
-            <span>03</span><strong>WRAP</strong><small data-i18n="labWrap">구기며 듣는 포장지</small>
-          </button>
           <button class="lab-voice" type="button" data-wave="sawtooth" aria-pressed="false">
-            <span>04</span><strong>BASS</strong><small data-i18n="labBass">낮고 거친 진동</small>
+            <span>03</span><strong>BASS</strong><small data-i18n="labBass">낮고 거친 진동</small>
           </button>
           <button class="lab-voice" type="button" data-wave="drum" aria-pressed="false">
-            <span>05</span><strong>DRUM</strong><small data-i18n="labDrum">타격감 있는 어쿠스틱</small>
+            <span>04</span><strong>DRUM</strong><small data-i18n="labDrum">타격감 있는 어쿠스틱</small>
           </button>
           <button class="lab-voice" type="button" data-wave="piano" aria-pressed="false">
-            <span>06</span><strong>PIANO</strong><small data-i18n="labPiano">카메라로 연주하는 건반</small>
+            <span>05</span><strong>PIANO</strong><small data-i18n="labPiano">카메라로 연주하는 건반</small>
           </button>
         </div>
 
@@ -353,19 +347,6 @@
           <div class="lab-pad-copy">
             <strong data-i18n="labPadTitle">HOLD + MOVE</strong>
             <small data-i18n="labPadHint">누른 채 움직여 음높이와 질감을 바꿔보세요.</small>
-          </div>
-
-          <div class="wrap-experience" data-wrap-stage role="application" tabindex="0" aria-label="Touch and crumple the package">
-            <p class="wrap-instruction">
-              <strong data-i18n="labWrapInstruction">PRESS + SCRUNCH</strong>
-              <small data-i18n="labWrapHint">누른 채 문지르면 주름과 소리가 쌓입니다.</small>
-            </p>
-            <div class="wrap-object" data-wrap-object>
-              <img src="image/wrap-blank-pouch-v1.png" alt="" draggable="false">
-              <div class="wrap-dents" data-wrap-dents aria-hidden="true"></div>
-              <span class="wrap-touch-indicator" aria-hidden="true"></span>
-            </div>
-            <p class="wrap-fold-count"><span>TOUCHES</span><output data-wrap-count>00</output></p>
           </div>
 
           <div class="bass-experience" data-bass-stage aria-label="Interactive bass guitar">

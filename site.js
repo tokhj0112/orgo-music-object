@@ -228,54 +228,36 @@
       const level = tone === "strike" ? .075 : .052;
 
       filter.type = "lowpass";
-      filter.frequency.setValueAtTime(tone === "crumple" ? 4200 : 2900, now);
+      filter.frequency.setValueAtTime(2900, now);
       output.gain.setValueAtTime(.0001, now);
       output.gain.exponentialRampToValueAtTime(level, now + .012);
       output.gain.exponentialRampToValueAtTime(.0001, now + (tone === "drag" ? .52 : .34));
       output.connect(filter).connect(context.destination);
 
-      if (tone === "crumple") {
-        const length = Math.floor(context.sampleRate * .22);
-        const buffer = context.createBuffer(1, length, context.sampleRate);
-        const channel = buffer.getChannelData(0);
-        for (let index = 0; index < length; index += 1) {
-          const envelope = Math.pow(1 - index / length, 1.8);
-          channel[index] = (Math.random() * 2 - 1) * envelope;
-        }
-        const noise = context.createBufferSource();
-        const textureFilter = context.createBiquadFilter();
-        textureFilter.type = "bandpass";
-        textureFilter.frequency.setValueAtTime(1850, now);
-        textureFilter.Q.setValueAtTime(.8, now);
-        noise.buffer = buffer;
-        noise.connect(textureFilter).connect(output);
-        noise.start(now);
-      } else {
-        const settings = {
-          press: { wave: "sine", from: 470, to: 360, duration: .34 },
-          drag: { wave: "triangle", from: 190, to: 430, duration: .52 },
-          strike: { wave: "sine", from: 148, to: 82, duration: .34 },
-        }[tone] || { wave: "sine", from: 330, to: 280, duration: .34 };
-        const oscillator = context.createOscillator();
-        oscillator.type = settings.wave;
-        oscillator.frequency.setValueAtTime(settings.from, now);
-        oscillator.frequency.exponentialRampToValueAtTime(settings.to, now + settings.duration);
-        oscillator.connect(output);
-        oscillator.start(now);
-        oscillator.stop(now + settings.duration + .03);
+      const settings = {
+        press: { wave: "sine", from: 470, to: 360, duration: .34 },
+        drag: { wave: "triangle", from: 190, to: 430, duration: .52 },
+        strike: { wave: "sine", from: 148, to: 82, duration: .34 },
+      }[tone] || { wave: "sine", from: 330, to: 280, duration: .34 };
+      const oscillator = context.createOscillator();
+      oscillator.type = settings.wave;
+      oscillator.frequency.setValueAtTime(settings.from, now);
+      oscillator.frequency.exponentialRampToValueAtTime(settings.to, now + settings.duration);
+      oscillator.connect(output);
+      oscillator.start(now);
+      oscillator.stop(now + settings.duration + .03);
 
-        if (tone === "strike") {
-          const overtone = context.createOscillator();
-          const overtoneGain = context.createGain();
-          overtone.type = "triangle";
-          overtone.frequency.setValueAtTime(690, now);
-          overtone.frequency.exponentialRampToValueAtTime(420, now + .2);
-          overtoneGain.gain.setValueAtTime(.25, now);
-          overtoneGain.gain.exponentialRampToValueAtTime(.0001, now + .22);
-          overtone.connect(overtoneGain).connect(output);
-          overtone.start(now);
-          overtone.stop(now + .24);
-        }
+      if (tone === "strike") {
+        const overtone = context.createOscillator();
+        const overtoneGain = context.createGain();
+        overtone.type = "triangle";
+        overtone.frequency.setValueAtTime(690, now);
+        overtone.frequency.exponentialRampToValueAtTime(420, now + .2);
+        overtoneGain.gain.setValueAtTime(.25, now);
+        overtoneGain.gain.exponentialRampToValueAtTime(.0001, now + .22);
+        overtone.connect(overtoneGain).connect(output);
+        overtone.start(now);
+        overtone.stop(now + .24);
       }
 
       pulsePreviewCard(card);
@@ -761,10 +743,6 @@
     const bpmInput = soundLab.querySelector("[data-lab-bpm]");
     const bpmOutput = soundLab.querySelector("[data-lab-bpm-output]");
     const labStatus = soundLab.querySelector("[data-lab-status]");
-    const wrapStage = soundLab.querySelector("[data-wrap-stage]");
-    const wrapObject = soundLab.querySelector("[data-wrap-object]");
-    const wrapDents = soundLab.querySelector("[data-wrap-dents]");
-    const wrapCount = soundLab.querySelector("[data-wrap-count]");
     const bassStage = soundLab.querySelector("[data-bass-stage]");
     const bassStringControls = [...soundLab.querySelectorAll("[data-bass-string]")];
     const drumStage = soundLab.querySelector("[data-drum-stage]");
@@ -795,9 +773,6 @@
     let loopTimer = null;
     let loopStep = 0;
     let pointerPlaying = false;
-    let wrapDrag = null;
-    let wrapDentCount = 0;
-    let wrapLastSoundAt = 0;
     let bassPulseTimer = null;
     let drumNoiseBuffer = null;
     let drumCursorTimer = null;
@@ -957,99 +932,6 @@
       connectVoice(filter, gain);
       oscillator.start(now);
       oscillator.stop(now + .38);
-    }
-
-    function playWrapCrinkle(intensity = .66, position = .5) {
-      const context = ensureAudio();
-      if (!context) return;
-
-      const level = Math.max(.22, Math.min(1, intensity));
-      const horizontal = Math.max(0, Math.min(1, position));
-      const now = context.currentTime;
-      const burstCount = 2 + Math.round(level * 3);
-
-      for (let index = 0; index < burstCount; index += 1) {
-        const source = context.createBufferSource();
-        const highpass = context.createBiquadFilter();
-        const bandpass = context.createBiquadFilter();
-        const envelope = context.createGain();
-        const startAt = now + index * (.009 + Math.random() * .012);
-        const duration = .035 + Math.random() * .065;
-
-        source.buffer = getDrumNoise();
-        source.playbackRate.value = 1.25 + Math.random() * 1.15;
-        highpass.type = "highpass";
-        highpass.frequency.value = 620 + level * 580;
-        highpass.Q.value = .6;
-        bandpass.type = "bandpass";
-        bandpass.frequency.value = 1450 + horizontal * 3300 + Math.random() * 900;
-        bandpass.Q.value = .65 + Math.random() * 1.1;
-        envelope.gain.setValueAtTime(.0001, startAt);
-        envelope.gain.linearRampToValueAtTime((.045 + Math.random() * .055) * level, startAt + .004);
-        envelope.gain.exponentialRampToValueAtTime(.0001, startAt + duration);
-
-        source.connect(highpass).connect(bandpass).connect(envelope).connect(masterGain);
-        source.start(startAt, Math.random() * 1.35, duration + .02);
-        source.stop(startAt + duration + .035);
-      }
-    }
-
-    function wrapPoint(event) {
-      const bounds = wrapObject.getBoundingClientRect();
-      return {
-        x: Math.max(.04, Math.min(.96, (event.clientX - bounds.left) / bounds.width)),
-        y: Math.max(.05, Math.min(.95, (event.clientY - bounds.top) / bounds.height)),
-      };
-    }
-
-    function setWrapPose(x, y, intensity = .55) {
-      if (!wrapObject) return;
-      const pressure = Math.max(.15, Math.min(1, intensity));
-      wrapObject.style.setProperty("--wrap-x", `${(x * 100).toFixed(2)}%`);
-      wrapObject.style.setProperty("--wrap-y", `${(y * 100).toFixed(2)}%`);
-      wrapObject.style.setProperty("--wrap-rx", `${((.5 - y) * 6.5 * pressure).toFixed(2)}deg`);
-      wrapObject.style.setProperty("--wrap-ry", `${((x - .5) * 7.5 * pressure).toFixed(2)}deg`);
-      wrapObject.style.setProperty("--wrap-scale", (1 - pressure * .016).toFixed(4));
-    }
-
-    function relaxWrapPose() {
-      if (!wrapObject) return;
-      wrapObject.classList.remove("is-pressed");
-      wrapObject.style.setProperty("--wrap-rx", "0deg");
-      wrapObject.style.setProperty("--wrap-ry", "0deg");
-      wrapObject.style.setProperty("--wrap-scale", "1");
-    }
-
-    function addWrapDent(x, y, intensity = .55) {
-      if (!wrapDents) return;
-      const dent = document.createElement("span");
-      const size = 96 + intensity * 116 + Math.random() * 34;
-      dent.className = "wrap-dent";
-      dent.style.setProperty("--dent-x", `${(x * 100).toFixed(2)}%`);
-      dent.style.setProperty("--dent-y", `${(y * 100).toFixed(2)}%`);
-      dent.style.setProperty("--dent-size", `${size.toFixed(1)}px`);
-      dent.style.setProperty("--dent-rotate", `${(-38 + Math.random() * 76).toFixed(1)}deg`);
-      dent.style.setProperty("--dent-opacity", (.1 + intensity * .17).toFixed(2));
-      wrapDents.appendChild(dent);
-      while (wrapDents.children.length > 12) wrapDents.firstElementChild.remove();
-      wrapDentCount += 1;
-      if (wrapCount) wrapCount.value = String(Math.min(99, wrapDentCount)).padStart(2, "0");
-    }
-
-    function resetWrapSurface() {
-      if (wrapDents) wrapDents.replaceChildren();
-      wrapDentCount = 0;
-      if (wrapCount) wrapCount.value = "00";
-      relaxWrapPose();
-    }
-
-    function pulseWrap(x, y, intensity = .58, leaveDent = true) {
-      if (!wrapObject) return;
-      wrapObject.classList.add("is-pressed");
-      setWrapPose(x, y, intensity);
-      if (leaveDent) addWrapDent(x, y, intensity);
-      playWrapCrinkle(intensity, x);
-      window.setTimeout(relaxWrapPose, 190);
     }
 
     function playPianoNote(frequency, velocity = .78) {
@@ -1751,7 +1633,6 @@
       if (waveform === "piano") return t("labPianoReady");
       if (waveform === "drum") return t("labDrumReady");
       if (waveform === "sawtooth") return t("labBassReady");
-      if (waveform === "wrap") return t("labWrapReady");
       return t("labReady");
     }
 
@@ -1808,7 +1689,6 @@
           strikeDrumPad(drumPad, .65);
         } else if (waveform === "piano") playPianoNote(frequency * 2, .62);
         else if (waveform === "sawtooth") pluckBass(frequency / 2, .48);
-        else if (waveform === "wrap") pulseWrap(.16 + loopStep * .095, .34 + (loopStep % 3) * .16, .48 + (loopStep % 2) * .16);
         else pluck(frequency);
       }
       loopStep = (loopStep + 1) % stepButtons.length;
@@ -1836,7 +1716,6 @@
         const bassMode = waveform === "sawtooth";
         const drumMode = waveform === "drum";
         const pianoMode = waveform === "piano";
-        const wrapMode = waveform === "wrap";
         voiceButtons.forEach((item) => {
           const active = item === button;
           item.classList.toggle("is-active", active);
@@ -1847,7 +1726,6 @@
         soundLab.classList.toggle("is-bass-mode", bassMode);
         soundLab.classList.toggle("is-drum-mode", drumMode);
         soundLab.classList.toggle("is-piano-mode", pianoMode);
-        soundLab.classList.toggle("is-wrap-mode", wrapMode);
         pad.setAttribute(
           "aria-label",
           bassMode
@@ -1856,9 +1734,7 @@
               ? "Strike the acoustic drum kit"
               : pianoMode
                 ? "Play piano with both hands on camera"
-                : wrapMode
-                  ? "Touch and crumple the package"
-                  : "Drag to play pitch and texture"
+                : "Drag to play pitch and texture"
         );
 
         if (bassMode) {
@@ -1880,14 +1756,6 @@
           labStatus.textContent = t("labPianoReady");
           pianoStatus.textContent = t("labPianoReady");
           playPianoNote(261.63, .5);
-        } else if (wrapMode) {
-          bassStringControls.forEach((control) => {
-            stopBassAnimation(control);
-            setBassPath(control);
-          });
-          resetWrapSurface();
-          labStatus.textContent = t("labWrapReady");
-          playWrapCrinkle(.4, .5);
         } else {
           bassStringControls.forEach((control) => {
             stopBassAnimation(control);
@@ -1898,75 +1766,6 @@
         }
       });
     });
-
-    if (wrapStage && wrapObject) {
-      wrapStage.addEventListener("pointerdown", (event) => {
-        if (waveform !== "wrap") return;
-        event.preventDefault();
-        event.stopPropagation();
-        wrapStage.setPointerCapture(event.pointerId);
-        const point = wrapPoint(event);
-        const pressure = event.pressure ? .48 + event.pressure * .52 : .68;
-        wrapDrag = {
-          pointerId: event.pointerId,
-          x: point.x,
-          y: point.y,
-          dentAt: performance.now(),
-        };
-        wrapObject.classList.add("is-pressed");
-        setWrapPose(point.x, point.y, pressure);
-        addWrapDent(point.x, point.y, pressure);
-        playWrapCrinkle(pressure, point.x);
-        wrapLastSoundAt = performance.now();
-        labStatus.textContent = `WRAP / ${String(wrapDentCount).padStart(2, "0")} TOUCHES`;
-      });
-
-      wrapStage.addEventListener("pointermove", (event) => {
-        if (!wrapDrag || wrapDrag.pointerId !== event.pointerId) return;
-        event.preventDefault();
-        event.stopPropagation();
-        const point = wrapPoint(event);
-        const distance = Math.hypot(point.x - wrapDrag.x, point.y - wrapDrag.y);
-        const now = performance.now();
-        const pressure = Math.max(.38, Math.min(1, (event.pressure || .48) + distance * 4.6));
-        setWrapPose(point.x, point.y, pressure);
-
-        if (distance > .012 && now - wrapDrag.dentAt > 58) {
-          addWrapDent(point.x, point.y, pressure);
-          wrapDrag.dentAt = now;
-          labStatus.textContent = `WRAP / ${String(wrapDentCount).padStart(2, "0")} TOUCHES`;
-        }
-        if (distance > .007 && now - wrapLastSoundAt > 42) {
-          playWrapCrinkle(pressure, point.x);
-          wrapLastSoundAt = now;
-        }
-        wrapDrag.x = point.x;
-        wrapDrag.y = point.y;
-      });
-
-      const finishWrapGesture = (event) => {
-        if (!wrapDrag || (event.pointerId != null && wrapDrag.pointerId !== event.pointerId)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        wrapDrag = null;
-        relaxWrapPose();
-        labStatus.textContent = `WRAP / ${String(wrapDentCount).padStart(2, "0")} TOUCHES`;
-      };
-
-      ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => {
-        wrapStage.addEventListener(eventName, finishWrapGesture);
-      });
-
-      wrapStage.addEventListener("keydown", (event) => {
-        if (!['Enter', ' '].includes(event.key) || event.repeat || waveform !== "wrap") return;
-        event.preventDefault();
-        event.stopPropagation();
-        const x = .32 + Math.random() * .36;
-        const y = .3 + Math.random() * .42;
-        pulseWrap(x, y, .68);
-        labStatus.textContent = `WRAP / ${String(wrapDentCount).padStart(2, "0")} TOUCHES`;
-      });
-    }
 
     bassStringControls.forEach((control) => {
       let dragState = null;
@@ -2075,7 +1874,7 @@
     }
 
     pad.addEventListener("pointerdown", (event) => {
-      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode") || soundLab.classList.contains("is-wrap-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode")) return;
       event.preventDefault();
       pad.setPointerCapture(event.pointerId);
       const position = pointerPosition(event);
@@ -2083,7 +1882,7 @@
     });
 
     pad.addEventListener("pointermove", (event) => {
-      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode") || soundLab.classList.contains("is-wrap-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode")) return;
       const position = pointerPosition(event);
       if (pointerPlaying) updatePadVoice(position.x, position.y);
       else {
@@ -2097,7 +1896,7 @@
     });
 
     pad.addEventListener("keydown", (event) => {
-      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode") || soundLab.classList.contains("is-wrap-mode")) return;
+      if (soundLab.classList.contains("is-bass-mode") || soundLab.classList.contains("is-drum-mode") || soundLab.classList.contains("is-piano-mode")) return;
       if (!["Enter", " "].includes(event.key) || pointerPlaying) return;
       event.preventDefault();
       startPadVoice(.5, .5);
@@ -2122,7 +1921,6 @@
             strikeDrumPad(drumPads.find((item) => item.dataset.drumPart === drumPart), .68);
           } else if (waveform === "piano") playPianoNote(frequency * 2, .68);
           else if (waveform === "sawtooth") pluckBass(frequency / 2, .5);
-          else if (waveform === "wrap") pulseWrap(.16 + index * .095, .34 + (index % 3) * .16, .58);
           else pluck(frequency);
         }
       });

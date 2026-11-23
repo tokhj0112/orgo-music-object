@@ -1355,20 +1355,10 @@ img {
   border-radius: 999px;
 }
 
-.lab-touch-crumple {
-  --card-rotate: 7deg;
-  --card-delay: -4.1s;
-  left: 13%;
-  bottom: 2%;
-  width: clamp(190px, 19vw, 276px);
-  aspect-ratio: 1.08;
-  border-radius: 42% 58% 47% 53% / 56% 44% 58% 42%;
-}
-
 .lab-touch-strike {
   --card-rotate: -5deg;
   --card-delay: -1.7s;
-  right: 5%;
+  left: 16%;
   bottom: 8%;
   width: clamp(205px, 19vw, 290px);
   height: clamp(172px, 17vw, 245px);
@@ -1434,8 +1424,7 @@ img {
   .lab-landing-playground { min-height: 540px; margin-top: 24px; }
   .lab-touch-press { left: 0; width: min(42vw, 220px); }
   .lab-touch-drag { right: 0; width: min(55vw, 310px); }
-  .lab-touch-crumple { left: 4%; width: min(46vw, 238px); }
-  .lab-touch-strike { right: 0; width: min(48vw, 252px); }
+  .lab-touch-strike { left: 14%; width: min(48vw, 252px); }
 }
 
 @media (max-width: 480px) {
@@ -1443,7 +1432,6 @@ img {
   .lab-touch-card { padding: 17px; }
   .lab-touch-card strong { font-size: 20px; }
   .lab-touch-drag { top: 17%; }
-  .lab-touch-crumple { bottom: 4%; }
   .lab-touch-strike { bottom: 11%; }
   .lab-landing-hint { display: none; }
 }
@@ -2110,182 +2098,6 @@ img {
 .lab-pad-copy strong { font: 400 clamp(23px, 3.1vw, 48px)/1 sans-serif; letter-spacing: -.04em; }
 .lab-pad-copy small { color: #9da0a2; font-size: 11px; line-height: 1.6; }
 .lab-pad.is-touching .lab-pad-copy { opacity: .1; transform: translate(-50%, -50%) scale(.96); }
-
-/* WRAP — tactile pouch that accumulates folds and crinkle */
-
-.wrap-experience {
-  position: absolute;
-  z-index: 7;
-  inset: 0;
-  overflow: hidden;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: scale(.98);
-  transition: opacity 360ms ease, visibility 360ms ease, transform 680ms cubic-bezier(.16, 1, .3, 1);
-}
-
-.sound-lab-board.is-wrap-mode .wrap-experience {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: scale(1);
-}
-
-.sound-lab-board.is-wrap-mode .lab-pad {
-  cursor: grab;
-  background:
-    radial-gradient(ellipse at 50% 54%, #3d3d3b 0, #232423 38%, #111 76%),
-    #101111;
-}
-
-.sound-lab-board.is-wrap-mode .lab-pad::before,
-.sound-lab-board.is-wrap-mode .lab-pad::after,
-.sound-lab-board.is-wrap-mode .lab-pad-orbit,
-.sound-lab-board.is-wrap-mode .lab-pad-cursor,
-.sound-lab-board.is-wrap-mode .lab-pad-axis,
-.sound-lab-board.is-wrap-mode .lab-pad-copy {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.wrap-instruction {
-  position: absolute;
-  z-index: 5;
-  left: 50%;
-  top: 18px;
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  width: min(90%, 520px);
-  text-align: center;
-  pointer-events: none;
-  transform: translateX(-50%);
-}
-
-.wrap-instruction strong {
-  color: #f1f1ed;
-  font: 400 11px/1 monospace;
-  letter-spacing: 1.6px;
-}
-
-.wrap-instruction small {
-  color: #969792;
-  font-size: 9px;
-  line-height: 1.5;
-}
-
-.wrap-object {
-  --wrap-rx: 0deg;
-  --wrap-ry: 0deg;
-  --wrap-scale: 1;
-  --wrap-x: 50%;
-  --wrap-y: 50%;
-  position: absolute;
-  left: 50%;
-  top: 55%;
-  width: min(72%, 660px);
-  aspect-ratio: 1448 / 1086;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  transform: translate(-50%, -50%) perspective(850px) rotateX(var(--wrap-rx)) rotateY(var(--wrap-ry)) scale(var(--wrap-scale));
-  transform-style: preserve-3d;
-  transition: transform 220ms cubic-bezier(.2, .8, .25, 1), filter 180ms ease;
-  will-change: transform;
-}
-
-.wrap-object.is-pressed {
-  cursor: grabbing;
-  transition-duration: 70ms;
-}
-
-.wrap-object > img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-  filter: grayscale(1) brightness(.83) contrast(1.08) drop-shadow(0 25px 28px #000c);
-  transition: filter 180ms ease, transform 180ms cubic-bezier(.2, .8, .25, 1);
-}
-
-.wrap-object.is-pressed > img {
-  filter: grayscale(1) brightness(.94) contrast(1.16) drop-shadow(0 18px 20px #000e);
-  transform: scale(.985);
-}
-
-.wrap-dents {
-  position: absolute;
-  z-index: 2;
-  inset: 9% 8%;
-  overflow: hidden;
-  border-radius: 12%;
-  pointer-events: none;
-  clip-path: polygon(4% 7%, 18% 2%, 49% 5%, 82% 2%, 97% 8%, 95% 90%, 78% 96%, 50% 93%, 17% 97%, 3% 89%);
-}
-
-.wrap-dent {
-  position: absolute;
-  left: var(--dent-x);
-  top: var(--dent-y);
-  width: var(--dent-size);
-  aspect-ratio: 1.35;
-  border: 0;
-  border-radius: 50%;
-  opacity: var(--dent-opacity, .22);
-  background:
-    radial-gradient(ellipse at 38% 34%, #ffffff5c 0 5%, #ffffff1e 20%, transparent 49%),
-    radial-gradient(ellipse at 62% 66%, #08080873 0 8%, #1111112e 26%, transparent 58%);
-  mix-blend-mode: soft-light;
-  filter: blur(5px);
-  transform: translate(-50%, -50%) rotate(var(--dent-rotate)) scale(.35);
-  animation: wrap-dent-in 330ms cubic-bezier(.18, .82, .2, 1) forwards;
-}
-
-.wrap-touch-indicator {
-  position: absolute;
-  z-index: 4;
-  left: var(--wrap-x);
-  top: var(--wrap-y);
-  width: 42px;
-  aspect-ratio: 1;
-  border: 1px solid #fff9;
-  border-radius: 50%;
-  background: radial-gradient(circle, #fff8 0 5%, #ffffff22 30%, transparent 68%);
-  box-shadow: 0 0 30px #fff3;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -50%) scale(.7);
-  transition: opacity 120ms ease, transform 160ms ease;
-}
-
-.wrap-object.is-pressed .wrap-touch-indicator {
-  opacity: .9;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.wrap-fold-count {
-  position: absolute;
-  z-index: 5;
-  right: 22px;
-  bottom: 18px;
-  display: flex;
-  gap: 10px;
-  margin: 0;
-  color: #737570;
-  font: 8px/1 monospace;
-  letter-spacing: 1.4px;
-  pointer-events: none;
-}
-
-.wrap-fold-count output { color: #e4e4df; }
-
-@keyframes wrap-dent-in {
-  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--dent-rotate)) scale(.25); }
-  58% { opacity: var(--dent-opacity, .22); transform: translate(-50%, -50%) rotate(var(--dent-rotate)) scale(1.06); }
-  100% { opacity: var(--dent-opacity, .22); transform: translate(-50%, -50%) rotate(var(--dent-rotate)) scale(1); }
-}
 
 /* BASS — pull and release the strings */
 
@@ -5059,7 +4871,7 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
   .lab-label { grid-column: 1 / -1; }
   .lab-voice { min-height: 72px; border-right: 1px solid #2e3029; }
   .lab-voice:nth-of-type(2n) { border-right: 0; }
-  .lab-voice:last-child { grid-column: auto; border-right: 0; }
+  .lab-voice:last-child { grid-column: 1 / -1; border-right: 0; }
   .lab-voice strong { font-size: 14px; }
   .lab-voice small { display: none; }
 
@@ -5067,9 +4879,6 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
   .lab-pad::before { width: 92vw; }
   .lab-pad::after { width: 66vw; }
   .lab-pad-copy strong { font-size: 29px; }
-  .wrap-instruction { top: 14px; }
-  .wrap-object { top: 56%; width: 94%; }
-  .wrap-fold-count { right: 14px; bottom: 12px; }
   .bass-instrument { top: 55%; width: 78%; }
   .bass-strings { top: 55%; width: 98%; height: 61%; }
   .bass-instruction { top: 17px; width: 90%; }
