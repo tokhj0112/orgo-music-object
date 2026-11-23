@@ -49,7 +49,7 @@ button, select, input { font: inherit; }
 }
 
 .player-intro { align-self: center; max-width: 470px; }
-.player-eyebrow, .machine-topline, .saved-paper-head { color: #a6a79f; font: 10px monospace; letter-spacing: 1.7px; }
+.player-eyebrow, .saved-paper-head { color: #a6a79f; font: 10px monospace; letter-spacing: 1.7px; }
 .player-intro h1 { margin: 23px 0 24px; color: #f5f5f7; font-size: clamp(42px, 5vw, 78px); line-height: 1.04; font-weight: 500; letter-spacing: -.065em; overflow-wrap: anywhere; }
 .player-description { max-width: 375px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.85; }
 
@@ -61,24 +61,30 @@ button, select, input { font: inherit; }
 .player-select select option:checked { color: #fff; background: #626267; }
 .player-volume input { accent-color: #d9d6c5; cursor: pointer; }
 
-.player-machine { position: relative; min-height: 500px; padding: 28px 29px 25px; border: 1px solid #ffffff18; border-radius: 22px; background: radial-gradient(circle at 52% 39%, #2b2b2f 0, var(--panel) 43%, #151517 100%); box-shadow: inset 0 1px #ffffff0d, 0 35px 80px #00000052; overflow: hidden; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.player-machine { position: relative; min-height: 500px; padding: 28px 29px 25px; border: 1px solid #ffffff1f; border-radius: 16px; background: radial-gradient(circle at 52% 42%, #30312f 0, #20211f 34%, #161715 72%, #111210 100%); box-shadow: inset 0 1px #ffffff12, inset 0 -22px 45px #0005, 0 35px 80px #00000052; overflow: hidden; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 .player-machine::before, .player-machine::after { position: absolute; content: ""; border: 1px solid #67696035; border-radius: 50%; pointer-events: none; }
 .player-machine::before { width: 660px; height: 260px; left: 14%; top: 21%; transform: rotate(-25deg); }
 .player-machine::after { width: 470px; height: 570px; right: -17%; bottom: -22%; transform: rotate(31deg); }
-.machine-topline { position: relative; z-index: 1; display: flex; justify-content: space-between; }
-.machine-topline i { width: 9px; height: 9px; border-radius: 50%; background: #8a8c80; }
-
-.feed-window { position: relative; z-index: 1; height: clamp(100px, 12vw, 155px); margin-top: clamp(42px, 6vw, 70px); padding: 9px; border: 8px solid #0e0f0d; border-radius: 12px; background: #090a09; box-shadow: inset 0 0 0 1px #67695f; overflow: hidden; }
+.feed-window { position: relative; z-index: 2; height: clamp(100px, 12vw, 155px); margin-top: 6px; padding: 9px; border: 8px solid #0e0f0d; border-radius: 9px; background: #090a09; box-shadow: inset 0 0 0 1px #777a70, 0 10px 22px #0008; overflow: hidden; transition: transform 120ms ease, box-shadow 120ms ease; }
 .feed-window canvas { display: block; width: 100%; height: 100%; border-radius: 4px; }
 .feed-window > span { position: absolute; top: 50%; left: 50%; z-index: 2; color: #686961; font: 10px monospace; letter-spacing: 2.5px; transform: translate(-50%, -50%); pointer-events: none; }
 
-.player-crank-area { position: relative; z-index: 1; min-height: 220px; display: grid; justify-items: center; align-content: center; margin-top: 15px; }
-#player-crank { --angle: 0rad; position: relative; width: 176px; height: 176px; border: 1px solid #62645b; border-radius: 50%; background: repeating-radial-gradient(circle at center, transparent 0 11px, #36392f 12px 14px, transparent 15px 21px); cursor: grab; touch-action: none; }
-#player-crank:active { cursor: grabbing; }
-.crank-shadow { position: absolute; inset: 16px; border: 1px solid #55584e; border-radius: 50%; box-shadow: inset 0 0 25px #0007; }
-.crank-axle { position: absolute; top: 50%; left: 50%; width: 47px; height: 47px; border-radius: 50%; background: radial-gradient(circle at 35% 28%, #d6d6cb, #5e6159 44%, #21231f 76%); transform: translate(-50%, -50%); box-shadow: 0 4px 8px #0009; }
-.crank-arm { position: absolute; top: 50%; left: 50%; width: 64px; height: 15px; border-radius: 20px; background: linear-gradient(#c5c4ba, #555850 55%, #272923); box-shadow: 0 4px 6px #0009; transform: rotate(var(--angle)) translateX(31px); transform-origin: 0 50%; transition: transform 30ms linear; }
-.crank-knob { position: absolute; right: -25px; top: 50%; width: 48px; height: 48px; border-radius: 50%; background: radial-gradient(circle at 33% 28%, #eeeeeb, #696c65 49%, #22241f); transform: translateY(-50%); box-shadow: 0 5px 9px #000a; }
+.player-crank-area { position: relative; z-index: 1; min-height: 250px; display: grid; justify-items: center; align-content: center; margin-top: 4px; }
+.player-crank-area::before { content: ""; position: absolute; top: -5px; left: 50%; width: 16px; height: 55px; border-radius: 0 0 7px 7px; background: linear-gradient(90deg, #20221e, #9a9d94 35%, #d3d3cb 52%, #65685f 70%, #191b17); box-shadow: 0 5px 12px #0009; transform: translateX(-50%); }
+#player-crank { --angle: 0rad; position: relative; width: 196px; height: 196px; padding: 0; border: 1px solid #73766d; border-radius: 50%; background: radial-gradient(circle at 48% 45%, #33352f 0 37%, #171915 38% 42%, #5c5f56 43% 44%, #20221e 45% 65%, #11130f 66% 100%); box-shadow: inset 0 0 0 5px #11130f, inset 0 0 28px #000c, 0 12px 22px #0009; cursor: grab; touch-action: none; transition: box-shadow 140ms ease, transform 140ms ease; }
+#player-crank:active, #player-crank.is-turning { cursor: grabbing; box-shadow: inset 0 0 0 5px #171914, inset 0 0 30px #000d, 0 7px 14px #000b; transform: scale(.985); }
+.crank-shadow { position: absolute; inset: 17px; border: 1px solid #6e7167; border-radius: 50%; box-shadow: inset 0 0 30px #0009, 0 0 0 1px #111; }
+.crank-gear { position: absolute; inset: 9px; border-radius: 50%; background: repeating-conic-gradient(#85877f 0deg 1.5deg, transparent 1.5deg 10deg); -webkit-mask: radial-gradient(circle, transparent 0 76%, #000 77% 81%, transparent 82%); mask: radial-gradient(circle, transparent 0 76%, #000 77% 81%, transparent 82%); opacity: .7; }
+.crank-screw { position: absolute; width: 9px; height: 9px; border: 1px solid #3e403a; border-radius: 50%; background: linear-gradient(135deg, #d1d1c8, #55584f 58%, #191b17); box-shadow: 0 2px 3px #0009; }
+.crank-screw::after { content: ""; position: absolute; top: 3px; left: 1px; width: 5px; height: 1px; background: #353730; transform: rotate(-28deg); }
+.crank-screw-a { top: 22px; left: 50%; transform: translateX(-50%); }
+.crank-screw-b { right: 28px; bottom: 43px; }
+.crank-screw-c { left: 28px; bottom: 43px; }
+.crank-axle { position: absolute; z-index: 3; top: 50%; left: 50%; width: 49px; height: 49px; border: 1px solid #8f9188; border-radius: 50%; background: radial-gradient(circle at 35% 28%, #ededE6, #8c8e86 31%, #4b4e46 55%, #171914 79%); transform: translate(-50%, -50%); box-shadow: inset 0 0 0 5px #3b3e36, 0 5px 9px #000b; }
+.crank-arm { position: absolute; z-index: 4; top: 50%; left: 50%; width: 83px; height: 14px; border: 1px solid #8f9188; border-radius: 8px; background: linear-gradient(180deg, #deded7 0, #9b9d95 24%, #4e5149 65%, #20221e 100%); box-shadow: 0 5px 8px #000b, inset 0 1px #fff8; transform: rotate(var(--angle)) translateX(28px); transform-origin: 0 50%; transition: transform 24ms linear; }
+.crank-knob { position: absolute; right: -31px; top: 50%; width: 42px; height: 62px; border: 1px solid #8c8e86; border-radius: 18px; background: linear-gradient(90deg, #2a2c27 0, #777a72 20%, #d1d1ca 48%, #676a62 72%, #20221d 100%); transform: translateY(-50%); box-shadow: 0 7px 11px #000c, inset 0 2px #ffffff66; }
+.crank-knob i { position: absolute; inset: 7px 10px; border-left: 1px solid #ffffff35; border-right: 1px solid #0008; border-radius: 10px; }
+.player-machine.is-turning .feed-window { transform: translateY(1px); box-shadow: inset 0 0 0 1px #96998e, 0 6px 16px #000a; }
 .player-crank-area p { margin: 18px 0 0; color: #d4d4ca; font-size: 12px; }
 
 .machine-footer { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 17px; border-top: 1px solid #494b43; color: #acaea4; font: 10px monospace; letter-spacing: .8px; }

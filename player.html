@@ -1,71 +1,73 @@
 <!doctype html>
-<html lang="en" translate="no">
+<html lang="ko" translate="no">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="google" content="notranslate">
-  <title>ORGO — Player</title>
-  <link rel="stylesheet" href="player.css?v=dropdown-visibility-151">
-  <script src="i18n.js?v=remove-language-switch-152" defer></script>
-  <script src="player.js?v=ko-copy-23" defer></script>
+  <title>ORGO — 수동 오르골 연주</title>
+  <link rel="stylesheet" href="player.css?v=manual-player-162">
+  <script src="player.js?v=manual-player-162" defer></script>
 </head>
 
 <body class="archive-player-page">
   <header class="player-header">
-    <a class="player-logo" href="index.html" aria-label="ORGO home">orgo<sup>®</sup></a>
-    <a class="back-link" href="archive.html" data-i18n="playerBackArchive">Back to archive</a>
+    <a class="player-logo" href="index.html" aria-label="ORGO 홈">orgo<sup>®</sup></a>
+    <a class="back-link" href="archive.html">아카이브로 돌아가기</a>
   </header>
 
   <main class="player-main">
     <section class="player-intro" aria-labelledby="player-title">
-      <p class="player-eyebrow" data-i18n="playerEyebrow">SAVED MELODY / MANUAL PLAYBACK</p>
-      <h1 id="player-title">Your saved melody</h1>
+      <p class="player-eyebrow">저장된 멜로디 / 수동 연주</p>
+      <h1 id="player-title">저장된 멜로디</h1>
       <p id="player-description" class="player-description">
-        Turn the handle clockwise. The saved paper moves through the music box and plays one note at a time.
+        손잡이를 시계 방향으로 돌리면 저장한 악보가 오르골 안으로 이동하며 한 음씩 연주됩니다.
       </p>
 
-      <div class="player-settings" aria-label="Music box settings">
+      <div class="player-settings" aria-label="오르골 설정">
         <label class="player-select">
-          <span data-i18n="playerTone">Tone</span>
-          <select id="player-tone" aria-label="Music box tone">
-            <option value="bright" data-i18n="toneBright">Bright starlight · clear high notes</option>
-            <option value="warm" data-i18n="toneWarm">Warm forest · balanced resonance</option>
-            <option value="soft" data-i18n="toneSoft">Night lullaby · gentle sustain</option>
+          <span>음색</span>
+          <select id="player-tone" aria-label="오르골 음색">
+            <option value="bright">맑은 별빛 · 선명한 고음</option>
+            <option value="warm">따뜻한 숲 · 균형 잡힌 울림</option>
+            <option value="soft">밤의 자장가 · 부드러운 여운</option>
           </select>
         </label>
         <label class="player-volume">
-          <span data-i18n="playerVolume">Volume</span>
-          <input id="player-volume" type="range" min="0" max="100" value="65" aria-label="Volume">
+          <span>음량</span>
+          <input id="player-volume" type="range" min="0" max="100" value="65" aria-label="음량">
         </label>
       </div>
     </section>
 
-    <section id="player-machine" class="player-machine" aria-label="Manual ORGO player">
-      <div class="machine-topline"><span>ORGO / MECHANICAL PLAYER</span><i aria-hidden="true"></i></div>
+    <section id="player-machine" class="player-machine" aria-label="수동 오르골 연주 장치">
       <div class="feed-window">
-        <canvas id="player-feed" width="960" height="180" aria-label="Saved paper passing through the music box"></canvas>
-        <span>PAPER FEED</span>
+        <canvas id="player-feed" width="960" height="180" aria-label="오르골 안으로 이동하는 저장 악보"></canvas>
+        <span>악보 이동</span>
       </div>
       <div class="player-crank-area">
-        <button id="player-crank" type="button" aria-label="Turn the music box crank clockwise to play">
+        <button id="player-crank" type="button" aria-label="오르골 손잡이를 시계 방향으로 돌려 연주하기">
           <span class="crank-shadow"></span>
+          <span class="crank-gear" aria-hidden="true"></span>
+          <span class="crank-screw crank-screw-a" aria-hidden="true"></span>
+          <span class="crank-screw crank-screw-b" aria-hidden="true"></span>
+          <span class="crank-screw crank-screw-c" aria-hidden="true"></span>
           <span class="crank-axle"></span>
-          <span class="crank-arm"><span class="crank-knob"></span></span>
+          <span class="crank-arm"><span class="crank-knob"><i aria-hidden="true"></i></span></span>
         </button>
-        <p id="player-status" data-i18n="playerInstruction">Drag the handle clockwise to play.</p>
+        <p id="player-status">손잡이를 잡고 시계 방향으로 천천히 돌려보세요.</p>
       </div>
       <div class="machine-footer">
-        <span id="player-progress">READY / 0%</span>
-        <button id="player-rewind" type="button" data-i18n="playerRewind">Rewind to start</button>
+        <span id="player-progress">준비 / 0%</span>
+        <button id="player-rewind" type="button">처음으로 되감기</button>
       </div>
     </section>
 
     <section class="saved-paper" aria-labelledby="saved-paper-title">
       <div class="saved-paper-head">
-        <span id="saved-paper-title" data-i18n="playerPaper">YOUR SAVED PAPER</span>
-        <span id="paper-meta">ARCHIVE / ORGO</span>
+        <span id="saved-paper-title">저장된 악보</span>
+        <span id="paper-meta">아카이브 / ORGO</span>
       </div>
-      <canvas id="player-sheet" width="1200" height="460" aria-label="Saved handwritten music paper"></canvas>
+      <canvas id="player-sheet" width="1200" height="460" aria-label="저장된 손글씨 악보"></canvas>
       <span class="sheet-rule" aria-hidden="true"></span>
     </section>
   </main>

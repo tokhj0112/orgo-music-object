@@ -2,8 +2,6 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
-  const t = (key) => window.orgoI18n?.text(key) || key;
-  const isKorean = () => document.documentElement.lang === "ko";
   const PAGE_WIDTH = 1200;
   const PAGE_HEIGHT = 460;
   const PAGE_ROTATION = Math.PI * 8;
@@ -67,17 +65,17 @@
   function formatDate(value) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "ORGO";
-    return new Intl.DateTimeFormat(isKorean() ? "ko-KR" : "en-US", { year: "numeric", month: "short", day: "numeric" }).format(date).toUpperCase();
+    return new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "short", day: "numeric" }).format(date);
   }
 
   function updateCopy() {
     if (!item) return;
-    const fallback = isKorean() ? "제목 없음" : "Untitled melody";
+    const fallback = "제목 없음";
     const title = item.title?.trim() || fallback;
     $("player-title").textContent = title;
-    $("player-description").textContent = t("playerDescription");
-    $("player-status").textContent = t("playerInstruction");
-    $("paper-meta").textContent = `${item.kind === "HAND" ? "HAND" : "MOUSE"} / ${formatDate(item.createdAt)}`;
+    $("player-description").textContent = "손잡이를 시계 방향으로 돌리면 저장한 악보가 오르골 안으로 이동하며 한 음씩 연주됩니다.";
+    $("player-status").textContent = "손잡이를 잡고 시계 방향으로 천천히 돌려보세요.";
+    $("paper-meta").textContent = `${item.kind === "HAND" ? "손 인식" : "마우스"} / ${formatDate(item.createdAt)}`;
     document.title = `${title} — ORGO`;
   }
 
@@ -201,7 +199,7 @@
 
   function updatePlayer() {
     crank.style.setProperty("--angle", `${angle}rad`);
-    $("player-progress").textContent = `PLAYING / ${Math.round(progress / PAGE_WIDTH * 100)}%`;
+    $("player-progress").textContent = `연주 중 / ${Math.round(progress / PAGE_WIDTH * 100)}%`;
     drawFeed();
   }
 
@@ -228,7 +226,9 @@
     if (!await audioReady()) return;
     crank.setPointerCapture(event.pointerId);
     previousAngle = pointerAngle(event);
-    $("player-status").textContent = isKorean() ? "손잡이를 돌리고 있어요…" : "Turning the music box…";
+    crank.classList.add("is-turning");
+    $("player-machine").classList.add("is-turning");
+    $("player-status").textContent = "손으로 오르골을 돌려 연주하는 중…";
   });
   crank.addEventListener("pointermove", (event) => {
     if (previousAngle === null) return;
@@ -239,7 +239,12 @@
     previousAngle = next;
     turn(Math.max(0, delta));
   });
-  ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => crank.addEventListener(eventName, () => { previousAngle = null; }));
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => crank.addEventListener(eventName, () => {
+    previousAngle = null;
+    crank.classList.remove("is-turning");
+    $("player-machine").classList.remove("is-turning");
+    $("player-status").textContent = "손잡이를 다시 돌리면 이어서 연주됩니다.";
+  }));
   crank.addEventListener("keydown", async (event) => {
     if (!["ArrowRight", "ArrowUp", " "].includes(event.key)) return;
     event.preventDefault();
@@ -248,19 +253,17 @@
 
   $("player-rewind").addEventListener("click", () => {
     progress = 0; angle = 0; activeHarmonyStep = -1;
-    $("player-status").textContent = t("playerInstruction");
+    $("player-status").textContent = "손잡이를 잡고 시계 방향으로 천천히 돌려보세요.";
     updatePlayer();
   });
   toneSelector.addEventListener("change", async () => { toneName = toneSelector.value; await audioReady(); });
   volume.addEventListener("input", () => { if (master && audio) master.gain.setTargetAtTime(Number(volume.value) / 100, audio.currentTime, .02); });
-  document.addEventListener("orgo-languagechange", updateCopy);
-
   if (!archiveId || !readItem()) {
     $("player-machine").remove();
     document.querySelector(".player-settings").remove();
     document.querySelector(".saved-paper").remove();
-    $("player-title").textContent = t("playerUnavailableTitle");
-    $("player-description").textContent = t("playerUnavailableCopy");
+    $("player-title").textContent = "저장한 곡을 찾을 수 없습니다";
+    $("player-description").textContent = "아카이브에서 다른 곡을 선택해 주세요.";
     document.querySelector(".player-intro").classList.add("player-empty");
   } else {
     updateCopy();

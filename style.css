@@ -2050,10 +2050,25 @@ body[data-mode="listen"] .actions button:focus-visible {
 }
 
 .write-controls-panel .custom {
+  display: grid;
+  place-items: center;
   width: 23px;
   height: 23px;
+  padding: 0;
+  font-size: 0;
   color: #e6e6e8;
   border-color: #ffffff52;
+}
+
+.write-controls-panel .custom::before {
+  content: "+";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding-bottom: 1px;
+  font: 300 17px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  pointer-events: none;
 }
 
 .write-controls-panel .weight {
