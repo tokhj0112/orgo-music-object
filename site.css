@@ -1266,7 +1266,7 @@ img {
   object-position: center;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  filter: saturate(.72) contrast(1.03) brightness(.92);
+  filter: saturate(.48) contrast(1.02) brightness(.88);
 }
 
 .lab-video-shade {
