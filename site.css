@@ -3875,9 +3875,9 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
 .story-title-ko {
   position: absolute;
   inset: 0 auto auto 0;
-  font-size: .82em;
-  line-height: 1.08;
-  letter-spacing: -.025em;
+  font-size: .74em;
+  line-height: 1.12;
+  letter-spacing: -.012em;
   word-break: keep-all;
   overflow-wrap: normal;
   opacity: 0;
@@ -4104,19 +4104,6 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
   transform: translate3d(0, 0, 0);
 }
 
-.story-chapter-final .story-link::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: linear-gradient(108deg, transparent 30%, #ffffff26 48%, transparent 66%);
-  transform: translateX(-120%);
-}
-
-.story-chapter-final[aria-hidden="false"] .story-link::after {
-  animation: story-cta-sheen 1.25s .38s cubic-bezier(.22, 1, .36, 1) both;
-}
-
 .story-chapter-final .story-link:hover,
 .story-chapter-final .story-link:focus-visible {
   color: #0b0b0c;
@@ -4124,11 +4111,6 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
   background: #f5f5f7;
   box-shadow: 0 20px 48px #000a;
   transform: translate3d(0, -4px, 0);
-}
-
-@keyframes story-cta-sheen {
-  from { transform: translateX(-120%); }
-  to { transform: translateX(120%); }
 }
 
 .story-sequence-ui {
@@ -4290,7 +4272,6 @@ html[data-orgo-view="lab"] .home-main > .lab-landing {
     transform: none;
   }
 
-  .story-chapter-final .story-link::after { animation: none; }
 }
 
 /* Floating handwriting archive — saved ink becomes the interface. */
