@@ -225,19 +225,19 @@
       const now = context.currentTime;
       const output = context.createGain();
       const filter = context.createBiquadFilter();
-      const level = tone === "strike" ? .075 : .052;
+      const level = tone === "drum" ? .082 : tone === "bass" ? .062 : .054;
 
       filter.type = "lowpass";
       filter.frequency.setValueAtTime(2900, now);
       output.gain.setValueAtTime(.0001, now);
       output.gain.exponentialRampToValueAtTime(level, now + .012);
-      output.gain.exponentialRampToValueAtTime(.0001, now + (tone === "drag" ? .52 : .34));
+      output.gain.exponentialRampToValueAtTime(.0001, now + (tone === "bass" ? .56 : tone === "guitar" ? .48 : .3));
       output.connect(filter).connect(context.destination);
 
       const settings = {
-        press: { wave: "sine", from: 470, to: 360, duration: .34 },
-        drag: { wave: "triangle", from: 190, to: 430, duration: .52 },
-        strike: { wave: "sine", from: 148, to: 82, duration: .34 },
+        bass: { wave: "sawtooth", from: 110, to: 55, duration: .56 },
+        guitar: { wave: "triangle", from: 196, to: 185, duration: .48 },
+        drum: { wave: "sine", from: 148, to: 48, duration: .3 },
       }[tone] || { wave: "sine", from: 330, to: 280, duration: .34 };
       const oscillator = context.createOscillator();
       oscillator.type = settings.wave;
@@ -247,17 +247,17 @@
       oscillator.start(now);
       oscillator.stop(now + settings.duration + .03);
 
-      if (tone === "strike") {
+      if (tone === "guitar" || tone === "drum") {
         const overtone = context.createOscillator();
         const overtoneGain = context.createGain();
         overtone.type = "triangle";
-        overtone.frequency.setValueAtTime(690, now);
-        overtone.frequency.exponentialRampToValueAtTime(420, now + .2);
-        overtoneGain.gain.setValueAtTime(.25, now);
-        overtoneGain.gain.exponentialRampToValueAtTime(.0001, now + .22);
+        overtone.frequency.setValueAtTime(tone === "guitar" ? 392 : 690, now);
+        overtone.frequency.exponentialRampToValueAtTime(tone === "guitar" ? 370 : 360, now + .24);
+        overtoneGain.gain.setValueAtTime(tone === "guitar" ? .18 : .25, now);
+        overtoneGain.gain.exponentialRampToValueAtTime(.0001, now + (tone === "guitar" ? .42 : .22));
         overtone.connect(overtoneGain).connect(output);
         overtone.start(now);
-        overtone.stop(now + .24);
+        overtone.stop(now + (tone === "guitar" ? .44 : .24));
       }
 
       pulsePreviewCard(card);
@@ -862,7 +862,7 @@
 
       const filter = context.createBiquadFilter();
       filter.type = "lowpass";
-      filter.Q.value = waveform === "sawtooth" ? 7 : 2.8;
+      filter.Q.value = waveform === "sawtooth" ? 7 : waveform === "guitar" ? 3.4 : 2.8;
 
       const gain = context.createGain();
       const now = context.currentTime;
@@ -871,14 +871,14 @@
       connectVoice(filter, gain);
 
       const primary = context.createOscillator();
-      primary.type = waveform;
+      primary.type = waveform === "guitar" ? "triangle" : waveform;
       primary.connect(filter);
       primary.start(now);
 
       const shimmer = context.createOscillator();
-      shimmer.type = waveform === "square" ? "square" : "sine";
+      shimmer.type = waveform === "guitar" ? "sawtooth" : waveform === "square" ? "square" : "sine";
       const shimmerGain = context.createGain();
-      shimmerGain.gain.value = waveform === "sine" ? .19 : .08;
+      shimmerGain.gain.value = waveform === "sine" ? .19 : waveform === "guitar" ? .105 : .08;
       shimmer.connect(shimmerGain);
       shimmerGain.connect(filter);
       shimmer.start(now);
@@ -919,19 +919,20 @@
       const filter = context.createBiquadFilter();
       const gain = context.createGain();
 
-      oscillator.type = waveform;
+      oscillator.type = waveform === "guitar" ? "triangle" : waveform;
       oscillator.frequency.setValueAtTime(frequency, now);
       filter.type = "lowpass";
-      filter.frequency.setValueAtTime(waveform === "sawtooth" ? 1450 : 2700, now);
+      filter.frequency.setValueAtTime(waveform === "sawtooth" ? 1450 : waveform === "guitar" ? 2200 : 2700, now);
       filter.frequency.exponentialRampToValueAtTime(420, now + .28);
-      filter.Q.value = waveform === "square" ? 4 : 2;
+      filter.Q.value = waveform === "square" ? 4 : waveform === "guitar" ? 1.7 : 2;
       gain.gain.setValueAtTime(.0001, now);
       gain.gain.exponentialRampToValueAtTime(.21, now + .012);
-      gain.gain.exponentialRampToValueAtTime(.0001, now + .34);
+      const decay = waveform === "guitar" ? .56 : .34;
+      gain.gain.exponentialRampToValueAtTime(.0001, now + decay);
       oscillator.connect(filter);
       connectVoice(filter, gain);
       oscillator.start(now);
-      oscillator.stop(now + .38);
+      oscillator.stop(now + decay + .04);
     }
 
     function playPianoNote(frequency, velocity = .78) {

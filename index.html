@@ -23,12 +23,12 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="site.css?v=lab-copy-layout-166">
+  <link rel="stylesheet" href="site.css?v=backing-sound-lab-167">
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-  <script src="i18n.js?v=lab-copy-layout-166" defer></script>
-  <script src="site.js?v=lab-copy-layout-166" defer></script>
+  <script src="i18n.js?v=backing-sound-lab-167" defer></script>
+  <script src="site.js?v=backing-sound-lab-167" defer></script>
 </head>
 
 <body>
@@ -226,14 +226,14 @@
       </div>
 
       <div class="lab-landing-playground" data-lab-landing-playground data-i18n-attr="labLandingPlaygroundLabel">
-        <button class="lab-touch-card lab-touch-press" type="button" data-lab-preview-tone="press" data-i18n-attr="labLandingPressLabel">
-          <span>01</span><strong>PRESS</strong><small data-i18n="labLandingPressHint">눌러서 듣기</small><i aria-hidden="true"></i>
+        <button class="lab-touch-card lab-touch-press" type="button" data-lab-preview-tone="bass" data-i18n-attr="labLandingPressLabel">
+          <span>01</span><strong>BASS</strong><small data-i18n="labLandingPressHint">당겨서 낮은 울림 듣기</small><i aria-hidden="true"></i>
         </button>
-        <button class="lab-touch-card lab-touch-drag" type="button" data-lab-preview-tone="drag" data-i18n-attr="labLandingDragLabel">
-          <span>02</span><strong>DRAG</strong><small data-i18n="labLandingDragHint">끌어서 변화시키기</small><i aria-hidden="true"></i>
+        <button class="lab-touch-card lab-touch-drag" type="button" data-lab-preview-tone="guitar" data-i18n-attr="labLandingDragLabel">
+          <span>02</span><strong>GUITAR</strong><small data-i18n="labLandingDragHint">쓸어서 코드 듣기</small><i aria-hidden="true"></i>
         </button>
-        <button class="lab-touch-card lab-touch-strike" type="button" data-lab-preview-tone="strike" data-i18n-attr="labLandingStrikeLabel">
-          <span>03</span><strong>STRIKE</strong><small data-i18n="labLandingStrikeHint">두드려서 울리기</small><i aria-hidden="true"></i>
+        <button class="lab-touch-card lab-touch-strike" type="button" data-lab-preview-tone="drum" data-i18n-attr="labLandingStrikeLabel">
+          <span>03</span><strong>DRUM</strong><small data-i18n="labLandingStrikeHint">두드려서 리듬 듣기</small><i aria-hidden="true"></i>
         </button>
       </div>
 
@@ -306,18 +306,18 @@
 
     <section class="sound-lab" id="sound-lab" aria-labelledby="sound-lab-title">
       <header class="sound-lab-intro reveal">
-        <h2 class="sound-lab-hover-title" id="sound-lab-title" tabindex="0" aria-label="Choose a sound, then move it by hand. 마우스를 올리면 한국어로 표시됩니다.">
+        <h2 class="sound-lab-hover-title" id="sound-lab-title" tabindex="0" aria-label="Touch the sounds behind your melody. 마우스를 올리면 한국어로 표시됩니다.">
           <span class="sound-lab-title-layer sound-lab-title-en" aria-hidden="true">
-            <span>Choose a sound,</span>
-            <span>then move it by</span>
-            <span>hand</span>
+            <span>Touch the sounds</span>
+            <span>behind your</span>
+            <span>melody</span>
           </span>
           <span class="sound-lab-title-layer sound-lab-title-ko" aria-hidden="true" lang="ko">
-            <span>소리를 고르고</span>
-            <span>손으로 움직여보세요</span>
+            <span>멜로디 뒤의 소리를</span>
+            <span>손으로 만져보세요</span>
           </span>
         </h2>
-        <p lang="ko">오르골의 범위를 넘어 파형과 리듬을 직접 만지고 움직여보는 전자음악 놀이터입니다.</p>
+        <p lang="ko">오르골 멜로디에 더할 기타·베이스·드럼을 직접 듣고 손으로 만져보는 공간입니다. 여기서 고른 소리는 COMPOSE의 백킹 사운드로 이어집니다.</p>
       </header>
 
       <ol class="lab-howto reveal" aria-label="사운드 랩 사용 순서">
@@ -330,10 +330,10 @@
         <div class="lab-voices" aria-label="Sound palette">
           <span class="lab-label">SOUND</span>
           <button class="lab-voice is-active" type="button" data-wave="sine" aria-pressed="true">
-            <span>01</span><strong>GLASS</strong><small data-i18n="labGlass">맑고 둥근 소리</small>
+            <span>01</span><strong>ORGO</strong><small data-i18n="labOrgo">가운데 놓이는 오르골 멜로디</small>
           </button>
-          <button class="lab-voice" type="button" data-wave="square" aria-pressed="false">
-            <span>02</span><strong>PULSE</strong><small data-i18n="labPulse">짧고 선명한 파동</small>
+          <button class="lab-voice" type="button" data-wave="guitar" aria-pressed="false">
+            <span>02</span><strong>GUITAR</strong><small data-i18n="labGuitar">손으로 쓸어보는 기타 코드</small>
           </button>
           <button class="lab-voice" type="button" data-wave="sawtooth" aria-pressed="false">
             <span>03</span><strong>BASS</strong><small data-i18n="labBass">낮고 거친 진동</small>
