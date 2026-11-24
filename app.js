@@ -102,15 +102,14 @@
   const BACKING_STEPS = 16;
   // 오르골이 항상 중심에 남도록 반주는 한 단계 뒤에서 연주합니다.
   // 선율이 울리는 순간에는 이 값을 기준으로 짧게 덕킹합니다.
-  const BACKING_BUS_LEVEL = 0.68;
+  const BACKING_BUS_LEVEL = 0.82;
   const harmonyChoices = [
-    { name: "Cadd9", root: 65.41, tones: [0, 2, 4, 7], frequencies: [130.81, 164.81, 196, 293.66] },
-    { name: "Am7", root: 55, tones: [9, 0, 4, 7], frequencies: [110, 130.81, 164.81, 196, 220] },
-    { name: "Gsus6", root: 49, tones: [7, 9, 0, 2], frequencies: [98, 146.83, 196, 220, 261.63] },
-    { name: "Em11", root: 82.41, tones: [4, 7, 9, 2], frequencies: [164.81, 196, 220, 293.66] },
-    { name: "Dsus", root: 73.42, tones: [2, 4, 7, 9], frequencies: [146.83, 164.81, 196, 220] },
+    { name: "Cmaj9", root: 65.41, tones: [0, 2, 4, 7, 11], frequencies: [130.81, 164.81, 196, 246.94, 293.66] },
+    { name: "G6", root: 49, tones: [7, 11, 2, 4], frequencies: [98, 146.83, 164.81, 196, 246.94] },
+    { name: "Fmaj7", root: 43.65, tones: [5, 9, 0, 4], frequencies: [87.31, 130.81, 164.81, 174.61, 220] },
+    { name: "C/E", root: 82.41, tones: [0, 4, 7], frequencies: [82.41, 130.81, 164.81, 196, 261.63] },
   ];
-  const fallbackHarmony = [0, 1, 2, 0];
+  const fallbackHarmony = [0, 1, 2, 3];
 
   // 멜로디 음색과 같은 방향으로 반주도 밝기와 어택을 바꿉니다.
   // 반주가 별개의 트랙처럼 튀지 않고 어떤 손글씨에서도 한 악기군처럼 들리게 합니다.
@@ -118,29 +117,29 @@
     bright: {
       guitarBrightness: 0.76,
       guitarCutoff: 5400,
-      guitarLevel: 0.82,
+      guitarLevel: 0.98,
       bassAttack: 760,
-      bassLevel: 0.8,
+      bassLevel: 0.96,
       percussionTone: 3600,
-      percussionLevel: 0.78,
+      percussionLevel: 0.94,
     },
     warm: {
       guitarBrightness: 0.68,
       guitarCutoff: 4900,
-      guitarLevel: 0.84,
+      guitarLevel: 1,
       bassAttack: 660,
-      bassLevel: 0.82,
+      bassLevel: 0.98,
       percussionTone: 3100,
-      percussionLevel: 0.74,
+      percussionLevel: 0.92,
     },
     soft: {
       guitarBrightness: 0.58,
       guitarCutoff: 4300,
-      guitarLevel: 0.78,
+      guitarLevel: 0.92,
       bassAttack: 560,
-      bassLevel: 0.76,
+      bassLevel: 0.9,
       percussionTone: 2500,
-      percussionLevel: 0.66,
+      percussionLevel: 0.84,
     },
   };
 
@@ -255,7 +254,7 @@
         const guitarDry = audio.createGain();
         const guitarWet = audio.createGain();
         const guitarCompressor = audio.createDynamicsCompressor();
-        guitarBus.gain.value = 0.82;
+        guitarBus.gain.value = 0.96;
         guitarHighpass.type = "highpass";
         guitarHighpass.frequency.value = 128;
         guitarWood.type = "peaking";
@@ -269,7 +268,7 @@
         guitarPresence.type = "peaking";
         guitarPresence.frequency.value = 2550;
         guitarPresence.Q.value = 0.75;
-        guitarPresence.gain.value = -1.2;
+        guitarPresence.gain.value = 0;
         guitarAir.type = "lowpass";
         guitarAir.frequency.value = 5200;
         guitarAir.Q.value = 0.42;
@@ -297,16 +296,16 @@
         const bassPresence = audio.createBiquadFilter();
         const bassSaturation = audio.createWaveShaper();
         const bassCompressor = audio.createDynamicsCompressor();
-        bassBus.gain.value = 0.78;
+        bassBus.gain.value = 0.92;
         bassHighpass.type = "highpass";
         bassHighpass.frequency.value = 31;
         bassWeight.type = "lowshelf";
         bassWeight.frequency.value = 116;
-        bassWeight.gain.value = 1.2;
+        bassWeight.gain.value = 1.8;
         bassPresence.type = "peaking";
         bassPresence.frequency.value = 520;
         bassPresence.Q.value = 0.78;
-        bassPresence.gain.value = 0.8;
+        bassPresence.gain.value = 1.4;
         bassSaturation.curve = saturationCurve(0.9);
         bassSaturation.oversample = "4x";
         bassCompressor.threshold.value = -29;
@@ -323,7 +322,7 @@
           .connect(backingBus);
 
         beatBus = audio.createGain();
-        beatBus.gain.value = 0.7;
+        beatBus.gain.value = 0.9;
         beatBus.connect(backingBus);
 
         const limiter = audio.createDynamicsCompressor();
@@ -745,7 +744,7 @@
     if (!audio || !backingBus || backingName === "none") return;
 
     const time = audio.currentTime;
-    const amount = Math.max(0.42, Math.min(0.54, 0.54 - strength * 0.08));
+    const amount = Math.max(0.6, Math.min(0.7, 0.7 - strength * 0.06));
 
     backingBus.gain.cancelScheduledValues(time);
     backingBus.gain.setValueAtTime(
@@ -1074,7 +1073,7 @@
 
       envelope.gain.setValueAtTime(0.0001, start);
       envelope.gain.exponentialRampToValueAtTime(
-        0.066 * accent * mix * character.guitarLevel * velocityHumanize * (1 - index * 0.04),
+        0.082 * accent * mix * character.guitarLevel * velocityHumanize * (1 - index * 0.04),
         start + 0.008
       );
       envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
@@ -1098,7 +1097,7 @@
     const time = audio.currentTime;
     const character = backingCharacters[toneName] || backingCharacters.warm;
     const ratios = [1, 1, 2, 1.5];
-    const accents = [0.21, 0.075, 0.145, 0.055];
+    const accents = [0.25, 0.09, 0.18, 0.07];
     const frequency = harmony.root * ratios[beatInChord];
     const tone = audio.createBiquadFilter();
     const envelope = audio.createGain();
@@ -1171,29 +1170,34 @@
     const beatInChord = beatIndex % 4;
     const character = backingCharacters[toneName] || backingCharacters.warm;
 
-    // 빽빽한 구간에서는 오프비트 하이햇을 비워 타악기가 글씨 리듬과 경쟁하지 않게 합니다.
-    if (noteDensity < 6 || beatInChord % 2 === 0) {
+    // 한 박마다 정박과 오프비트에 하이햇을 배치해 기본 8비트를 만듭니다.
+    const eighthDuration = PAGE_DURATION / BACKING_STEPS / 2000;
+    const playHat = (offset, level) => {
       const hat = audio.createBufferSource();
       const hatFilter = audio.createBiquadFilter();
       const hatEnvelope = audio.createGain();
+      const start = time + offset;
       hat.buffer = backingNoise();
       hatFilter.type = "bandpass";
       hatFilter.frequency.value = character.percussionTone;
       hatFilter.Q.value = 0.78;
       hatEnvelope.gain.setValueAtTime(
-        (beatInChord % 2 === 0 ? 0.038 : 0.022) * mix * character.percussionLevel,
-        time
+        level * mix * character.percussionLevel,
+        start
       );
-      hatEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.09);
+      hatEnvelope.gain.exponentialRampToValueAtTime(0.0001, start + 0.075);
       hat.connect(hatFilter).connect(hatEnvelope).connect(beatBus);
-      hat.start(time);
-      hat.stop(time + 0.1);
+      hat.start(start);
+      hat.stop(start + 0.085);
       hat.onended = () => {
         hat.disconnect();
         hatFilter.disconnect();
         hatEnvelope.disconnect();
       };
-    }
+    };
+
+    playHat(0, beatInChord === 0 ? 0.058 : 0.05);
+    playHat(eighthDuration, noteDensity >= 7 ? 0.032 : 0.042);
 
     if (beatInChord === 0 || beatInChord === 2) {
       const kick = audio.createOscillator();
@@ -1202,7 +1206,7 @@
       kick.frequency.setValueAtTime(92, time);
       kick.frequency.exponentialRampToValueAtTime(48, time + 0.18);
       kickEnvelope.gain.setValueAtTime(
-        (beatInChord === 0 ? 0.22 : 0.155) * mix * character.percussionLevel,
+        (beatInChord === 0 ? 0.28 : 0.2) * mix * character.percussionLevel,
         time
       );
       kickEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.36);
@@ -1224,7 +1228,7 @@
       snareFilter.frequency.value = character.percussionTone * 0.43;
       snareFilter.Q.value = 0.68;
       snareEnvelope.gain.setValueAtTime(
-        (beatInChord === 1 ? 0.102 : 0.078) * mix * character.percussionLevel,
+        (beatInChord === 1 ? 0.14 : 0.12) * mix * character.percussionLevel,
         time
       );
       snareEnvelope.gain.exponentialRampToValueAtTime(0.0001, time + 0.21);
@@ -1258,7 +1262,7 @@
     );
     // 음표가 빽빽한 구간에서는 반주를 살짝 낮추고,
     // 비어 있는 구간에서는 반주가 리듬을 채우도록 자동 조절합니다.
-    const mix = Math.max(0.62, Math.min(0.88, 0.88 - noteDensity * 0.04));
+    const mix = Math.max(0.82, Math.min(1.05, 1.05 - noteDensity * 0.035));
 
     if (backingName === "guitar") playGuitarBacking(beatIndex, harmony, mix, noteDensity);
     else if (backingName === "bass") playBassBacking(beatIndex, harmony, mix, noteDensity);
