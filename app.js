@@ -102,7 +102,7 @@
   const BACKING_STEPS = 16;
   // 오르골이 항상 중심에 남도록 반주는 한 단계 뒤에서 연주합니다.
   // 선율이 울리는 순간에는 이 값을 기준으로 짧게 덕킹합니다.
-  const BACKING_BUS_LEVEL = 0.82;
+  const BACKING_BUS_LEVEL = 0.96;
   const harmonyChoices = [
     { name: "Cmaj9", root: 65.41, tones: [0, 2, 4, 7, 11], frequencies: [130.81, 164.81, 196, 246.94, 293.66] },
     { name: "G6", root: 49, tones: [7, 11, 2, 4], frequencies: [98, 146.83, 164.81, 196, 246.94] },
@@ -254,7 +254,7 @@
         const guitarDry = audio.createGain();
         const guitarWet = audio.createGain();
         const guitarCompressor = audio.createDynamicsCompressor();
-        guitarBus.gain.value = 0.96;
+        guitarBus.gain.value = 1.08;
         guitarHighpass.type = "highpass";
         guitarHighpass.frequency.value = 128;
         guitarWood.type = "peaking";
@@ -296,7 +296,7 @@
         const bassPresence = audio.createBiquadFilter();
         const bassSaturation = audio.createWaveShaper();
         const bassCompressor = audio.createDynamicsCompressor();
-        bassBus.gain.value = 0.92;
+        bassBus.gain.value = 1.04;
         bassHighpass.type = "highpass";
         bassHighpass.frequency.value = 31;
         bassWeight.type = "lowshelf";
@@ -322,7 +322,7 @@
           .connect(backingBus);
 
         beatBus = audio.createGain();
-        beatBus.gain.value = 0.9;
+        beatBus.gain.value = 1.02;
         beatBus.connect(backingBus);
 
         const limiter = audio.createDynamicsCompressor();
@@ -744,7 +744,7 @@
     if (!audio || !backingBus || backingName === "none") return;
 
     const time = audio.currentTime;
-    const amount = Math.max(0.6, Math.min(0.7, 0.7 - strength * 0.06));
+    const amount = Math.max(0.7, Math.min(0.8, 0.8 - strength * 0.05));
 
     backingBus.gain.cancelScheduledValues(time);
     backingBus.gain.setValueAtTime(
@@ -1073,7 +1073,7 @@
 
       envelope.gain.setValueAtTime(0.0001, start);
       envelope.gain.exponentialRampToValueAtTime(
-        0.082 * accent * mix * character.guitarLevel * velocityHumanize * (1 - index * 0.04),
+        0.09 * accent * mix * character.guitarLevel * velocityHumanize * (1 - index * 0.04),
         start + 0.008
       );
       envelope.gain.exponentialRampToValueAtTime(0.0001, start + duration);
@@ -1097,7 +1097,7 @@
     const time = audio.currentTime;
     const character = backingCharacters[toneName] || backingCharacters.warm;
     const ratios = [1, 1, 2, 1.5];
-    const accents = [0.25, 0.09, 0.18, 0.07];
+    const accents = [0.28, 0.1, 0.2, 0.08];
     const frequency = harmony.root * ratios[beatInChord];
     const tone = audio.createBiquadFilter();
     const envelope = audio.createGain();
@@ -1262,7 +1262,7 @@
     );
     // 음표가 빽빽한 구간에서는 반주를 살짝 낮추고,
     // 비어 있는 구간에서는 반주가 리듬을 채우도록 자동 조절합니다.
-    const mix = Math.max(0.82, Math.min(1.05, 1.05 - noteDensity * 0.035));
+    const mix = Math.max(0.92, Math.min(1.15, 1.15 - noteDensity * 0.035));
 
     if (backingName === "guitar") playGuitarBacking(beatIndex, harmony, mix, noteDensity);
     else if (backingName === "bass") playBassBacking(beatIndex, harmony, mix, noteDensity);
